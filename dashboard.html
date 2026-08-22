@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>dashboard</title>
+    <link rel="stylesheet" href="./src/assets/css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+  </head>
+
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="welcome">
+        <h1>
+          سلام
+          <span id="headerUsername"></span>
+        </h1>
+        <p>خلاصه وضعیت مالی شما</p>
+      </div>
+      <button class="notification-btn">
+        <i class="fas fa-bell"></i>
+      </button>
+    </header>
+
+    <!-- Main -->
+    <main class="main">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <h2 class="logo">
+          <i class="fas fa-wallet"></i>
+          مدیریت هزینه
+        </h2>
+        <nav class="sidebar-nav">
+          <a href="./dashboard.html" class="nav-link active">
+            <i class="fas fa-home"></i>
+            <span>داشبورد</span>
+          </a>
+          <a href="./transaction.html" class="nav-link">
+            <i class="fas fa-exchange-alt"></i>
+            <span>تراکنش‌ها</span>
+          </a>
+          <a href="#" class="nav-link">
+            <i class="fas fa-chart-pie"></i>
+            <span>بودجه‌ها</span>
+          </a>
+          <a href="#" class="nav-link">
+            <i class="fas fa-user"></i>
+            <span>پروفایل</span>
+          </a>
+        </nav>
+      </aside>
+
+      <!-- Page Section -->
+      <section class="page">
+        <!-- Cards -->
+        <section class="cards">
+          <div class="card balance-card">
+            <div class="card-icon">
+              <i class="fas fa-wallet"></i>
+            </div>
+            <div class="card-info">
+              <p>موجودی کل</p>
+              <h2>$ 12,450</h2>
+            </div>
+          </div>
+
+          <div class="card income-card">
+            <div class="card-icon">
+              <i class="fas fa-arrow-down"></i>
+            </div>
+            <div class="card-info">
+              <p>درآمد این ماه</p>
+              <h2>$ 4,500</h2>
+            </div>
+          </div>
+
+          <div class="card expense-card">
+            <div class="card-icon">
+              <i class="fas fa-arrow-up"></i>
+            </div>
+            <div class="card-info">
+              <p>هزینه این ماه</p>
+              <h2>$ 2,100</h2>
+            </div>
+          </div>
+        </section>
+
+        <!-- Charts & Budgets -->
+        <section class="dashboard-grid">
+          <!-- Expenses -->
+          <div class="panel">
+            <h3>هزینه های این ماه</h3>
+            <div class="chart-container">
+              <canvas class="incomeChart"></canvas>
+            </div>
+            <p class="chart-text">بیشترین هزینه مربوط به غذا بوده است.</p>
+          </div>
+          <!-- Expenses -->
+          <div class="panel">
+            <h3>روند هزینه های این ماه</h3>
+            <div class="process-chart-container">
+              <canvas class="processChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Budgets -->
+          <div class="panel budgets-panel">
+            <h3>بودجه ها</h3>
+            <div class="budget">
+              <div class="budget-info">
+                <span>غذا</span>
+                <span>70%</span>
+              </div>
+              <div class="progress">
+                <span style="width: 70%"></span>
+              </div>
+            </div>
+
+            <div class="budget">
+              <div class="budget-info">
+                <span>حمل و نقل</span>
+                <span>45%</span>
+              </div>
+
+              <div class="progress">
+                <span style="width: 45%"></span>
+              </div>
+            </div>
+
+            <div class="budget">
+              <div class="budget-info">
+                <span>تفریح</span>
+                <span>30%</span>
+              </div>
+              <div class="progress">
+                <span style="width: 30%"></span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Transactions -->
+        <section class="panel transactions">
+          <div class="panel-header">
+            <h3>آخرین تراکنش ها</h3>
+            <button class="add-btn">
+              <i class="fas fa-plus"></i>
+              تراکنش جدید
+            </button>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>ردیف</th>
+                <th>عنوان</th>
+                <th>دسته</th>
+                <th>مقدار</th>
+                <th>تاریخ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="listId">1</td>
+                <td>رستوران</td>
+                <td>هزینه ها</td>
+                <td>$25</td>
+                <td>امروز</td>
+              </tr>
+              <tr>
+                <td class="listId">2</td>
+                <td>حمل و نقل</td>
+                <td>هزینه ها</td>
+                <td>$10</td>
+                <td>دیروز</td>
+              </tr>
+              <tr>
+                <td class="listId">3</td>
+                <td>حقوق</td>
+                <td>درآمد ها</td>
+                <td>$1,200</td>
+                <td>3 روز قبل</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Transaction -->
+          <!-- <div class="transaction">
+            <div class="transaction-info">
+              <div>
+                <span class="strong">رستوران</span>
+                <span class="small">امروز</span>
+              </div>
+            </div>
+            <span class="amount negative"> - $25 </span>
+          </div> -->
+
+          <!-- Transaction -->
+          <!-- <div class="transaction">
+            <div class="transaction-info">
+              <div>
+                <span class="strong">حمل و نقل</span>
+                <span class="small">دیروز</span>
+              </div>
+            </div>
+            <span class="amount negative"> - $10 </span>
+          </div> -->
+
+          <!-- Transaction -->
+          <!-- <div class="transaction">
+            <div class="transaction-info">
+              <div>
+                <span class="strong">حقوق</span>
+                <span class="small">5 روز پیش</span>
+              </div>
+            </div>
+            <span class="amount positive"> + $1,200 </span>
+          </div> -->
+        </section>
+      </section>
+
+      <!-- Mobile Navigation -->
+      <section class="mobile-nav">
+        <nav class="mobile-navigation">
+          <ul class="mobile-navigation-list">
+            <li class="nav-bottom-link activeNav">
+              <a href="./dashboard.html"><i class="fas fa-home"></i></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href="./transaction.html"
+                ><i class="fas fa-exchange-alt"></i
+              ></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href=""><i class="fas fa-plus"></i></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href=""><i class="fas fa-chart-pie"></i></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href=""><i class="fas fa-user"></i></a>
+            </li>
+          </ul>
+        </nav>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="./src/assets/js/dashboard.js"></script>
+  </body>
+</html>
