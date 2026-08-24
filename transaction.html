@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>dashboard</title>
+    <title>transaction</title>
     <link rel="stylesheet" href="./src/assets/css/style.css" />
     <link
       rel="stylesheet"
@@ -35,11 +35,11 @@
           مدیریت هزینه
         </h2>
         <nav class="sidebar-nav">
-          <a href="./dashboard.html" class="nav-link active">
+          <a href="./dashboard.html" class="nav-link">
             <i class="fas fa-home"></i>
             <span>داشبورد</span>
           </a>
-          <a href="./transaction.html" class="nav-link">
+          <a href="./transaction.html" class="nav-link active">
             <i class="fas fa-exchange-alt"></i>
             <span>تراکنش‌ها</span>
           </a>
@@ -55,59 +55,182 @@
       </aside>
 
       <!-- Transactions -->
-      <section class="panel transactions">
-        <div class="panel-header">
-          <h3>لیست تراکنش ها</h3>
-          <button class="add-btn">
-            <i class="fas fa-plus"></i>
-            تراکنش جدید
-          </button>
-        </div>
+      <section class="page transactions">
+        <div class="search-section">
+          <!-- search -->
+          <div class="search-box">
+            <i class="fas fa-search"></i>
 
-        <table>
-          <thead>
-            <tr>
-              <th>ردیف</th>
-              <th>عنوان</th>
-              <th>دسته</th>
-              <th>مقدار</th>
-              <th>تاریخ</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="listId">1</td>
-              <td>رستوران</td>
-              <td>هزینه ها</td>
-              <td>$25</td>
-              <td>امروز</td>
-            </tr>
-            <tr>
-              <td class="listId">2</td>
-              <td>حمل و نقل</td>
-              <td>هزینه ها</td>
-              <td>$10</td>
-              <td>دیروز</td>
-            </tr>
-            <tr>
-              <td class="listId">3</td>
-              <td>حقوق</td>
-              <td>درآمد ها</td>
-              <td>$1,200</td>
-              <td>3 روز قبل</td>
-            </tr>
-          </tbody>
-        </table>
+            <input
+              id="search"
+              type="search"
+              placeholder="جستجوی تراکنش..."
+              autocomplete="off"
+            />
+
+            <button id="filterBtn" type="button">
+              <i class="fas fa-filter"></i>
+              فیلتر
+            </button>
+          </div>
+
+          <!-- Filters -->
+          <div class="filters">
+            <div class="filter-item">
+              <label for="monthFilter">ماه</label>
+
+              <select id="monthFilter">
+                <option value="all">همه ماه‌ها</option>
+                <option value="1">فروردین</option>
+                <option value="2">اردیبهشت</option>
+                <option value="3">خرداد</option>
+              </select>
+            </div>
+
+            <div class="filter-item">
+              <label for="categoryFilter">دسته</label>
+
+              <select id="categoryFilter">
+                <option value="all">همه دسته‌ها</option>
+                <option value="food">غذا</option>
+                <option value="transport">حمل و نقل</option>
+                <option value="shopping">خرید</option>
+                <option value="entertainment">تفریح</option>
+                <option value="salary">درآمد</option>
+              </select>
+            </div>
+
+            <div class="filter-item">
+              <label for="tagFilter">برچسب</label>
+
+              <select id="tagFilter">
+                <option value="all">همه برچسب‌ها</option>
+                <option value="important">مهم</option>
+                <option value="daily">روزمره</option>
+                <option value="work">کاری</option>
+              </select>
+            </div>
+
+            <div class="filter-item">
+              <label for="paymentFilter">روش پرداخت</label>
+
+              <select id="paymentFilter">
+                <option value="all">همه روش‌ها</option>
+                <option value="cash">نقدی</option>
+                <option value="online">آنلاین</option>
+              </select>
+            </div>
+
+            <div class="filter-item">
+              <label for="sortFilter">مرتب‌سازی</label>
+
+              <select id="sortFilter">
+                <option value="highest">بیشترین مبلغ</option>
+                <option value="lowest">کمترین مبلغ</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="list-part">
+          <div class="panel-header">
+            <h3>لیست تراکنش ها</h3>
+            <button class="add-btn">
+              <i class="fas fa-plus"></i>
+              تراکنش جدید
+            </button>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>ردیف</th>
+                <th>عنوان</th>
+                <th>دسته</th>
+                <th>مقدار</th>
+                <th>تاریخ</th>
+                <th>عملیات</th>
+              </tr>
+            </thead>
+
+            <tbody id="transactionBody">
+              <tr
+                data-month="1"
+                data-category="food"
+                data-tag="daily"
+                data-payment="cash"
+                data-amount="-25"
+              >
+                <td class="listId">1</td>
+                <td>رستوران</td>
+                <td>غذا</td>
+                <td>-25 $</td>
+                <td>امروز</td>
+                <td>
+                  <button class="delete-btn">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                  <button class="edit-btn">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </td>
+              </tr>
+
+              <tr
+                data-month="2"
+                data-category="transport"
+                data-tag="daily"
+                data-payment="online"
+                data-amount="-10"
+              >
+                <td class="listId">2</td>
+                <td>حمل و نقل</td>
+                <td>حمل و نقل</td>
+                <td>-10 $</td>
+                <td>دیروز</td>
+                <td>
+                  <button class="delete-btn">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                  <button class="edit-btn">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </td>
+              </tr>
+
+              <tr
+                data-month="all"
+                data-category="salary"
+                data-tag="work"
+                data-payment="online"
+                data-amount="1200"
+              >
+                <td class="listId">3</td>
+                <td>حقوق</td>
+                <td>درآمد</td>
+                <td>1200 $</td>
+                <td>3 روز قبل</td>
+                <td>
+                  <button class="delete-btn">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                  <button class="edit-btn">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
       <!-- Mobile Navigation -->
       <section class="mobile-nav">
         <nav class="mobile-navigation">
           <ul class="mobile-navigation-list">
-            <li class="nav-bottom-link activeNav">
+            <li class="nav-bottom-link">
               <a href="./dashboard.html"><i class="fas fa-home"></i></a>
             </li>
-            <li class="nav-bottom-link">
+            <li class="nav-bottom-link activeNav">
               <a href="./transaction.html"
                 ><i class="fas fa-exchange-alt"></i
               ></a>
@@ -124,8 +247,254 @@
           </ul>
         </nav>
       </section>
+
+      <!-- Transaction Modal -->
+      <div class="transaction-modal hidden" id="transactionModal">
+        <div class="modal-content">
+          <!-- Modal Header -->
+          <div class="modal-header">
+            <div>
+              <h2>افزودن تراکنش</h2>
+              <p>اطلاعات تراکنش جدید را وارد کنید.</p>
+            </div>
+
+            <button class="close-modal" id="closeModal">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <!-- Transaction Form -->
+          <form class="transaction-form">
+            <!-- Title -->
+            <div class="form-group">
+              <label for="transactionTitle">عنوان تراکنش</label>
+              <input
+                type="text"
+                id="transactionTitle"
+                placeholder="مثلاً خرید از فروشگاه"
+              />
+            </div>
+
+            <!-- Amount & Type -->
+            <div class="form-row">
+              <div class="form-group">
+                <label for="transactionAmount">مقدار</label>
+                <input type="number" id="transactionAmount" placeholder="0" />
+              </div>
+
+              <div class="form-group">
+                <label>نوع تراکنش</label>
+
+                <div class="transaction-type">
+                  <label class="type-option income">
+                    <input type="radio" name="transactionType" value="income" />
+                    <span>
+                      <i class="fas fa-arrow-down"></i>
+                      درآمد
+                    </span>
+                  </label>
+
+                  <label class="type-option expense">
+                    <input
+                      type="radio"
+                      name="transactionType"
+                      value="expense"
+                      checked
+                    />
+                    <span>
+                      <i class="fas fa-arrow-up"></i>
+                      هزینه
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Category -->
+            <div class="form-group">
+              <label>دسته‌بندی</label>
+              <div class="category-options">
+                <button type="button" class="category-option">
+                  <i class="fas fa-utensils"></i>
+                  <span>غذا</span>
+                </button>
+
+                <button type="button" class="category-option">
+                  <i class="fas fa-car"></i>
+                  <span>حمل و نقل</span>
+                </button>
+
+                <button type="button" class="category-option">
+                  <i class="fas fa-shopping-bag"></i>
+                  <span>خرید</span>
+                </button>
+
+                <button type="button" class="category-option">
+                  <i class="fas fa-home"></i>
+                  <span>خانه</span>
+                </button>
+
+                <button type="button" class="category-option">
+                  <i class="fas fa-wallet"></i>
+                  <span>درآمد</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Tags -->
+            <div class="form-group">
+              <label>برچسب‌ها</label>
+              <div class="tag-options">
+                <label class="tag-option">
+                  <input type="checkbox" value="daily" />
+                  <span>روزانه</span>
+                </label>
+
+                <label class="tag-option">
+                  <input type="checkbox" value="important" />
+                  <span>ضروری</span>
+                </label>
+
+                <label class="tag-option">
+                  <input type="checkbox" value="work" />
+                  <span>کار</span>
+                </label>
+
+                <label class="tag-option">
+                  <input type="checkbox" value="fun" />
+                  <span>تفریح</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="form-group">
+              <label>روش پرداخت</label>
+              <div class="payment-options">
+                <label class="payment-option">
+                  <input type="radio" name="payment" value="card" checked />
+                  <span>
+                    <i class="fas fa-credit-card"></i>
+                    کارت
+                  </span>
+                </label>
+
+                <label class="payment-option">
+                  <input type="radio" name="payment" value="cash" />
+                  <span>
+                    <i class="fas fa-money-bill-wave"></i>
+                    نقدی
+                  </span>
+                </label>
+
+                <label class="payment-option">
+                  <input type="radio" name="payment" value="online" />
+                  <span>
+                    <i class="fas fa-globe"></i>
+                    آنلاین
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Receipt -->
+            <div class="form-group">
+              <label>تصویر رسید</label>
+
+              <div class="receipt-upload">
+                <label for="receiptInput" class="receipt-upload-box">
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  <span>آپلود تصویر رسید</span>
+                  <small>PNG, JPG یا JPEG</small>
+                </label>
+
+                <input
+                  type="file"
+                  id="receiptInput"
+                  accept="image/png, image/jpeg, image/jpg"
+                  hidden
+                />
+
+                <div class="receipt-preview hidden" id="receiptPreview">
+                  <canvas id="receiptCanvas"></canvas>
+
+                  <div class="receipt-actions">
+                    <button type="button" id="cropReceiptBtn">
+                      <i class="fas fa-crop"></i>
+                      برش تصویر
+                    </button>
+
+                    <button type="button" id="removeReceiptBtn">
+                      <i class="fas fa-trash"></i>
+                      حذف
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recurring Transaction -->
+            <div class="form-group recurring-group">
+              <div class="recurring-header">
+                <div>
+                  <label>تراکنش دوره‌ای</label>
+                  <small> این تراکنش به صورت خودکار تکرار می‌شود. </small>
+                </div>
+
+                <label class="switch">
+                  <input type="checkbox" id="recurringTransaction" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <div class="recurring-fields hidden" id="recurringFields">
+                <!-- Frequency -->
+                <div class="form-group">
+                  <label for="recurringFrequency"> تکرار </label>
+
+                  <select id="recurringFrequency">
+                    <option value="daily">روزانه</option>
+                    <option value="weekly">هفتگی</option>
+                    <option value="monthly" selected>ماهانه</option>
+                    <option value="yearly">سالانه</option>
+                  </select>
+                </div>
+
+                <!-- Repeat Count -->
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="repeatCount"> تعداد دفعات </label>
+
+                    <input
+                      type="number"
+                      id="repeatCount"
+                      min="1"
+                      placeholder="مثلاً 12"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label for="recurringEndDate"> تاریخ پایان </label>
+
+                    <input type="date" id="recurringEndDate" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="modal-actions">
+              <button type="button" class="cancel-btn">لغو</button>
+              <button type="submit" class="save-btn">
+                <i class="fas fa-check"></i>
+                ذخیره تراکنش
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </main>
 
-    <!-- <script src="./src/assets/js/dashboard.js"></script> -->
+    <script src="./src/assets/js/transaction.js"></script>
   </body>
 </html>
