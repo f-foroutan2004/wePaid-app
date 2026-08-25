@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>budget</title>
+    <link rel="stylesheet" href="./src/assets/css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="welcome">
+        <h1>
+          سلام
+          <span id="headerUsername"></span>
+        </h1>
+        <p>مدیریت و کنترل بودجه‌های شما</p>
+      </div>
+      <button class="notification-btn" type="button">
+        <i class="fas fa-bell"></i>
+      </button>
+    </header>
+
+    <main class="main">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <h2 class="logo">
+          <i class="fas fa-wallet"></i>
+          مدیریت هزینه
+        </h2>
+        <nav class="sidebar-nav">
+          <a href="./dashboard.html" class="nav-link">
+            <i class="fas fa-home"></i>
+            <span> داشبورد </span>
+          </a>
+          <a href="./transaction.html" class="nav-link">
+            <i class="fas fa-exchange-alt"></i>
+            <span> تراکنش‌ها </span>
+          </a>
+          <a href="./budget.html" class="nav-link active">
+            <i class="fas fa-chart-pie"></i>
+            <span> بودجه‌ها </span>
+          </a>
+          <a href="./profile.html" class="nav-link">
+            <i class="fas fa-user"></i>
+            <span> پروفایل </span>
+          </a>
+        </nav>
+      </aside>
+
+      <!-- Budget Section -->
+      <section class="budget-section">
+        <!-- Section Header -->
+        <div class="budget-header">
+          <div>
+            <h2>مدیریت بودجه ها</h2>
+            <p>برای هر دسته‌ بندی یک بودجه مشخص کنید و میزان مصرف را کنترل کنید</p>
+          </div>
+          <button class="add-budget-btn" id="addBudgetBtn" type="button">
+            <i class="fas fa-plus"></i>
+            افزودن بودجه
+          </button>
+        </div>
+        <!-- Budget Cards -->
+        <div class="budget-list" id="budgetList">
+          <!-- Food -->
+          <div class="budget-card" data-category="food">
+            <div class="budget-card-header">
+              <div class="budget-title">
+                <div class="budget-icon food">
+                  <i class="fas fa-utensils"></i>
+                </div>
+                <div>
+                  <h3>غذا</h3>
+                  <span> بودجه ماهانه </span>
+                </div>
+              </div>
+              <button class="edit-budget" type="button">
+                <i class="fas fa-pen"></i>
+              </button>
+            </div>
+            <div class="budget-amounts">
+              <div>
+                <span> مصرف شده </span>
+                <strong class="spent"> 3,500,000 تومان </strong>
+              </div>
+              <div>
+                <span> بودجه کل </span>
+                <strong class="total"> 5,000,000 تومان </strong>
+              </div>
+            </div>
+            <div class="progress-info">
+              <span class="percentage"> 70٪ مصرف شده </span>
+              <span class="remaining"> 1,500,000 تومان باقی‌مانده </span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 70%"></div>
+            </div>
+          </div>
+
+          <!-- Transport -->
+          <div class="budget-card" data-category="transport">
+            <div class="budget-card-header">
+              <div class="budget-title">
+                <div class="budget-icon transport">
+                  <i class="fas fa-car"></i>
+                </div>
+                <div>
+                  <h3>حمل و نقل</h3>
+                  <span> بودجه ماهانه </span>
+                </div>
+              </div>
+              <button class="edit-budget" type="button">
+                <i class="fas fa-pen"></i>
+              </button>
+            </div>
+            <div class="budget-amounts">
+              <div>
+                <span> مصرف شده </span>
+                <strong class="spent"> 1,200,000 تومان </strong>
+              </div>
+              <div>
+                <span> بودجه کل </span>
+                <strong class="total"> 3,000,000 تومان </strong>
+              </div>
+            </div>
+            <div class="progress-info">
+              <span class="percentage"> 40٪ مصرف شده </span>
+              <span class="remaining"> 1,800,000 تومان باقی‌مانده </span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 40%"></div>
+            </div>
+          </div>
+
+          <!-- Shopping -->
+          <div class="budget-card" data-category="shopping">
+            <div class="budget-card-header">
+              <div class="budget-title">
+                <div class="budget-icon shopping">
+                  <i class="fas fa-shopping-bag"></i>
+                </div>
+                <div>
+                  <h3>خرید</h3>
+                  <span> بودجه ماهانه </span>
+                </div>
+              </div>
+              <button class="edit-budget" type="button">
+                <i class="fas fa-pen"></i>
+              </button>
+            </div>
+            <div class="budget-amounts">
+              <div>
+                <span> مصرف شده </span>
+                <strong class="spent"> 4,500,000 تومان </strong>
+              </div>
+              <div>
+                <span> بودجه کل </span>
+                <strong class="total"> 5,000,000 تومان </strong>
+              </div>
+            </div>
+            <div class="progress-info">
+              <span class="percentage"> 90٪ مصرف شده </span>
+              <span class="remaining"> 500,000 تومان باقی‌مانده </span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill warning" style="width: 90%"></div>
+            </div>
+          </div>
+
+          <!-- Entertainment -->
+          <div class="budget-card" data-category="entertainment">
+            <div class="budget-card-header">
+              <div class="budget-title">
+                <div class="budget-icon entertainment">
+                  <i class="fas fa-gamepad"></i>
+                </div>
+                <div>
+                  <h3>تفریح</h3>
+                  <span> بودجه ماهانه </span>
+                </div>
+              </div>
+              <button class="edit-budget" type="button">
+                <i class="fas fa-pen"></i>
+              </button>
+            </div>
+            <div class="budget-amounts">
+              <div>
+                <span> مصرف شده </span>
+                <strong class="spent"> 800,000 تومان </strong>
+              </div>
+              <div>
+                <span> بودجه کل </span>
+                <strong class="total"> 2,000,000 تومان </strong>
+              </div>
+            </div>
+            <div class="progress-info">
+              <span class="percentage"> 40٪ مصرف شده </span>
+              <span class="remaining"> 1,200,000 تومان باقی‌مانده </span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" style="width: 40%"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Mobile Navigation -->
+      <section class="mobile-nav">
+        <nav class="mobile-navigation">
+          <ul class="mobile-navigation-list">
+            <li class="nav-bottom-link activeNav">
+              <a href="./dashboard.html"><i class="fas fa-home"></i></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href="./transaction.html"
+                ><i class="fas fa-exchange-alt"></i
+              ></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href=""><i class="fas fa-plus"></i></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href="./budget.html"><i class="fas fa-chart-pie"></i></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href="./profile.html"><i class="fas fa-user"></i></a>
+            </li>
+          </ul>
+        </nav>
+      </section>
+  
+      <!-- Budget Modal -->
+      <div class="budget-modal hidden" id="budgetModal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div>
+              <h2 id="modalTitle">افزودن بودجه</h2>
+              <p>اطلاعات بودجه را وارد کنید.</p>
+            </div>
+            <button class="close-modal" id="closeBudgetModal" type="button">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+  
+          <form id="budgetForm">
+            <div class="form-group">
+              <label for="budgetCategory"> دسته‌بندی </label>
+              <select id="budgetCategory">
+                <option value="food">غذا</option>
+                <option value="transport">حمل و نقل</option>
+                <option value="shopping">خرید</option>
+                <option value="entertainment">تفریح</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="budgetAmount"> مبلغ بودجه </label>
+              <input
+                type="number"
+                id="budgetAmount"
+                min="1"
+                placeholder="مثلاً 5000000"
+              />
+            </div>
+            <div class="modal-actions">
+              <button class="cancel-btn" id="cancelBudget" type="button">
+                انصراف
+              </button>
+              <button class="save-btn" type="submit">ذخیره بودجه</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </main>
+
+    <script src="./src/assets/js/budget.js"></script>
+  </body>
+</html>

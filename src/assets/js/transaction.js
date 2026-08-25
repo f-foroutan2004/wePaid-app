@@ -417,3 +417,9 @@ removeReceiptBtn.addEventListener("click", () => {
   ctx.clearRect(0, 0, receiptCanvas.width, receiptCanvas.height);
   receiptPreview.classList.add("hidden");
 });
+
+transactionModal.addEventListener("click", function (event) {
+  if (event.target === transactionModal) {
+    closeModal();
+  }
+});

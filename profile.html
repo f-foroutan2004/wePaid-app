@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>profile and setting</title>
+    <link rel="stylesheet" href="./src/assets/css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="welcome">
+        <h1>
+          سلام
+          <span id="headerUsername"></span>
+        </h1>
+        <p>پروفایل و تنظیمات حساب</p>
+      </div>
+      <button class="notification-btn" type="button">
+        <i class="fas fa-bell"></i>
+      </button>
+    </header>
+
+    <main class="main">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <h2 class="logo">
+          <i class="fas fa-wallet"></i>
+          مدیریت هزینه
+        </h2>
+        <nav class="sidebar-nav">
+          <a href="./dashboard.html" class="nav-link">
+            <i class="fas fa-home"></i>
+            <span> داشبورد </span>
+          </a>
+          <a href="./transaction.html" class="nav-link">
+            <i class="fas fa-exchange-alt"></i>
+            <span> تراکنش‌ها </span>
+          </a>
+          <a href="./budget.html" class="nav-link">
+            <i class="fas fa-chart-pie"></i>
+            <span> بودجه‌ها </span>
+          </a>
+          <a href="./profile.html" class="nav-link active">
+            <i class="fas fa-user"></i>
+            <span> پروفایل </span>
+          </a>
+        </nav>
+      </aside>
+
+      <!-- Profile Content -->
+      <section class="profile-section">
+        <!-- Profile Information -->
+        <div class="settings-card">
+          <div class="card-title">
+            <div class="title-icon">
+              <i class="fas fa-user"></i>
+            </div>
+            <div>
+              <h2>اطلاعات پروفایل</h2>
+              <p>اطلاعات حساب خود را مدیریت کنید.</p>
+            </div>
+          </div>
+
+          <form id="profileForm">
+            <div class="form-group">
+              <label for="username"> نام </label>
+              <input
+                type="text"
+                id="username"
+                placeholder="نام خود را وارد کنید"
+              />
+              <p class="nameError hidden">لطفا نام خود را وارد کنید</p>
+            </div>
+
+            <div class="form-group">
+              <label for="currency"> ارز پایه </label>
+              <select id="currency">
+                <option value="IRR">تومان</option>
+                <option value="USD">دلار آمریکا</option>
+                <option value="EUR">یورو</option>
+                <option value="GBP">پوند</option>
+                <option value="AED">درهم</option>
+              </select>
+            </div>
+
+            <button class="save-btn" type="submit">
+              <i class="fas fa-save"></i>
+              ذخیره تغییرات
+            </button>
+          </form>
+        </div>
+
+        <!-- Wallets -->
+        <div class="settings-card">
+          <div class="section-heading">
+            <div>
+              <h2>کیف پول های من</h2>
+              <p>کیف پول های خود را مدیریت کنید.</p>
+            </div>
+            <button class="add-btn" id="addWalletBtn" type="button">
+              <i class="fas fa-plus"></i>
+              ساخت کیف پول
+            </button>
+          </div>
+          <div class="wallet-list" id="walletList">
+            <!-- Wallets are created by JS -->
+          </div>
+        </div>
+
+        <!-- Invitations -->
+        <div class="settings-card">
+          <div class="section-heading">
+            <div>
+              <h2>دعوت نامه ها</h2>
+              <p>دعوت های دریافتی خود را مشاهده کنید.</p>
+            </div>
+            <button class="add-btn" id="addInviteBtn" type="button">
+              <i class="fas fa-plus"></i>
+              ساخت دعوت نامه
+            </button>
+          </div>
+
+          <div class="invitation-list" id="invitationList">
+            <!-- Invitations are created by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- Mobile Navigation -->
+      <section class="mobile-nav">
+        <nav class="mobile-navigation">
+          <ul class="mobile-navigation-list">
+            <li class="nav-bottom-link activeNav">
+              <a href="./dashboard.html"><i class="fas fa-home"></i></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href="./transaction.html"
+                ><i class="fas fa-exchange-alt"></i
+              ></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href=""><i class="fas fa-plus"></i></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href="./budget.html"><i class="fas fa-chart-pie"></i></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href="./profile.html"><i class="fas fa-user"></i></a>
+            </li>
+          </ul>
+        </nav>
+      </section>
+
+      <!-- Wallet Modal -->
+      <div class="custom-modal hidden" id="walletModal">
+        <div class="modal-box">
+          <div class="modal-header">
+            <div>
+              <h2 id="walletModalTitle">ساخت کیف پول</h2>
+              <p>اطلاعات کیف پول را وارد کنید.</p>
+            </div>
+            <button class="close-modal" id="closeWalletModal" type="button">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <form id="walletForm">
+            <div class="form-group">
+              <label for="walletName"> نام کیف پول </label>
+              <input
+                type="text"
+                id="walletName"
+                placeholder="مثلاً کیف پول شخصی"
+              />
+              <p class="nameModalError hidden">لطفا نام خود را وارد کنید</p>
+            </div>
+
+            <div class="form-group">
+              <label for="walletCurrency"> ارز </label>
+              <select id="walletCurrency">
+                <option value="IRR">تومان</option>
+                <option value="USD">دلار</option>
+                <option value="EUR">یورو</option>
+                <option value="GBP">پوند</option>
+              </select>
+            </div>
+
+            <div class="modal-actions">
+              <button class="cancel-btn" type="button" id="cancelWallet">
+                انصراف
+              </button>
+              <button class="save-btn" type="submit">ذخیره</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Invite Modal -->
+      <div class="custom-modal hidden" id="inviteModal">
+        <div class="modal-box">
+          <div class="modal-header">
+            <div>
+              <h2>دعوت عضو</h2>
+              <p>کاربر مورد نظر را به کیف پول دعوت کنید.</p>
+            </div>
+            <button class="close-modal" id="closeInviteModal" type="button">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <form id="inviteForm">
+            <div class="form-group">
+              <label for="inviteEmail"> ایمیل یا نام کاربری </label>
+              <input
+                type="text"
+                id="inviteEmail"
+                placeholder="example@gmail.com"
+              />
+              <p class="emailModalError hidden">لطفا ایمیل خود را وارد کنید</p>
+            </div>
+
+            <div class="modal-actions">
+              <button class="cancel-btn" type="button" id="cancelInvite">
+                انصراف
+              </button>
+              <button class="save-btn" type="submit">ارسال دعوت</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <script src="./src/assets/js/profile.js"></script>
+  </body>
+</html>
