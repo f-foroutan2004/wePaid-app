@@ -21,6 +21,15 @@ const invitationList = document.getElementById("invitationList");
 const nameError = document.querySelector(".nameError");
 const nameModalError = document.querySelector(".nameModalError");
 const emailModalError = document.querySelector(".emailModalError");
+const usernameElement = document.querySelector("#headerUsername");
+
+const username = localStorage.getItem("userName");
+
+if (username) {
+  usernameElement.textContent = username;
+} else {
+  usernameElement.textContent = "کاربر";
+}
 
 let wallets = JSON.parse(localStorage.getItem("wallets")) || [];
 let invitations = JSON.parse(localStorage.getItem("invitations")) || [];
@@ -222,7 +231,6 @@ function renderWallets() {
 
 // Wallet Buttons
 function setupWalletButtons() {
-
   // Edit
   document.querySelectorAll(".edit-wallet").forEach(function (button) {
     button.addEventListener("click", function () {
@@ -370,8 +378,7 @@ function renderInvitations() {
               رد
             </button>
           </div>`;
-    }
-    else {
+    } else {
       statusHTML = `
           <span
             class="status ${invitation.status}">

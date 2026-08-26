@@ -7,6 +7,15 @@ const budgetCategory = document.getElementById("budgetCategory");
 const budgetAmount = document.getElementById("budgetAmount");
 const modalTitle = document.getElementById("modalTitle");
 const budgetList = document.getElementById("budgetList");
+const usernameElement = document.querySelector("#headerUsername");
+
+const username = localStorage.getItem("userName");
+
+if (username) {
+  usernameElement.textContent = username;
+} else {
+  usernameElement.textContent = "کاربر";
+}
 
 let editingCard = null;
 
@@ -77,7 +86,7 @@ budgetForm.addEventListener("submit", function (event) {
   } else {
     createBudget(category, amount);
   }
-  
+
   closeModal();
   budgetAmount.value = "";
 });

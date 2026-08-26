@@ -3,15 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login form</title>
+    <title>login form</title>
     <link rel="stylesheet" href="./src/assets/css/style.css" />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-    />
-    <link
-      href="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/css/select2.min.css"
-      rel="stylesheet"
     />
   </head>
   <body>
@@ -24,8 +20,8 @@
         <div class="circle2"></div>
 
         <form action="./dashboard.html" class="box" autocomplete="off">
-          <div class="box1 step step1">
-            <h3 class="title">ایجاد حساب کاربری</h3>
+          <div class="box1 step">
+            <h3 class="title">ورود به حساب کاربری</h3>
             <div class="form-inputs">
               <div class="name-input">
                 <label for="username"
@@ -38,29 +34,6 @@
                   placeholder="فائزه فروتن"
                 />
                 <p class="userNameError hidden">نام وارد شده صحیح نمی باشد</p>
-              </div>
-              <div class="email-input">
-                <label for="email"><i class="fas fa-envelope"></i>ایمیل</label>
-                <input
-                  type="text"
-                  name="email"
-                  id="email"
-                  placeholder="xxxx@gmail.com"
-                />
-                <p class="emailError hidden">ایمیل وارد شده صحیح نمی باشد</p>
-              </div>
-              <div class="phone-input">
-                <label for="phone"
-                  ><i class="fas fa-phone"></i>شماره تلفن</label
-                >
-                <input
-                  type="text"
-                  name="phone"
-                  id="phone"
-                  maxlength="11"
-                  placeholder="09*********"
-                />
-                <p class="phoneError hidden">شماره وارد شده صحیح نمی باشد</p>
               </div>
               <div class="password-input">
                 <label for="password"
@@ -76,38 +49,16 @@
                 <p class="passwordError hidden">رمز وارد شده صحیح نمی باشد</p>
               </div>
             </div>
-            <button class="next-btn" type="button">
-              <!-- <i class="fas fa-sign-in-alt"></i> -->
-              <span>ادامه</span>
-              <i class="fas fa-arrow-right"></i>
-            </button>
-          </div>
-          <div class="box1 step step2 hidden">
-            <h3 class="title">ارز پایه حساب خود را انتخاب کنید</h3>
-            <div class="currency_input form-inputs">
-              <label for="currency">
-                <!-- <select name="" id="search-select"></select> -->
-                <i class="fas fa-coins"></i>
-                ارز پایه
-              </label>
-
-              <select name="currency" id="currency">
-                <option value="EUR">یورو</option>
-                <option value="USD">دلار</option>
-                <option value="GBP">پوند</option>
-              </select>
-              <p class="currencyError hidden">لطفا ارز پایه را انتخاب کنید</p>
-            </div>
-
-            <div class="step_buttons">
-              <button type="submit" class="login-btn">
-                <i class="fas fa-user-plus"></i>
-                <span>ایجاد حساب</span>
+            <div class="buttons">
+              <button class="signIn-btn" type="submit">
+                <span>ورود</span>
+                <i class="fas fa-arrow-right"></i>
               </button>
-
-              <button type="button" class="prev-btn">
-                <i class="fas fa-arrow-left"></i>
-                قبلی
+              <button class="signUp-btn" type="button">
+                <a href="./signUp.html">
+                  <i class="fas fa-arrow-left"></i>
+                  <span>ثبت نام</span>
+                </a>
               </button>
             </div>
           </div>
@@ -116,16 +67,4 @@
     </div>
   </body>
   <script src="./src/assets/js/login.js"></script>
-
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
-  <script>
-    $(document).ready(function () {
-      $("#currency").select2({
-        language: {
-          noResults: () => "موردی یافت نشد.",
-        },
-      });
-    });
-  </script>
 </html>

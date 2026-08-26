@@ -217,9 +217,16 @@ label i {
     0 5px 15px rgba(139, 92, 246, 0.08);
 }
 
-.login-btn,
+.buttons{
+  display: flex;
+  gap: 1rem;
+}
+.signUp-btn,
 .next-btn,
-.prev-btn {
+.prev-btn,
+.signIn-page-btn,
+.signUp-btn,
+.signIn-btn {
   font-size: 1.125rem;
   font-weight: 600;
   padding: 1.25rem;
@@ -245,12 +252,21 @@ label i {
   direction: ltr;
 }
 
-.login-btn i {
+.signIn-page-btn a, .signUp-btn a{
+  color: var(--white-color);
+  display: flex;
+  gap: 0.6rem;
+}
+
+.signUp-btn i {
   line-height: 1;
 }
 
-.login-btn:hover,
+.signUp-btn:hover,
 .next-btn:hover,
+.signIn-page-btn:hover,
+.signUp-btn:hover,
+.signIn-btn:hover,
 .prev-btn {
   background-color: var(--primary-dark);
   transform: scale(0.97);
@@ -259,7 +275,7 @@ label i {
     0 0 30px rgba(139, 92, 246, 0.15);
 }
 
-.login-btn:active {
+.signUp-btn:active {
   transform: scale(0.95);
 }
 
