@@ -22,14 +22,14 @@ const nameError = document.querySelector(".nameError");
 const nameModalError = document.querySelector(".nameModalError");
 const emailModalError = document.querySelector(".emailModalError");
 const usernameElement = document.querySelector("#headerUsername");
+const modalOverlay = document.querySelector(".modal-overlay");
+const inviteModalOverlay = document.querySelector(".inviteModal-overlay");
+const modalBox = document.querySelector(".modal-box");
+const modalInviteBox = document.querySelector(".modal-invite-box");
 
+//Username
 const username = localStorage.getItem("userName");
-
-if (username) {
-  usernameElement.textContent = username;
-} else {
-  usernameElement.textContent = "کاربر";
-}
+usernameElement.textContent = username || "کاربر";
 
 let wallets = JSON.parse(localStorage.getItem("wallets")) || [];
 let invitations = JSON.parse(localStorage.getItem("invitations")) || [];
@@ -39,10 +39,9 @@ let profile = JSON.parse(localStorage.getItem("profile")) || {
 };
 
 let editingWalletId = null;
-
 let selectedWalletId = null;
 
-// Currency Names
+//Currency Names
 const currencyNames = {
   IRR: "تومان",
   USD: "دلار",
@@ -51,14 +50,14 @@ const currencyNames = {
   AED: "درهم",
 };
 
-// Load Profile
+//Load Profile
 function loadProfile() {
   usernameInput.value = profile.username || "";
   currencySelect.value = profile.currency || "IRR";
   headerUsername.textContent = profile.username || "";
 }
 
-// Save Profile
+//change Profile
 profileForm.addEventListener("submit", function (event) {
   event.preventDefault();
   const username = usernameInput.value.trim();
@@ -70,8 +69,8 @@ profileForm.addEventListener("submit", function (event) {
   }
   nameError.classList.add("hidden");
   profile = {
-    username: username,
-    currency: currency,
+    username,
+    currency
   };
 
   localStorage.setItem("profile", JSON.stringify(profile));
@@ -90,13 +89,16 @@ function saveInvitations() {
 }
 
 // Open Wallet Modal
-addWalletBtn.addEventListener("click", function () {
+function openWalletModalFunc() {
   editingWalletId = null;
   walletForm.reset();
   walletModalTitle.textContent = "ساخت کیف پول";
   nameModalError.classList.add("hidden");
   walletModal.classList.remove("hidden");
-});
+  modalBox.classList.add("animate");
+}
+
+addWalletBtn.addEventListener("click", openWalletModalFunc);
 
 // Close Wallet Modal
 function closeWalletModalFunc() {
@@ -292,6 +294,7 @@ function openInviteModalFunc() {
   inviteForm.reset();
   emailModalError.classList.add("hidden");
   inviteModal.classList.remove("hidden");
+  modalInviteBox.classList.add("animate");
 }
 
 // Close Invite Modal
@@ -465,3 +468,6 @@ function getStatusText(status) {
 loadProfile();
 renderWallets();
 renderInvitations();
+
+modalOverlay.addEventListener("click", closeWalletModalFunc);
+inviteModalOverlay.addEventListener("click", closeInviteModalFunc);

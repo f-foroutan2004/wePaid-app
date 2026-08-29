@@ -9,6 +9,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
     />
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
   </head>
   <body>
     <!-- Header -->
@@ -27,7 +28,7 @@
 
     <main class="main">
       <!-- Sidebar -->
-      <aside class="sidebar">
+      <aside class="sidebar" data-aos="fade-left">
         <h2 class="logo">
           <i class="fas fa-wallet"></i>
           مدیریت هزینه
@@ -35,19 +36,19 @@
         <nav class="sidebar-nav">
           <a href="./dashboard.html" class="nav-link">
             <i class="fas fa-home"></i>
-            <span> داشبورد </span>
+            <span>داشبورد</span>
           </a>
           <a href="./transaction.html" class="nav-link">
             <i class="fas fa-exchange-alt"></i>
-            <span> تراکنش‌ها </span>
+            <span>تراکنش‌ها</span>
           </a>
           <a href="./budget.html" class="nav-link active">
             <i class="fas fa-chart-pie"></i>
-            <span> بودجه‌ها </span>
+            <span>بودجه‌ها</span>
           </a>
           <a href="./profile.html" class="nav-link">
             <i class="fas fa-user"></i>
-            <span> پروفایل </span>
+            <span>پروفایل</span>
           </a>
         </nav>
       </aside>
@@ -68,7 +69,7 @@
         <!-- Budget Cards -->
         <div class="budget-list" id="budgetList">
           <!-- Food -->
-          <div class="budget-card" data-category="food">
+          <div class="budget-card" data-category="food" data-aos="fade-right">
             <div class="budget-card-header">
               <div class="budget-title">
                 <div class="budget-icon food">
@@ -103,7 +104,7 @@
           </div>
 
           <!-- Transport -->
-          <div class="budget-card" data-category="transport">
+          <div class="budget-card" data-category="transport" data-aos="fade-right">
             <div class="budget-card-header">
               <div class="budget-title">
                 <div class="budget-icon transport">
@@ -138,7 +139,7 @@
           </div>
 
           <!-- Shopping -->
-          <div class="budget-card" data-category="shopping">
+          <div class="budget-card" data-category="shopping" data-aos="fade-right">
             <div class="budget-card-header">
               <div class="budget-title">
                 <div class="budget-icon shopping">
@@ -173,7 +174,7 @@
           </div>
 
           <!-- Entertainment -->
-          <div class="budget-card" data-category="entertainment">
+          <div class="budget-card" data-category="entertainment" data-aos="fade-right">
             <div class="budget-card-header">
               <div class="budget-title">
                 <div class="budget-icon entertainment">
@@ -213,7 +214,7 @@
       <section class="mobile-nav">
         <nav class="mobile-navigation">
           <ul class="mobile-navigation-list">
-            <li class="nav-bottom-link activeNav">
+            <li class="nav-bottom-link">
               <a href="./dashboard.html"><i class="fas fa-home"></i></a>
             </li>
             <li class="nav-bottom-link">
@@ -224,7 +225,7 @@
             <li class="nav-bottom-link">
               <a href=""><i class="fas fa-plus"></i></a>
             </li>
-            <li class="nav-bottom-link">
+            <li class="nav-bottom-link activeNav">
               <a href="./budget.html"><i class="fas fa-chart-pie"></i></a>
             </li>
             <li class="nav-bottom-link">
@@ -235,7 +236,8 @@
       </section>
   
       <!-- Budget Modal -->
-      <div class="budget-modal hidden" id="budgetModal">
+      <div class="budget-modal hidden">
+        <div class="modal-overlay"></div>
         <div class="modal-content">
           <div class="modal-header">
             <div>
@@ -265,6 +267,7 @@
                 min="1"
                 placeholder="مثلاً 5000000"
               />
+              <p class="amountError hidden">لطفاً مبلغ معتبر وارد کنید.</p>
             </div>
             <div class="modal-actions">
               <button class="cancel-btn" id="cancelBudget" type="button">
@@ -279,5 +282,9 @@
     </main>
 
     <script src="./src/assets/js/budget.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      AOS.init();
+    </script>
   </body>
 </html>

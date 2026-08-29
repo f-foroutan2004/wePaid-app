@@ -1,28 +1,29 @@
 //login
-let userNameInput = document.querySelector("#username");
+let emailInput = document.querySelector("#email");
+const emailError = document.querySelector(".emailError");
 let passwordInput = document.querySelector("#password");
-const userNameError = document.querySelector(".userNameError");
 const passwordError = document.querySelector(".passwordError");
 const form = document.querySelector(".box");
 const signInBtn = document.querySelector(".signIn-btn");
 
 function validation() {
-  let userName = userNameInput.value.trim();
+  let email = emailInput.value.trim();
   const password = passwordInput.value.trim();
 
   let isValid = true;
 
   // Regex
-  const usernameRegex = /^[a-zA-Z0-9_\u0600-\u06FF]{5,50}$/;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8}$/;
 
-  // username
-  if (!usernameRegex.test(userName)) {
-    userNameError.classList.remove("hidden");
+  // email
+  if (!emailRegex.test(email)) {
+    emailError.classList.remove("hidden");
     isValid = false;
   } else {
-    userNameError.classList.add("hidden");
+    emailError.classList.add("hidden");
   }
+  
   // password
   if (!passwordRegex.test(password)) {
     passwordError.classList.remove("hidden");

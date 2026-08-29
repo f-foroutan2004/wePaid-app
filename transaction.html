@@ -9,6 +9,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
     />
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
   </head>
 
   <body>
@@ -29,7 +30,7 @@
     <!-- Main -->
     <main class="main">
       <!-- SideBar -->
-      <aside class="sidebar">
+      <aside class="sidebar" data-aos="fade-left">
         <h2 class="logo">
           <i class="fas fa-wallet"></i>
           مدیریت هزینه
@@ -131,7 +132,7 @@
             </div>
           </div>
         </div>
-        <div class="list-part">
+        <div class="list-part" data-aos="fade-up">
           <div class="panel-header">
             <h3>لیست تراکنش ها</h3>
             <button class="add-btn">
@@ -249,7 +250,8 @@
       </section>
 
       <!-- Transaction Modal -->
-      <div class="transaction-modal hidden" id="transactionModal">
+      <div class="transaction-modal hidden">
+        <div class="modal-overlay"></div>
         <div class="modal-content">
           <!-- Modal Header -->
           <div class="modal-header">
@@ -496,5 +498,9 @@
     </main>
 
     <script src="./src/assets/js/transaction.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      AOS.init();
+    </script>
   </body>
 </html>

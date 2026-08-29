@@ -217,7 +217,7 @@ label i {
     0 5px 15px rgba(139, 92, 246, 0.08);
 }
 
-.buttons{
+.buttons {
   display: flex;
   gap: 1rem;
 }
@@ -252,7 +252,8 @@ label i {
   direction: ltr;
 }
 
-.signIn-page-btn a, .signUp-btn a{
+.signIn-page-btn a,
+.signUp-btn a {
   color: var(--white-color);
   display: flex;
   gap: 0.6rem;
@@ -283,7 +284,8 @@ label i {
 .emailError,
 .phoneError,
 .passwordError,
-.currencyError {
+.currencyError,
+.amountError {
   color: var(--very-pink);
   font-size: 0.8rem;
 }
@@ -768,10 +770,15 @@ tbody tr.slide-out {
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  background-color: rgba(48, 42, 58, 0.45);
   z-index: 1000;
 }
 
+.modal-overlay, .inviteModal-overlay {
+  background-color: rgba(48, 42, 58, 0.45);
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
 .modal-content {
   width: 100%;
   max-width: 55rem;
@@ -781,6 +788,30 @@ tbody tr.slide-out {
   background-color: var(--white-color);
   border-radius: 1.2rem;
   box-shadow: 0 1rem 3rem rgba(48, 42, 58, 0.2);
+  z-index: 10;
+}
+
+.animate {
+  -webkit-animation: animateZoom 0.6s;
+  animation: animateZoom 0.6s;
+}
+
+@-webkit-keyframes animateZoom {
+  from {
+    -webkit-transform: scale(0);
+  }
+  to {
+    -webkit-transform: scale(1);
+  }
+}
+
+@keyframes animateZoom {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
 }
 
 /* Modal Header */
@@ -1054,9 +1085,6 @@ tbody tr.slide-out {
   align-items: center;
   justify-content: center;
   gap: 0.6rem;
-  /*border: 2px dashed #e5e1e8;
-  border-radius: 0.8rem;
-  */
   background-color: #faf9fc;
   color: var(--label-color);
   cursor: pointer;
@@ -1437,7 +1465,6 @@ tbody tr.slide-out {
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background-color: rgba(48, 42, 58, 0.45);
 }
 
 .budget-modal.hidden {
@@ -1876,20 +1903,20 @@ tbody tr.slide-out {
   align-items: center;
   justify-content: center;
   padding: 1rem;
-  background-color: rgba(48, 42, 58, 0.45);
 }
 
 .custom-modal.hidden {
   display: none;
 }
 
-.modal-box {
+.modal-box, .modal-invite-box {
   width: 100%;
   max-width: 32rem;
   padding: 1.5rem;
   border-radius: 1.2rem;
   background-color: var(--white-color);
   box-shadow: 0 1.5rem 4rem rgba(48, 42, 58, 0.2);
+  z-index: 10;
 }
 
 .modal-header {
@@ -1951,7 +1978,9 @@ tbody tr.slide-out {
   color: var(--muted-color);
   font-size: 0.85rem;
 }
-.nameError, .nameModalError, .emailModalError{
+.nameError,
+.nameModalError,
+.emailModalError {
   color: var(--very-pink);
   font-size: small;
 }

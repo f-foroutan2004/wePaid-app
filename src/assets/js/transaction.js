@@ -22,10 +22,8 @@ const cropReceiptBtn = document.getElementById("cropReceiptBtn");
 const removeReceiptBtn = document.getElementById("removeReceiptBtn");
 const recurringTransaction = document.getElementById("recurringTransaction");
 const recurringFields = document.getElementById("recurringFields");
-
-const ctx = receiptCanvas.getContext("2d");
-let receiptImage = null;
-let croppedReceipt = null;
+const modalContent = document.querySelector(".modal-content");
+const modalOverlay = document.querySelector(".modal-overlay");
 
 // Username
 const username = localStorage.getItem("userName");
@@ -74,7 +72,6 @@ function showTransactions(transactionList) {
 }
 
 // Filter-Sort function
-
 function filterTransactions() {
   const searchValue = searchInput.value.trim();
   const selectedMonth = monthFilter.value;
@@ -126,13 +123,16 @@ function filterTransactions() {
   showTransactions(filteredTransactions);
 }
 
-//open close Modal
+//open Modal
 function openModal() {
   transactionModal.classList.remove("hidden");
+  modalContent.classList.add("animate");
 }
 
+//close modal
 function closeModal() {
   transactionModal.classList.add("hidden");
+  modalContent.classList.remove("animate");
 }
 
 // Create New Transaction
@@ -223,7 +223,6 @@ transactionBody.addEventListener("click", (event) => {
     row.classList.add("slide-out");
     setTimeout(() => {
       row.remove();
-
       transactions = transactions.filter((transaction) => transaction !== row);
     }, 400);
     return;
@@ -344,6 +343,11 @@ recurringTransaction.addEventListener("change", () => {
 // Initial render
 filterTransactions();
 
+//receipt part
+const ctx = receiptCanvas.getContext("2d");
+let receiptImage = null;
+let croppedReceipt = null;
+
 receiptInput.addEventListener("change", (event) => {
   const file = event.target.files[0];
   if (!file) return;
@@ -352,14 +356,17 @@ receiptInput.addEventListener("change", (event) => {
     const img = new Image();
     img.addEventListener("load", () => {
       receiptImage = img;
+
       drawReceipt(img);
       receiptPreview.classList.remove("hidden");
     });
+    
     img.src = e.target.result;
   });
   reader.readAsDataURL(file);
 });
 
+//draw Receipt on canvas
 function drawReceipt(img) {
   const maxWidth = 800;
   const maxHeight = 500;
@@ -377,7 +384,9 @@ function drawReceipt(img) {
 
   receiptCanvas.width = width;
   receiptCanvas.height = height;
+  //clear prev img
   ctx.clearRect(0, 0, receiptCanvas.width, receiptCanvas.height);
+  //draw new img
   ctx.drawImage(img, 0, 0, width, height);
 }
 
@@ -410,6 +419,7 @@ cropReceiptBtn.addEventListener("click", () => {
   ctx.drawImage(croppedCanvas, 0, 0);
   croppedReceipt = croppedCanvas.toDataURL("image/jpeg", 0.9);
 });
+
 removeReceiptBtn.addEventListener("click", () => {
   receiptInput.value = "";
   receiptImage = null;
@@ -418,8 +428,4 @@ removeReceiptBtn.addEventListener("click", () => {
   receiptPreview.classList.add("hidden");
 });
 
-transactionModal.addEventListener("click", function (event) {
-  if (event.target === transactionModal) {
-    closeModal();
-  }
-});
+modalOverlay.addEventListener("click", closeModal);

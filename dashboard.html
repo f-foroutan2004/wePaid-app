@@ -9,6 +9,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
     />
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
   </head>
 
   <body>
@@ -29,7 +30,7 @@
     <!-- Main -->
     <main class="main">
       <!-- Sidebar -->
-      <aside class="sidebar">
+      <aside class="sidebar" data-aos="fade-left">
         <h2 class="logo">
           <i class="fas fa-wallet"></i>
           مدیریت هزینه
@@ -57,14 +58,14 @@
       <!-- Page Section -->
       <section class="page">
         <!-- Cards -->
-        <section class="cards">
+        <section class="cards" data-aos="fade-up">
           <div class="card balance-card">
             <div class="card-icon">
               <i class="fas fa-wallet"></i>
             </div>
             <div class="card-info">
               <p>موجودی کل</p>
-              <h2>$ 12,450</h2>
+              <h2 class="total-balance">$ 0</h2>
             </div>
           </div>
 
@@ -74,7 +75,7 @@
             </div>
             <div class="card-info">
               <p>درآمد این ماه</p>
-              <h2>$ 4,500</h2>
+              <h2 class="income-balance">$ 0</h2>
             </div>
           </div>
 
@@ -84,15 +85,15 @@
             </div>
             <div class="card-info">
               <p>هزینه این ماه</p>
-              <h2>$ 2,100</h2>
+              <h2 class="expense-balance">$ 0</h2>
             </div>
           </div>
         </section>
 
         <!-- Charts & Budgets -->
-        <section class="dashboard-grid">
+        <section class="dashboard-grid" >
           <!-- Expenses -->
-          <div class="panel">
+          <div class="panel" data-aos="fade-up">
             <h3>هزینه های این ماه</h3>
             <div class="chart-container">
               <canvas class="incomeChart"></canvas>
@@ -100,7 +101,7 @@
             <p class="chart-text">بیشترین هزینه مربوط به غذا بوده است.</p>
           </div>
           <!-- Expenses -->
-          <div class="panel">
+          <div class="panel" data-aos="fade-up">
             <h3>روند هزینه های این ماه</h3>
             <div class="process-chart-container">
               <canvas class="processChart"></canvas>
@@ -108,7 +109,7 @@
           </div>
 
           <!-- Budgets -->
-          <div class="panel budgets-panel">
+          <div class="panel budgets-panel" data-aos="fade-up">
             <h3>بودجه ها</h3>
             <div class="budget">
               <div class="budget-info">
@@ -144,13 +145,13 @@
         </section>
 
         <!-- Transactions -->
-        <section class="panel transactions">
+        <section class="panel transactions" data-aos="fade-up">
           <div class="panel-header">
             <h3>آخرین تراکنش ها</h3>
-            <button class="add-btn">
+            <!-- <button class="add-btn">
               <i class="fas fa-plus"></i>
               تراکنش جدید
-            </button>
+            </button> -->
           </div>
 
           <table>
@@ -218,5 +219,9 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="./src/assets/js/dashboard.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      AOS.init();
+    </script>
   </body>
 </html>

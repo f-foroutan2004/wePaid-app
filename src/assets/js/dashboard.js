@@ -1,15 +1,39 @@
 const usernameElement = document.querySelector("#headerUsername");
 const ctxCircle = document.querySelector(".incomeChart");
 const ctxLine = document.querySelector(".processChart");
+const totalBalance = document.querySelector(".total-balance");
+const incomeBalance = document.querySelector(".income-balance");
+const expenseBalance = document.querySelector(".expense-balance");
 
+// Username
 const username = localStorage.getItem("userName");
+usernameElement.textContent = username || "کاربر";
 
-if (username) {
-  usernameElement.textContent = username;
-} else {
-  usernameElement.textContent = "کاربر";
+//animate Numbers
+function animateNumber(element, target, duration = 1500) {
+  const startTime = performance.now();
+
+  function update(currentTime) {
+    const progress = Math.min((currentTime - startTime) / duration, 1);
+    const currentValue = Math.floor(target * progress);
+
+    element.textContent = `$ ${currentValue.toLocaleString("en-US")}`;
+
+    if (progress < 1) {
+      requestAnimationFrame(update);
+    }
+  }
+  requestAnimationFrame(update);
 }
+const totalBalanceValue = 12500;
+const incomeValue = 4500;
+const expenseValue = 2100;
 
+animateNumber(totalBalance, totalBalanceValue);
+animateNumber(incomeBalance, incomeValue);
+animateNumber(expenseBalance, expenseValue);
+
+//charts
 new Chart(ctxCircle, {
   type: "doughnut",
 

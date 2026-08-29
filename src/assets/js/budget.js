@@ -1,5 +1,5 @@
 const addBudgetBtn = document.getElementById("addBudgetBtn");
-const budgetModal = document.getElementById("budgetModal");
+const budgetModal = document.querySelector(".budget-modal");
 const closeBudgetModal = document.getElementById("closeBudgetModal");
 const cancelBudget = document.getElementById("cancelBudget");
 const budgetForm = document.getElementById("budgetForm");
@@ -8,17 +8,18 @@ const budgetAmount = document.getElementById("budgetAmount");
 const modalTitle = document.getElementById("modalTitle");
 const budgetList = document.getElementById("budgetList");
 const usernameElement = document.querySelector("#headerUsername");
+const modalOverlay = document.querySelector(".modal-overlay");
+const modalContent = document.querySelector(".modal-content");
+const amountError = document.querySelector(".amountError");
+const existingCards = document.querySelectorAll(".budget-card");
 
+// Username
 const username = localStorage.getItem("userName");
-
-if (username) {
-  usernameElement.textContent = username;
-} else {
-  usernameElement.textContent = "کاربر";
-}
+usernameElement.textContent = username || "کاربر";
 
 let editingCard = null;
 
+//categories
 const categories = {
   food: {
     name: "غذا",
@@ -45,41 +46,35 @@ const categories = {
   },
 };
 
+//open modal
 function openModal() {
   editingCard = null;
   budgetModal.classList.remove("hidden");
+  modalContent.classList.add("animate");
 }
 
+//close modal
 function closeModal() {
-  budgetModal.classList.add("hidden");
   editingCard = null;
+  budgetModal.classList.add("hidden");
+  modalContent.classList.remove("animate");
 }
 
 addBudgetBtn.addEventListener("click", openModal);
 closeBudgetModal.addEventListener("click", closeModal);
 cancelBudget.addEventListener("click", closeModal);
 
-budgetModal.addEventListener("click", function (event) {
-  if (event.target === budgetModal) {
-    closeModal();
-  }
-});
-
-// Submit Form
+// Submit modal Form
 budgetForm.addEventListener("submit", function (event) {
   event.preventDefault();
   const category = budgetCategory.value;
   const amount = +budgetAmount.value;
 
-  if (!category) {
-    alert("لطفاً دسته‌بندی را انتخاب کنید.");
-    return;
-  }
-
   if (!amount || amount <= 0) {
-    alert("لطفاً مبلغ معتبر وارد کنید.");
+    amountError.classList.remove("hidden");
     return;
   }
+  amountError.classList.add("hidden");
 
   if (editingCard) {
     updateBudget(editingCard, category, amount);
@@ -91,6 +86,7 @@ budgetForm.addEventListener("submit", function (event) {
   budgetAmount.value = "";
 });
 
+//create new Budget
 function createBudget(category, amount) {
   const data = categories[category];
   const card = document.createElement("div");
@@ -153,6 +149,7 @@ function createBudget(category, amount) {
   setupEditButton(card);
 }
 
+//setup Edit Button form
 function setupEditButton(card) {
   const editButton = card.querySelector(".edit-budget");
   editButton.addEventListener("click", function () {
@@ -160,7 +157,7 @@ function setupEditButton(card) {
 
     const category = card.dataset.category;
     const totalText = card.querySelector(".total").textContent;
-    const total = +totalText.replace(" تومان", "").replace(/,/g, "");
+    const total = +totalText.replace("تومان", "").replace(/,/g, "");
 
     // put data in form
     budgetCategory.value = category;
@@ -168,6 +165,7 @@ function setupEditButton(card) {
     modalTitle.textContent = "ویرایش بودجه";
     budgetModal.classList.remove("hidden");
   });
+  modalContent.classList.add("animate");
 }
 
 //budget edit
@@ -219,8 +217,8 @@ function updateProgress(card, spent, total) {
   }
 }
 
-const existingCards = document.querySelectorAll(".budget-card");
-
-existingCards.forEach(function (card) {
+existingCards.forEach((card) => {
   setupEditButton(card);
 });
+
+modalOverlay.addEventListener("click", closeModal);
