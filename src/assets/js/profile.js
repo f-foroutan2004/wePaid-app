@@ -54,7 +54,8 @@ const currencyNames = {
 function loadProfile() {
   usernameInput.value = profile.username || "";
   currencySelect.value = profile.currency || "IRR";
-  headerUsername.textContent = profile.username || "";
+  // headerUsername.textContent = profile.username || "";
+  headerUsername.textContent = username;
 }
 
 //change Profile

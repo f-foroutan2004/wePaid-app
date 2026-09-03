@@ -164,8 +164,8 @@ function setupEditButton(card) {
     budgetAmount.value = total;
     modalTitle.textContent = "ویرایش بودجه";
     budgetModal.classList.remove("hidden");
+    modalContent.classList.add("animate");
   });
-  modalContent.classList.add("animate");
 }
 
 //budget edit
@@ -222,3 +222,26 @@ existingCards.forEach((card) => {
 });
 
 modalOverlay.addEventListener("click", closeModal);
+
+document.addEventListener("DOMContentLoaded", () => {
+  const budgetCards = document.querySelectorAll(".budget-card");
+
+  budgetCards.forEach((card) => {
+    const percentageText = card.querySelector(".percentage");
+    const progressFill = card.querySelector(".progress-fill");
+
+    const percentage = parseInt(percentageText.textContent);
+
+    if (percentage >= 90) {
+      progressFill.style.backgroundColor = "#ef4444";
+    } else if (percentage >= 70) {
+      progressFill.style.backgroundColor = "#f59e0b";
+    } else {
+      progressFill.style.backgroundColor = "#22c55e";
+    }
+    
+    setTimeout(() => {
+      progressFill.style.width = `${percentage}%`;
+    }, 100);
+  });
+});

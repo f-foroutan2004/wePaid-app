@@ -1,10 +1,12 @@
+import api from "./api.js";
+import { showToast } from "../../utils/Toast.js";
+
 //login
 let emailInput = document.querySelector("#email");
 const emailError = document.querySelector(".emailError");
 let passwordInput = document.querySelector("#password");
 const passwordError = document.querySelector(".passwordError");
 const form = document.querySelector(".box");
-const signInBtn = document.querySelector(".signIn-btn");
 
 function validation() {
   let email = emailInput.value.trim();
@@ -23,7 +25,7 @@ function validation() {
   } else {
     emailError.classList.add("hidden");
   }
-  
+
   // password
   if (!passwordRegex.test(password)) {
     passwordError.classList.remove("hidden");
@@ -35,17 +37,40 @@ function validation() {
   return isValid;
 }
 
-function finalValidate(e) {
+async function getToken(e) {
   e.preventDefault();
   const isValid = validation();
 
-  if (isValid) {
-    e.target.submit();
-    const userName = userNameInput.value.trim();
-    localStorage.setItem("userName", userName);
-  } else {
-    return;
+  if (!isValid) return;
+
+  const email = emailInput.value.trim();
+  const password = passwordInput.value.trim();
+
+  const loginData = new FormData();
+  loginData.append("email", email);
+  loginData.append("password", password);
+
+  try {
+    const response = await api.post("/login", loginData);
+    const successMessage = response.data?.data?.message;
+
+    if (response) {
+      showToast(successMessage, "success");
+
+      // redirect to dashboard
+      setTimeout(() => {
+        window.location.href = "./dashboard.html";
+      }, 1000);
+    }
+  } catch (error) {
+    if (error.response) {
+      const message = error.response.data?.data?.message;
+
+      showToast(message);
+    } else {
+      showToast("ارتباط با سرور برقرار نشد.");
+    }
   }
 }
 
-form.addEventListener("submit", finalValidate);
+form.addEventListener("submit", getToken);

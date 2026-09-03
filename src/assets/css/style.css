@@ -221,12 +221,13 @@ label i {
   display: flex;
   gap: 1rem;
 }
+
 .signUp-btn,
 .next-btn,
 .prev-btn,
+.signIn-btn,
 .signIn-page-btn,
-.signUp-btn,
-.signIn-btn {
+.signUp-create-btn {
   font-size: 1.125rem;
   font-weight: 600;
   padding: 1.25rem;
@@ -252,9 +253,15 @@ label i {
   direction: ltr;
 }
 
+.signIn-page-btn,
+.signUp-btn {
+  background-color: inherit;
+  border: 1px solid var(--primary-color);
+}
+
 .signIn-page-btn a,
 .signUp-btn a {
-  color: var(--white-color);
+  color: var(--primary-color);
   display: flex;
   gap: 0.6rem;
 }
@@ -263,17 +270,21 @@ label i {
   line-height: 1;
 }
 
-.signUp-btn:hover,
 .next-btn:hover,
-.signIn-page-btn:hover,
-.signUp-btn:hover,
 .signIn-btn:hover,
-.prev-btn {
+.prev-btn,
+.signUp-create-btn:hover {
   background-color: var(--primary-dark);
   transform: scale(0.97);
   box-shadow:
     0 8px 25px var(--purple-shadow),
     0 0 30px rgba(139, 92, 246, 0.15);
+}
+
+.signIn-page-btn:hover,
+.signUp-btn:hover {
+  transform: scale(0.97);
+  transition: 0.3s;
 }
 
 .signUp-btn:active {
@@ -285,7 +296,10 @@ label i {
 .phoneError,
 .passwordError,
 .currencyError,
-.amountError {
+.amountError,
+.transactionTitleError,
+.transactionAmountError,
+.categoryError {
   color: var(--very-pink);
   font-size: 0.8rem;
 }
@@ -299,9 +313,177 @@ label i {
   padding: 0.5rem;
 }
 
-/* =========================Dashboard Page========================= */
+.loader {
+  --color-1: #fff;
+  --size: 0.9px;
 
-.dashboard {
+  width: calc(48 * var(--size));
+  height: calc(48 * var(--size));
+  border: calc(5 * var(--size)) solid var(--color-1);
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  position: relative;
+  animation: pulse 1s linear infinite;
+}
+.loader:after {
+  content: "";
+  position: absolute;
+  width: calc(48 * var(--size));
+  height: calc(48 * var(--size));
+  border: calc(5 * var(--size)) solid var(--color-1);
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  animation: scaleUp 1s linear infinite;
+}
+
+@keyframes scaleUp {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+  }
+  60%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+@keyframes pulse {
+  0%,
+  60%,
+  100% {
+    transform: scale(1);
+  }
+  80% {
+    transform: scale(1.2);
+  }
+}
+
+/* =========================Dashboard Page========================= */
+.notification-wrapper {
+  position: relative;
+}
+
+.notification-btn {
+  position: relative;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+/* Badge */
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+
+  min-width: 18px;
+  height: 18px;
+
+  padding: 0 4px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--very-pink);
+  color: white;
+
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Dropdown */
+.notification-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+
+  width: 340px;
+  max-height: 400px;
+
+  background: white;
+  border-radius: 12px;
+
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+
+  overflow: hidden;
+  z-index: 1000;
+}
+
+/* Header dropdown */
+.notification-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.notification-header h3 {
+  margin: 0;
+}
+
+.notification-header button {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--very-pink);
+}
+
+/* List */
+.notification-list {
+  max-height: 330px;
+  overflow-y: auto;
+}
+
+/* Notification */
+.notification-item {
+  padding: 14px 16px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.notification-item:hover {
+  background: #fafafa;
+}
+
+/* خوانده نشده */
+.notification-item.unread {
+  background: #fff4f7;
+}
+
+.notification-title {
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.notification-message {
+  font-size: 13px;
+  color: #666;
+}
+
+.notification-time {
+  margin-top: 5px;
+  font-size: 11px;
+  color: #999;
+}
+
+.no-notification {
+  padding: 25px;
+  text-align: center;
+  color: #999;
+}
+``` .dashboard {
   min-height: 100vh;
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
@@ -493,7 +675,7 @@ label i {
 .progress {
   width: 100%;
   height: 8px;
-  background-color: #eee8ff;
+  background: #e5e7eb;
   border-radius: 10px;
   overflow: hidden;
 }
@@ -501,9 +683,13 @@ label i {
 .progress span {
   display: block;
   height: 100%;
-  background-color: var(--primary-color);
+  width: 0;
   border-radius: 10px;
+  transition:
+    width 1s ease,
+    background-color 0.5s ease;
 }
+
 .add-btn {
   border: none;
   background-color: var(--pink-color);
@@ -773,12 +959,24 @@ tbody tr.slide-out {
   z-index: 1000;
 }
 
-.modal-overlay, .inviteModal-overlay {
+.modal-overlay,
+.inviteModal-overlay {
   background-color: rgba(48, 42, 58, 0.45);
   position: fixed;
   inset: 0;
   z-index: 0;
 }
+
+.overlay {
+  background-color: rgba(48, 42, 58, 0.45);
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .modal-content {
   width: 100%;
   max-width: 55rem;
@@ -865,12 +1063,6 @@ tbody tr.slide-out {
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
-}
-
-.form-group label {
-  color: var(--text-color);
-  font-size: 0.9rem;
-  font-weight: 600;
 }
 
 .form-group input[type="text"],
@@ -1080,7 +1272,7 @@ tbody tr.slide-out {
 
 .receipt-upload-box {
   min-height: 10rem;
-  display: flex;
+  display: flex !important;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -1129,6 +1321,36 @@ tbody tr.slide-out {
   object-fit: contain;
   border-radius: 0.5rem;
   background-color: #eee;
+}
+
+/* receipt progress */
+.upload-progress {
+  margin-top: 1rem;
+}
+
+.upload-progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--label-color);
+}
+
+.upload-progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.upload-progress-fill {
+  width: 0;
+  height: 100%;
+  background-color: var(--primary-color);
+  border-radius: 10px;
+  transition: width 0.15s ease;
 }
 
 /* Receipt Buttons */
@@ -1439,21 +1661,20 @@ tbody tr.slide-out {
 /* Progress */
 .progress-bar {
   width: 100%;
-  height: 0.55rem;
-  background-color: #eeeaf4;
-  border-radius: 999px;
+  height: 8px;
+  background-color: #e5e7eb;
+  border-radius: 10px;
   overflow: hidden;
 }
 
 .progress-fill {
+  width: 0;
   height: 100%;
-  border-radius: inherit;
-  background-color: var(--primary-color);
-  transition: width 0.4s ease;
-}
+  border-radius: 10px;
 
-.progress-fill.warning {
-  background-color: var(--pink-color);
+  transition:
+    width 1.2s ease,
+    background-color 0.5s ease;
 }
 
 /* Budget Modal */
@@ -1517,6 +1738,7 @@ tbody tr.slide-out {
   margin-bottom: 0.5rem;
   color: var(--text-color);
   font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .form-group input,
@@ -1616,13 +1838,6 @@ tbody tr.slide-out {
 
 .form-group {
   margin-bottom: 1.2rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: var(--text-color);
-  font-size: 0.9rem;
 }
 
 .form-group input,
@@ -1909,7 +2124,8 @@ tbody tr.slide-out {
   display: none;
 }
 
-.modal-box, .modal-invite-box {
+.modal-box,
+.modal-invite-box {
   width: 100%;
   max-width: 32rem;
   padding: 1.5rem;

@@ -14,11 +14,16 @@
       rel="stylesheet"
     />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+    <!-- <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+    /> -->
   </head>
   <body>
-    <!-- <div class="loaderConatiner">
+    <div class="overlay hidden">
       <span class="loader"></span>
-    </div> -->
+    </div>
     <div class="container">
       <div class="content">
         <div class="circle1"></div>
@@ -84,7 +89,6 @@
               </button>
               <button class="signIn-page-btn" type="button">
                 <a href="./login.html">
-                  <i class="fas fa-arrow-left"></i>
                   <span>ورود به حساب</span>
                 </a>
               </button>
@@ -94,21 +98,15 @@
             <h3 class="title">ارز پایه حساب خود را انتخاب کنید</h3>
             <div class="currency_input form-inputs">
               <label for="currency">
-                <!-- <select name="" id="search-select"></select> -->
                 <i class="fas fa-coins"></i>
                 ارز پایه
               </label>
-
-              <select name="currency" id="currency">
-                <option value="EUR">یورو</option>
-                <option value="USD">دلار</option>
-                <option value="GBP">پوند</option>
-              </select>
+              <select name="currency" id="currency"></select>
               <p class="currencyError hidden">لطفا ارز پایه را انتخاب کنید</p>
             </div>
 
             <div class="step_buttons">
-              <button type="submit" class="signUp-btn">
+              <button type="submit" class="signUp-create-btn">
                 <i class="fas fa-user-plus"></i>
                 <span>ایجاد حساب</span>
               </button>
@@ -123,10 +121,14 @@
       </div>
     </div>
   </body>
-  <script src="./src/assets/js/register.js"></script>
 
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
+  <!-- <script
+    type="text/javascript"
+    src="https://cdn.jsdelivr.net/npm/toastify-js"
+  ></script> -->
+  <!-- change the text of select2 -->
   <script>
     $(document).ready(function () {
       $("#currency").select2({
@@ -136,4 +138,5 @@
       });
     });
   </script>
+  <script type="module" src="./src/assets/js/register.js"></script>
 </html>

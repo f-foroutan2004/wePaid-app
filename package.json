@@ -1,0 +1,26 @@
+{
+  "name": "expenseapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gityar.ir/PBDP/wepaid.ir.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "vite": "^8.2.2"
+  },
+  "dependencies": {
+    "axios": "^1.20.0",
+    "toastify-js": "^1.12.0"
+  }
+}

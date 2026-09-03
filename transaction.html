@@ -69,10 +69,10 @@
               autocomplete="off"
             />
 
-            <button id="filterBtn" type="button">
+            <!-- <button id="filterBtn" type="button">
               <i class="fas fa-filter"></i>
               فیلتر
-            </button>
+            </button> -->
           </div>
 
           <!-- Filters -->
@@ -275,6 +275,7 @@
                 id="transactionTitle"
                 placeholder="مثلاً خرید از فروشگاه"
               />
+              <p class="transactionTitleError hidden">عنوان وارد شده صحیح نمی باشد</p>
             </div>
 
             <!-- Amount & Type -->
@@ -282,6 +283,7 @@
               <div class="form-group">
                 <label for="transactionAmount">مقدار</label>
                 <input type="number" id="transactionAmount" placeholder="0" />
+                <p class="transactionAmountError hidden">مقدار وارد شده صحیح نمی باشد</p>
               </div>
 
               <div class="form-group">
@@ -341,6 +343,7 @@
                   <span>درآمد</span>
                 </button>
               </div>
+              <p class="categoryError hidden">دسته بندی را انتخاب کنید</p>
             </div>
 
             <!-- Tags -->
@@ -420,6 +423,15 @@
                 <div class="receipt-preview hidden" id="receiptPreview">
                   <canvas id="receiptCanvas"></canvas>
 
+                  <div class="upload-progress hidden">
+                    <div class="upload-progress-info">
+                      <span>در حال آپلود تصویر</span>
+                      <span id="uploadPercent">0%</span>
+                    </div>
+                    <div class="upload-progress-bar">
+                      <div class="upload-progress-fill"></div>
+                    </div>
+                  </div>
                   <div class="receipt-actions">
                     <button type="button" id="cropReceiptBtn">
                       <i class="fas fa-crop"></i>

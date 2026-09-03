@@ -5,7 +5,7 @@ const categoryFilter = document.getElementById("categoryFilter");
 const tagFilter = document.getElementById("tagFilter");
 const paymentFilter = document.getElementById("paymentFilter");
 const sortFilter = document.getElementById("sortFilter");
-const filterBtn = document.getElementById("filterBtn");
+// const filterBtn = document.getElementById("filterBtn");
 const transactionBody = document.getElementById("transactionBody");
 const addTransactionBtn = document.querySelector(".add-btn");
 const closeModalBtn = document.querySelector(".close-modal");
@@ -24,6 +24,14 @@ const recurringTransaction = document.getElementById("recurringTransaction");
 const recurringFields = document.getElementById("recurringFields");
 const modalContent = document.querySelector(".modal-content");
 const modalOverlay = document.querySelector(".modal-overlay");
+const transactionTitleError = document.querySelector(".transactionTitleError");
+const transactionAmountError = document.querySelector(
+  ".transactionAmountError",
+);
+const categoryError = document.querySelector(".categoryError");
+const uploadProgress = document.querySelector(".upload-progress");
+const uploadPercent = document.querySelector("#uploadPercent");
+const uploadProgressFill = document.querySelector(".upload-progress-fill");
 
 // Username
 const username = localStorage.getItem("userName");
@@ -142,9 +150,21 @@ function createNewTransaction(e) {
   const amount = +transactionModalAmount.value;
 
   // validation
-  if (!newTitle || !amount || !selectedCategory) {
-    alert("لطفاً اطلاعات تراکنش را کامل کنید.");
+  if (!newTitle) {
+    transactionTitleError.classList.remove("hidden");
+  } else {
+    transactionTitleError.classList.add("hidden");
+  }
+  if (!amount) {
+    transactionAmountError.classList.remove("hidden");
+  } else {
+    transactionAmountError.classList.add("hidden");
+  }
+  if (!selectedCategory) {
+    categoryError.classList.remove("hidden");
     return;
+  } else {
+    categoryError.classList.add("hidden");
   }
 
   const transactionType = document.querySelector(
@@ -262,7 +282,8 @@ function openEditModal(row) {
   }
 
   transactionModal.classList.remove("hidden");
-
+  modalContent.classList.add("animate");
+  
   saveBtn.addEventListener("click", (e) => {
     e.preventDefault();
     updateTransaction(row);
@@ -273,6 +294,7 @@ function openEditModal(row) {
 function updateTransaction(row) {
   const newTitle = transactionModalTitle.value.trim();
   const amount = +transactionModalAmount.value;
+
   if (!newTitle || !amount || !selectedCategory) {
     alert("لطفاً اطلاعات تراکنش را کامل کنید.");
     return;
@@ -325,7 +347,7 @@ categoryFilter.addEventListener("change", filterTransactions);
 tagFilter.addEventListener("change", filterTransactions);
 paymentFilter.addEventListener("change", filterTransactions);
 sortFilter.addEventListener("change", filterTransactions);
-filterBtn.addEventListener("click", filterTransactions);
+// filterBtn.addEventListener("click", filterTransactions);
 addTransactionBtn.addEventListener("click", () => {
   saveBtn.addEventListener("click", createNewTransaction);
   openModal();
@@ -351,18 +373,41 @@ let croppedReceipt = null;
 receiptInput.addEventListener("change", (event) => {
   const file = event.target.files[0];
   if (!file) return;
+
+  // show Progress Bar
+  uploadProgress.classList.remove("hidden");
+
+  uploadProgressFill.style.width = "0%";
+  uploadPercent.textContent = "0%";
+
   const reader = new FileReader();
+  reader.addEventListener("progress", (event) => {
+    if (event.lengthComputable) {
+      const percent = Math.round((event.loaded / event.total) * 100);
+
+      uploadProgressFill.style.width = `${percent}%`;
+      uploadPercent.textContent = `${percent}%`;
+    }
+  });
+
   reader.addEventListener("load", (e) => {
     const img = new Image();
     img.addEventListener("load", () => {
       receiptImage = img;
-
       drawReceipt(img);
       receiptPreview.classList.remove("hidden");
+
+      uploadProgressFill.style.width = "100%";
+      uploadPercent.textContent = "100%";
+
+      setTimeout(() => {
+        uploadProgress.classList.add("hidden");
+      }, 500);
     });
-    
+
     img.src = e.target.result;
   });
+
   reader.readAsDataURL(file);
 });
 

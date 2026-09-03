@@ -104,3 +104,20 @@ new Chart(ctxLine, {
     },
   },
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const budgets = document.querySelectorAll(".budget");
+
+  budgets.forEach((budget) => {
+    const percentText = budget.querySelector(".budget-info span:last-child");
+    const progress = budget.querySelector(".progress span");
+
+    const percent = parseInt(percentText.textContent);
+
+    progress.style.backgroundColor = "#6d28d9";
+
+    setTimeout(() => {
+      progress.style.width = `${percent}%`;
+    }, 100);
+  });
+});
