@@ -157,7 +157,7 @@ nextBtn.addEventListener("click", validateStepOne);
 prevBtn.addEventListener("click", validateStepTwo);
 form.addEventListener("submit", registerUser);
 
-//installed lib
+//installed library (create module for toast)
 // function showToast(message, type = "error") {
 //   Toastify({
 //     text: message,

@@ -48,9 +48,9 @@
             <i class="fas fa-chart-pie"></i>
             <span>بودجه‌ها</span>
           </a>
-          <a href="./profile.html" class="nav-link">
+          <a href="./setting.html" class="nav-link">
             <i class="fas fa-user"></i>
-            <span>پروفایل</span>
+            <span>تنظیمات</span>
           </a>
         </nav>
       </aside>
@@ -85,36 +85,38 @@
                 <option value="1">فروردین</option>
                 <option value="2">اردیبهشت</option>
                 <option value="3">خرداد</option>
+                <option value="4">تیر</option>
+                <option value="5">مرداد</option>
+                <option value="6">شهریور</option>
+                <option value="7">مهر</option>
+                <option value="8">آبان</option>
+                <option value="9">آذر</option>
+                <option value="10">دی</option>
+                <option value="11">بهمن</option>
+                <option value="12">اسفند</option>
               </select>
             </div>
 
             <div class="filter-item">
               <label for="categoryFilter">دسته</label>
-
               <select id="categoryFilter">
                 <option value="all">همه دسته‌ها</option>
-                <option value="food">غذا</option>
-                <option value="transport">حمل و نقل</option>
-                <option value="shopping">خرید</option>
-                <option value="entertainment">تفریح</option>
-                <option value="salary">درآمد</option>
+                <!-- create options from js -->
               </select>
             </div>
 
             <div class="filter-item">
               <label for="tagFilter">برچسب</label>
-
               <select id="tagFilter">
-                <option value="all">همه برچسب‌ها</option>
-                <option value="important">مهم</option>
-                <option value="daily">روزمره</option>
-                <option value="work">کاری</option>
+                <option value="all">همه برچسب‌ ها</option>
+                <option value="important">ضروری</option>
+                <option value="daily">روزانه</option>
+                <option value="work">کار</option>
               </select>
             </div>
 
             <div class="filter-item">
               <label for="paymentFilter">روش پرداخت</label>
-
               <select id="paymentFilter">
                 <option value="all">همه روش‌ها</option>
                 <option value="cash">نقدی</option>
@@ -124,7 +126,6 @@
 
             <div class="filter-item">
               <label for="sortFilter">مرتب‌سازی</label>
-
               <select id="sortFilter">
                 <option value="highest">بیشترین مبلغ</option>
                 <option value="lowest">کمترین مبلغ</option>
@@ -148,6 +149,7 @@
                 <th>عنوان</th>
                 <th>دسته</th>
                 <th>مقدار</th>
+                <th>برچسب</th>
                 <th>تاریخ</th>
                 <th>عملیات</th>
               </tr>
@@ -165,6 +167,7 @@
                 <td>رستوران</td>
                 <td>غذا</td>
                 <td>-25 $</td>
+                <td>روزانه</td>
                 <td>امروز</td>
                 <td>
                   <button class="delete-btn">
@@ -187,6 +190,7 @@
                 <td>حمل و نقل</td>
                 <td>حمل و نقل</td>
                 <td>-10 $</td>
+                <td>روزانه</td>
                 <td>دیروز</td>
                 <td>
                   <button class="delete-btn">
@@ -209,6 +213,7 @@
                 <td>حقوق</td>
                 <td>درآمد</td>
                 <td>1200 $</td>
+                <td>کار</td>
                 <td>3 روز قبل</td>
                 <td>
                   <button class="delete-btn">
@@ -222,31 +227,6 @@
             </tbody>
           </table>
         </div>
-      </section>
-
-      <!-- Mobile Navigation -->
-      <section class="mobile-nav">
-        <nav class="mobile-navigation">
-          <ul class="mobile-navigation-list">
-            <li class="nav-bottom-link">
-              <a href="./dashboard.html"><i class="fas fa-home"></i></a>
-            </li>
-            <li class="nav-bottom-link activeNav">
-              <a href="./transaction.html"
-                ><i class="fas fa-exchange-alt"></i
-              ></a>
-            </li>
-            <li class="nav-bottom-link">
-              <a href=""><i class="fas fa-plus"></i></a>
-            </li>
-            <li class="nav-bottom-link">
-              <a href="./budget.html"><i class="fas fa-chart-pie"></i></a>
-            </li>
-            <li class="nav-bottom-link">
-              <a href="./profile.html"><i class="fas fa-user"></i></a>
-            </li>
-          </ul>
-        </nav>
       </section>
 
       <!-- Transaction Modal -->
@@ -275,7 +255,9 @@
                 id="transactionTitle"
                 placeholder="مثلاً خرید از فروشگاه"
               />
-              <p class="transactionTitleError hidden">عنوان وارد شده صحیح نمی باشد</p>
+              <p class="transactionTitleError hidden">
+                عنوان وارد شده صحیح نمی باشد
+              </p>
             </div>
 
             <!-- Amount & Type -->
@@ -283,12 +265,13 @@
               <div class="form-group">
                 <label for="transactionAmount">مقدار</label>
                 <input type="number" id="transactionAmount" placeholder="0" />
-                <p class="transactionAmountError hidden">مقدار وارد شده صحیح نمی باشد</p>
+                <p class="transactionAmountError hidden">
+                  مقدار وارد شده صحیح نمی باشد
+                </p>
               </div>
 
               <div class="form-group">
                 <label>نوع تراکنش</label>
-
                 <div class="transaction-type">
                   <label class="type-option income">
                     <input type="radio" name="transactionType" value="income" />
@@ -318,30 +301,8 @@
             <div class="form-group">
               <label>دسته‌بندی</label>
               <div class="category-options">
-                <button type="button" class="category-option">
-                  <i class="fas fa-utensils"></i>
-                  <span>غذا</span>
-                </button>
+                <!-- upload from js -->
 
-                <button type="button" class="category-option">
-                  <i class="fas fa-car"></i>
-                  <span>حمل و نقل</span>
-                </button>
-
-                <button type="button" class="category-option">
-                  <i class="fas fa-shopping-bag"></i>
-                  <span>خرید</span>
-                </button>
-
-                <button type="button" class="category-option">
-                  <i class="fas fa-home"></i>
-                  <span>خانه</span>
-                </button>
-
-                <button type="button" class="category-option">
-                  <i class="fas fa-wallet"></i>
-                  <span>درآمد</span>
-                </button>
               </div>
               <p class="categoryError hidden">دسته بندی را انتخاب کنید</p>
             </div>
@@ -351,23 +312,18 @@
               <label>برچسب‌ها</label>
               <div class="tag-options">
                 <label class="tag-option">
-                  <input type="checkbox" value="daily" />
-                  <span>روزانه</span>
-                </label>
-
-                <label class="tag-option">
-                  <input type="checkbox" value="important" />
+                  <input type="checkbox" value="ضروری" />
                   <span>ضروری</span>
                 </label>
 
                 <label class="tag-option">
-                  <input type="checkbox" value="work" />
-                  <span>کار</span>
+                  <input type="checkbox" value="روزانه" />
+                  <span>روزانه</span>
                 </label>
 
                 <label class="tag-option">
-                  <input type="checkbox" value="fun" />
-                  <span>تفریح</span>
+                  <input type="checkbox" value="کار" />
+                  <span>کار</span>
                 </label>
               </div>
             </div>
@@ -376,14 +332,6 @@
             <div class="form-group">
               <label>روش پرداخت</label>
               <div class="payment-options">
-                <label class="payment-option">
-                  <input type="radio" name="payment" value="card" checked />
-                  <span>
-                    <i class="fas fa-credit-card"></i>
-                    کارت
-                  </span>
-                </label>
-
                 <label class="payment-option">
                   <input type="radio" name="payment" value="cash" />
                   <span>
@@ -405,14 +353,12 @@
             <!-- Receipt -->
             <div class="form-group">
               <label>تصویر رسید</label>
-
               <div class="receipt-upload">
                 <label for="receiptInput" class="receipt-upload-box">
                   <i class="fas fa-cloud-upload-alt"></i>
                   <span>آپلود تصویر رسید</span>
                   <small>PNG, JPG یا JPEG</small>
                 </label>
-
                 <input
                   type="file"
                   id="receiptInput"
@@ -478,7 +424,6 @@
                 <div class="form-row">
                   <div class="form-group">
                     <label for="repeatCount"> تعداد دفعات </label>
-
                     <input
                       type="number"
                       id="repeatCount"
@@ -489,7 +434,6 @@
 
                   <div class="form-group">
                     <label for="recurringEndDate"> تاریخ پایان </label>
-
                     <input type="date" id="recurringEndDate" />
                   </div>
                 </div>
@@ -507,9 +451,34 @@
           </form>
         </div>
       </div>
+
+      <!-- Mobile Navigation -->
+      <section class="mobile-nav">
+        <nav class="mobile-navigation">
+          <ul class="mobile-navigation-list">
+            <li class="nav-bottom-link">
+              <a href="./dashboard.html"><i class="fas fa-home"></i></a>
+            </li>
+            <li class="nav-bottom-link activeNav">
+              <a href="./transaction.html"
+                ><i class="fas fa-exchange-alt"></i
+              ></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href=""><i class="fas fa-plus"></i></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href="./budget.html"><i class="fas fa-chart-pie"></i></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href="./setting.html"><i class="fas fa-user"></i></a>
+            </li>
+          </ul>
+        </nav>
+      </section>
     </main>
 
-    <script src="./src/assets/js/transaction.js"></script>
+    <script type="module" src="./src/assets/js/transaction.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
       AOS.init();

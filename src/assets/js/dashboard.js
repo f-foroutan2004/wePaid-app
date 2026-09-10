@@ -105,6 +105,7 @@ new Chart(ctxLine, {
   },
 });
 
+//animate budget progress 
 document.addEventListener("DOMContentLoaded", () => {
   const budgets = document.querySelectorAll(".budget");
 

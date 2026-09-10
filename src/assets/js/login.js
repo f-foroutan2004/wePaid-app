@@ -53,6 +53,7 @@ async function getToken(e) {
   try {
     const response = await api.post("/login", loginData);
     const successMessage = response.data?.data?.message;
+    localStorage.setItem("token", response.data.data.token);
 
     if (response) {
       showToast(successMessage, "success");
@@ -63,6 +64,7 @@ async function getToken(e) {
       }, 1000);
     }
   } catch (error) {
+    console.log(error);
     if (error.response) {
       const message = error.response.data?.data?.message;
 
