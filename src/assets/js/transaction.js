@@ -1,6 +1,7 @@
 import api from "./api.js";
+import { showToast } from "../../utils/Toast.js";
 
-//Elements
+// Elements
 const usernameElement = document.querySelector("#headerUsername");
 const searchInput = document.getElementById("search");
 const monthFilter = document.getElementById("monthFilter");
@@ -31,42 +32,478 @@ const transactionTitleError = document.querySelector(".transactionTitleError");
 const transactionAmountError = document.querySelector(
   ".transactionAmountError",
 );
-
 const uploadProgress = document.querySelector(".upload-progress");
 const uploadPercent = document.querySelector("#uploadPercent");
 const uploadProgressFill = document.querySelector(".upload-progress-fill");
 
 // Username
 const username = localStorage.getItem("userName");
-usernameElement.textContent = username || "کاربر";
+
+if (usernameElement) {
+  usernameElement.textContent = username || "کاربر";
+}
 
 // Categories
 let selectedCategory = "";
+let selectedCategoryId = "";
+let selectedParentCategoryId = null;
 
-// Event Delegation
+let categories = [];
+let transactions = [];
+
+// Edit State
+let editingTransaction = null;
+
+// Parent ID
+function getParentId(category) {
+  if (!category) {
+    return null;
+  }
+
+  if (
+    category.parent_id !== undefined &&
+    category.parent_id !== null &&
+    category.parent_id !== ""
+  ) {
+    return category.parent_id;
+  }
+
+  if (
+    category.parentId !== undefined &&
+    category.parentId !== null &&
+    category.parentId !== ""
+  ) {
+    return category.parentId;
+  }
+
+  return null;
+}
+
+// Get Children
+function getCategoryChildren(category) {
+  if (!category) {
+    return [];
+  }
+
+  if (Array.isArray(category.children)) {
+    return category.children;
+  }
+
+  const categoryId = String(category.id);
+
+  return categories.filter((item) => {
+    const parentId = getParentId(item);
+
+    return (
+      parentId !== null &&
+      parentId !== undefined &&
+      String(parentId) === categoryId
+    );
+  });
+}
+
+function findCategoryById(categoryId) {
+  if (categoryId === null || categoryId === undefined || categoryId === "") {
+    return null;
+  }
+
+  const id = String(categoryId);
+
+  for (const category of categories) {
+    if (String(category.id) === id) {
+      return category;
+    }
+
+    const children = getCategoryChildren(category);
+    const child = children.find((item) => String(item.id) === id);
+
+    if (child) {
+      return child;
+    }
+  }
+
+  return null;
+}
+
+// Find Parent Category
+function findParentCategory(categoryId) {
+  if (categoryId === null || categoryId === undefined || categoryId === "") {
+    return null;
+  }
+
+  const id = String(categoryId);
+  const directCategory = categories.find(
+    (category) => String(category.id) === id,
+  );
+
+  if (directCategory) {
+    const parentId = getParentId(directCategory);
+
+    if (parentId === null || parentId === undefined || parentId === "") {
+      return directCategory;
+    }
+
+    return findParentCategory(parentId);
+  }
+
+  for (const category of categories) {
+    const children = getCategoryChildren(category);
+
+    const child = children.find((item) => String(item.id) === id);
+
+    if (child) {
+      return category;
+    }
+  }
+
+  return null;
+}
+
+// Get Parent Category ID
+function getParentCategoryId(categoryId) {
+  if (categoryId === null || categoryId === undefined || categoryId === "") {
+    return "";
+  }
+
+  const id = String(categoryId);
+  const parentCategory = findParentCategory(id);
+
+  if (parentCategory) {
+    return String(parentCategory.id);
+  }
+
+  const category = findCategoryById(id);
+
+  if (!category) {
+    return id;
+  }
+
+  const parentId = getParentId(category);
+
+  if (parentId === null || parentId === undefined || parentId === "") {
+    return String(category.id);
+  }
+
+  return String(parentId);
+}
+
+// Category Click
 categoryOptionsContainer.addEventListener("click", (event) => {
-  const category = event.target.closest(".category-option");
+  const categoryButton = event.target.closest(".category-option");
 
-  if (!category) return;
+  if (!categoryButton) {
+    return;
+  }
 
-  // Remove active from all categories
+  const categoryId = String(categoryButton.dataset.categoryId);
+  const categoryName =
+    categoryButton.querySelector("span")?.textContent.trim() || "";
+
   categoryOptionsContainer
     .querySelectorAll(".category-option")
     .forEach((item) => {
       item.classList.remove("active");
     });
-  // Active selected category
-  category.classList.add("active");
 
-  // Save selected category
-  selectedCategory = category.querySelector("span").textContent.trim();
+  categoryButton.classList.add("active");
+  const currentCategory = findCategoryById(categoryId);
 
-  // Hide validation error
+  if (!currentCategory) {
+    console.error("Category not found:", categoryId);
+
+    return;
+  }
+
+  const children = getCategoryChildren(currentCategory);
+
+  // Parent
+  if (children.length > 0) {
+    selectedCategory = "";
+    selectedCategoryId = "";
+    selectedParentCategoryId = categoryId;
+
+    categoryError.classList.remove("hidden");
+
+    showSubcategories(children, categoryButton);
+
+    return;
+  }
+
+  // Category Without Children
+  selectedCategory = categoryName;
+  selectedCategoryId = categoryId;
+  selectedParentCategoryId = null;
   categoryError.classList.add("hidden");
+
+  const oldDropdown = categoryButton.parentElement.querySelector(
+    ".subcategory-dropdown",
+  );
+
+  if (oldDropdown) {
+    oldDropdown.remove();
+  }
 });
 
-// Transactions Array
-let transactions = [...transactionBody.querySelectorAll("tr")];
+// Show Subcategories
+function showSubcategories(children, parentButton) {
+  const oldDropdown = parentButton.parentElement.querySelector(
+    ".subcategory-dropdown",
+  );
+
+  if (oldDropdown) {
+    oldDropdown.remove();
+  }
+
+  const dropdown = document.createElement("select");
+  dropdown.className = "subcategory-dropdown";
+  dropdown.innerHTML = `
+    <option value="">
+      انتخاب زیردسته
+    </option>
+  `;
+
+  children.forEach((child) => {
+    const option = document.createElement("option");
+    option.value = child.id;
+    option.textContent = child.name;
+    dropdown.appendChild(option);
+  });
+
+  dropdown.addEventListener("change", () => {
+    const selectedId = dropdown.value;
+
+    if (!selectedId) {
+      selectedCategory = "";
+      selectedCategoryId = "";
+      categoryError.classList.remove("hidden");
+
+      return;
+    }
+
+    const selectedChild = children.find(
+      (child) => String(child.id) === String(selectedId),
+    );
+
+    if (!selectedChild) {
+      console.error("Subcategory not found");
+
+      return;
+    }
+
+    selectedCategory = selectedChild.name;
+    selectedCategoryId = String(selectedChild.id);
+    selectedParentCategoryId = String(parentButton.dataset.categoryId);
+    categoryError.classList.add("hidden");
+  });
+
+  parentButton.parentElement.appendChild(dropdown);
+}
+
+// Transaction Helpers
+function getTransactionTitle(transaction) {
+  return (
+    transaction.title ||
+    transaction.description ||
+    transaction.name ||
+    transaction.note
+  );
+}
+
+function getTransactionAmount(transaction) {
+  return +transaction.amount || 0;
+}
+
+function getTransactionType(transaction) {
+  return transaction.type || "expense";
+}
+
+function getTransactionCategoryId(transaction) {
+  return (
+    transaction.category_id ||
+    transaction.categoryId ||
+    transaction.category?.id ||
+    ""
+  );
+}
+
+// Transaction Category Name
+function getTransactionCategoryName(transaction) {
+  if (transaction.category?.name) {
+    return transaction.category.name;
+  }
+
+  if (transaction.category_name) {
+    return transaction.category_name;
+  }
+
+  if (typeof transaction.category === "string") {
+    return transaction.category;
+  }
+
+  const categoryId = getTransactionCategoryId(transaction);
+
+  if (!categoryId) {
+    return "بدون دسته";
+  }
+
+  const category = findCategoryById(categoryId);
+
+  if (category) {
+    return category.name;
+  }
+
+  return "بدون دسته";
+}
+
+// Payment
+function getTransactionPayment(transaction) {
+  return (
+    transaction.payment_method ||
+    transaction.paymentMethod ||
+    transaction.payment ||
+    "cash"
+  );
+}
+
+// TAG
+function normalizeTag(tag) {
+  if (tag === null || tag === undefined || tag === "") {
+    return "";
+  }
+
+  const value = String(tag).trim().toLowerCase();
+
+  const tagMap = {
+    daily: "روزانه",
+    روزانه: "روزانه",
+    necessary: "ضروری",
+    essential: "ضروری",
+    important: "ضروری",
+    ضروری: "ضروری",
+    work: "کار",
+    job: "کار",
+    کار: "کار",
+  };
+
+  return tagMap[value] || String(tag).trim();
+}
+
+// Get Transaction Tag
+function getTransactionTag(transaction) {
+  if (!transaction?.id) {
+    return "";
+  }
+
+  const savedTags = JSON.parse(localStorage.getItem("transactionTags") || "{}");
+  const savedTag = savedTags[String(transaction.id)] || "";
+  return normalizeTag(savedTag);
+}
+
+// Save TAG
+function saveTransactionTag(transactionId, tag) {
+  if (!transactionId) {
+    return;
+  }
+
+  const savedTags = JSON.parse(localStorage.getItem("transactionTags") || "{}");
+  savedTags[String(transactionId)] = normalizeTag(tag);
+
+  localStorage.setItem("transactionTags", JSON.stringify(savedTags));
+}
+
+// Date Helper
+function getTransactionDate(transaction) {
+  const date =
+    transaction.created_at ||
+    transaction.transaction_date ||
+    transaction.transactionDate ||
+    "";
+
+  if (!date) {
+    return "";
+  }
+
+  return String(date).split(" ")[0].split("T")[0];
+}
+
+// Recurring Helpers
+function getFrequencyValue() {
+  const frequencyInput =
+    document.querySelector('input[name="frequency"]:checked') ||
+    document.getElementById("frequency") ||
+    document.querySelector('[name="frequency"]') ||
+    document.querySelector(".frequency");
+
+  return frequencyInput?.value || "";
+}
+
+function getRepeatCountValue() {
+  const repeatCountInput =
+    document.getElementById("repeatCount") ||
+    document.getElementById("repeat_count") ||
+    document.querySelector('[name="repeat_count"]') ||
+    document.querySelector('[name="repeatCount"]') ||
+    document.querySelector(".repeat-count");
+
+  return repeatCountInput?.value || "";
+}
+
+function getEndDateValue() {
+  const endDateInput =
+    document.getElementById("endDate") ||
+    document.getElementById("end_date") ||
+    document.querySelector('[name="end_date"]') ||
+    document.querySelector('[name="endDate"]') ||
+    document.querySelector(".end-date");
+
+  return endDateInput?.value || "";
+}
+
+function resetRecurringFields() {
+  if (!recurringTransaction) {
+    return;
+  }
+
+  recurringTransaction.checked = false;
+
+  if (recurringFields) {
+    recurringFields.classList.add("hidden");
+  }
+
+  const frequencyInputs = document.querySelectorAll('input[name="frequency"]');
+
+  frequencyInputs.forEach((input) => {
+    input.checked = false;
+  });
+
+  const frequencySelect =
+    document.getElementById("frequency") ||
+    document.querySelector('select[name="frequency"]');
+
+  if (frequencySelect) {
+    frequencySelect.value = "";
+  }
+
+  const repeatCountInput =
+    document.getElementById("repeatCount") ||
+    document.getElementById("repeat_count") ||
+    document.querySelector('[name="repeat_count"]') ||
+    document.querySelector('[name="repeatCount"]');
+
+  if (repeatCountInput) {
+    repeatCountInput.value = "";
+  }
+
+  const endDateInput =
+    document.getElementById("endDate") ||
+    document.getElementById("end_date") ||
+    document.querySelector('[name="end_date"]') ||
+    document.querySelector('[name="endDate"]');
+
+  if (endDateInput) {
+    endDateInput.value = "";
+  }
+}
 
 // Show Transactions
 function showTransactions(transactionList) {
@@ -84,23 +521,85 @@ function showTransactions(transactionList) {
         </td>
       </tr>
     `;
+
     return;
   }
 
   transactionList.forEach((transaction, index) => {
-    const listId = transaction.querySelector(".listId");
+    const row = document.createElement("tr");
+    const title = getTransactionTitle(transaction);
+    const amount = getTransactionAmount(transaction);
+    const type = getTransactionType(transaction);
+    const categoryName = getTransactionCategoryName(transaction);
+    const categoryId = getTransactionCategoryId(transaction);
+    const payment = getTransactionPayment(transaction);
+    const tag = getTransactionTag(transaction);
+    const date = getTransactionDate(transaction);
+    const displayAmount =
+      type === "expense" ? -Math.abs(amount) : Math.abs(amount);
 
-    if (listId) {
-      listId.textContent = index + 1;
+    // Month
+    let month = "all";
+    if (date) {
+      const dateObject = new Date(date);
+
+      if (!isNaN(dateObject.getTime())) {
+        month = String(dateObject.getMonth() + 1);
+      }
     }
 
-    transactionBody.append(transaction);
+    // Data Attributes
+    row.dataset.id = transaction.id || "";
+    row.dataset.month = month;
+    row.dataset.categoryId = categoryId;
+    row.dataset.category = categoryName;
+    row.dataset.tag = tag;
+    row.dataset.payment = payment;
+    row.dataset.amount = displayAmount;
+
+    // Table Row
+    row.innerHTML = `
+        <td class="listId">
+          ${index + 1}
+        </td>
+        <td>
+          ${title}
+        </td>
+        <td>
+          ${categoryName}
+        </td>
+        <td>
+          ${displayAmount} $
+        </td>
+        <td>
+          ${tag}
+        </td>
+        <td>
+          ${date}
+        </td>
+        <td>
+          <button
+            class="delete-btn"
+            data-id="${transaction.id || ""}"
+          >
+            <i class="fas fa-trash"></i>
+          </button>
+          <button
+            class="edit-btn"
+            data-id="${transaction.id || ""}"
+          >
+            <i class="fas fa-edit"></i>
+          </button>
+        </td>
+      `;
+
+    transactionBody.appendChild(row);
   });
 }
 
 // Filter + Sort
 function filterTransactions() {
-  const searchValue = searchInput.value.trim();
+  const searchValue = searchInput.value.trim().toLowerCase();
   const selectedMonth = monthFilter.value;
   const selectedCategoryFilter = categoryFilter.value;
   const selectedTag = tagFilter.value;
@@ -108,19 +607,57 @@ function filterTransactions() {
   const selectedSort = sortFilter.value;
 
   let filteredTransactions = transactions.filter((transaction) => {
-    const title = transaction.children[1].textContent.trim();
-    const month = transaction.dataset.month;
-    const category = transaction.dataset.category;
-    const tag = transaction.dataset.tag;
-    const payment = transaction.dataset.payment;
+    const title = getTransactionTitle(transaction);
+    const date = getTransactionDate(transaction);
+    const categoryId = getTransactionCategoryId(transaction);
+    const categoryName = getTransactionCategoryName(transaction);
+    const tag = getTransactionTag(transaction);
+    const payment = getTransactionPayment(transaction);
 
-    const matchesSearch = title.includes(searchValue);
-    const matchesMonth = selectedMonth === "all" || month === selectedMonth;
+    // Month
+    let month = "all";
+
+    if (date) {
+      const dateObject = new Date(date);
+
+      if (!isNaN(dateObject.getTime())) {
+        month = String(dateObject.getMonth() + 1);
+      }
+    }
+
+    // Search=
+    const matchesSearch = title.toString().toLowerCase().includes(searchValue);
+
+    // Month
+    const matchesMonth =
+      selectedMonth === "all" ||
+      selectedMonth === "" ||
+      month === selectedMonth;
+
+    // Category Parent / Child
+    const parentCategoryId = getParentCategoryId(categoryId);
+
     const matchesCategory =
-      selectedCategoryFilter === "all" || category === selectedCategoryFilter;
-    const matchesTag = selectedTag === "all" || tag === selectedTag;
+      selectedCategoryFilter === "all" ||
+      selectedCategoryFilter === "" ||
+      String(categoryId) === String(selectedCategoryFilter) ||
+      String(parentCategoryId) === String(selectedCategoryFilter);
+
+    // TAG
+    const normalizedTransactionTag = normalizeTag(tag);
+    const normalizedSelectedTag = normalizeTag(selectedTag);
+
+    const matchesTag =
+      selectedTag === "all" ||
+      selectedTag === "" ||
+      !selectedTag ||
+      normalizedTransactionTag === normalizedSelectedTag;
+
+    // Payment
     const matchesPayment =
-      selectedPayment === "all" || payment === selectedPayment;
+      selectedPayment === "all" ||
+      selectedPayment === "" ||
+      String(payment) === String(selectedPayment);
 
     return (
       matchesSearch &&
@@ -133,8 +670,8 @@ function filterTransactions() {
 
   // Sort
   filteredTransactions.sort((a, b) => {
-    const amountA = +a.dataset.amount;
-    const amountB = +b.dataset.amount;
+    const amountA = Math.abs(getTransactionAmount(a));
+    const amountB = Math.abs(getTransactionAmount(b));
 
     if (selectedSort === "highest") {
       return amountB - amountA;
@@ -144,7 +681,7 @@ function filterTransactions() {
       return amountA - amountB;
     }
 
-    return;
+    return 0;
   });
 
   showTransactions(filteredTransactions);
@@ -162,9 +699,11 @@ function closeModal() {
   modalContent.classList.remove("animate");
 }
 
-// Reset Category Selection
+// Reset Category
 function resetCategorySelection() {
   selectedCategory = "";
+  selectedCategoryId = "";
+  selectedParentCategoryId = null;
 
   categoryOptionsContainer
     .querySelectorAll(".category-option")
@@ -172,79 +711,85 @@ function resetCategorySelection() {
       item.classList.remove("active");
     });
 
+  categoryOptionsContainer
+    .querySelectorAll(".subcategory-dropdown")
+    .forEach((dropdown) => {
+      dropdown.remove();
+    });
+
   categoryError.classList.add("hidden");
 }
 
-// Convert Category Name to Value
-function getCategoryValue(categoryName) {
-  if (categoryName === "غذا") {
-    return "food";
-  }
-
-  if (categoryName === "حمل و نقل") {
-    return "transport";
-  }
-
-  if (categoryName === "خرید") {
-    return "shopping";
-  }
-
-  if (categoryName === "خانه") {
-    return "home";
-  }
-
-  if (categoryName === "درآمد") {
-    return "salary";
-  }
-
-  return "food";
-}
-
 // Create New Transaction
-function createNewTransaction(e) {
+async function createNewTransaction(e) {
   e.preventDefault();
 
   const newTitle = transactionModalTitle.value.trim();
   const amount = +transactionModalAmount.value;
-
   let isValid = true;
 
-  // Title validation
+  // Title Validation
   if (!newTitle) {
     transactionTitleError.classList.remove("hidden");
+
     isValid = false;
   } else {
     transactionTitleError.classList.add("hidden");
   }
 
-  // Amount validation
-  if (!amount) {
+  // Amount Validation
+  if (!amount || amount <= 0) {
     transactionAmountError.classList.remove("hidden");
+
     isValid = false;
   } else {
     transactionAmountError.classList.add("hidden");
   }
 
-  // Category validation
-  if (!selectedCategory) {
+  // Category Validation
+  if (!selectedCategoryId) {
     categoryError.classList.remove("hidden");
     isValid = false;
   } else {
     categoryError.classList.add("hidden");
   }
 
-  if (!isValid) return;
+  if (!isValid) {
+    showToast("لطفاً اطلاعات تراکنش را کامل کنید.", "error");
 
-  // Transaction type
+    return;
+  }
+
+  // Token
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    showToast("توکن ورود پیدا نشد. دوباره وارد شوید.", "error");
+
+    return;
+  }
+
+  // Wallet
+  const walletId = localStorage.getItem("walletId");
+
+  if (!walletId) {
+    showToast("کیف پول انتخاب نشده است.", "error");
+
+    return;
+  }
+
+  // Transaction Type
   const transactionType = document.querySelector(
     'input[name="transactionType"]:checked',
   )?.value;
 
-  const finalAmount =
-    transactionType === "expense" ? -Math.abs(amount) : Math.abs(amount);
+  if (!transactionType) {
+    showToast("نوع تراکنش را انتخاب کنید.", "error");
 
-  // Category
-  const categoryValue = getCategoryValue(selectedCategory);
+    return;
+  }
+
+  const finalAmount = Math.abs(amount);
 
   // Payment
   const selectedPayment = document.querySelector(
@@ -253,68 +798,177 @@ function createNewTransaction(e) {
 
   const payment = selectedPayment ? selectedPayment.value : "cash";
 
-  // Tag
+  // TAG
   const selectedTag = document.querySelector(".tag-option input:checked");
-  const tag = selectedTag ? selectedTag.value : "روزانه";
+  const tag = selectedTag ? selectedTag.value : "";
 
-  // Create row
-  const newTransaction = document.createElement("tr");
+  // Recurring
+  const isPeriodic = recurringTransaction.checked;
+  const frequency = document.getElementById("recurringFrequency").value;
+  const repeatCount = document.getElementById("repeatCount").value;
+  const endDate = document.getElementById("recurringEndDate").value;
 
-  newTransaction.dataset.month = "all";
-  newTransaction.dataset.category = categoryValue;
-  newTransaction.dataset.tag = tag;
-  newTransaction.dataset.payment = payment;
-  newTransaction.dataset.amount = finalAmount;
+  if (isPeriodic) {
+    if (!frequency) {
+      showToast("لطفاً دوره تکرار تراکنش را انتخاب کنید.", "error");
 
-  newTransaction.innerHTML = `
-    <td class="listId"></td>
-    <td>${newTitle}</td>
-    <td>${selectedCategory}</td>
-    <td>
-      ${finalAmount} $
-    </td>
-    <td>${tag}</td>
-    <td>امروز</td>
-    <td>
-      <button class="delete-btn">
-        <i class="fas fa-trash"></i>
-      </button>
+      return;
+    }
 
-      <button class="edit-btn">
-        <i class="fas fa-edit"></i>
-      </button>
-    </td>
-  `;
+    if (!repeatCount || +repeatCount <= 0) {
+      showToast("لطفاً تعداد دفعات تکرار را وارد کنید.", "error");
 
-  // Add transaction
-  transactions.push(newTransaction);
+      return;
+    }
 
-  // Close modal
-  closeModal();
+    if (!endDate) {
+      showToast("لطفاً تاریخ پایان را انتخاب کنید.", "error");
 
-  // Reset form
-  transactionModalTitle.value = "";
-  transactionModalAmount.value = "";
+      return;
+    }
+  }
 
-  resetCategorySelection();
-  filterTransactions();
+  // Date
+  const transactionDate = new Date().toISOString().split("T")[0];
+  const transactionData = new FormData();
+  transactionData.append("wallet_id", +walletId);
+  transactionData.append("category_id", +selectedCategoryId);
+  transactionData.append("title", newTitle);
+  transactionData.append("payment_method", payment);
+  transactionData.append("type", transactionType);
+  transactionData.append("amount", finalAmount);
+  transactionData.append("transaction_date", transactionDate);
+  transactionData.append("frequency", frequency);
+  transactionData.append("repeat_count", repeatCount);
+  transactionData.append("is_periodic", isPeriodic ? "1" : "0");
+  transactionData.append("end_date", endDate);
+
+  // Receipt
+  if (croppedReceipt) {
+    transactionData.append("receipt_image", croppedReceipt);
+  }
+
+  // Send To API
+  try {
+    await api.post("/transaction/create", transactionData);
+
+    // Reload Transactions
+    await getTransactions();
+
+    // Find Created Transaction
+    const createdTransaction = transactions
+      .slice()
+      .reverse()
+      .find((transaction) => {
+        return (
+          String(getTransactionTitle(transaction)) === String(newTitle) &&
+          Number(getTransactionAmount(transaction)) === Number(finalAmount)
+        );
+      });
+
+    // Save Tag
+    if (createdTransaction?.id) {
+      saveTransactionTag(createdTransaction.id, tag);
+    }
+
+    // Render
+    filterTransactions();
+
+    showToast("تراکنش با موفقیت ثبت شد.", "success");
+    closeModal();
+
+    // Reset Form
+    transactionModalTitle.value = "";
+    transactionModalAmount.value = "";
+
+    resetCategorySelection();
+
+    // Reset Tag
+    document.querySelectorAll(".tag-option input").forEach((input) => {
+      input.checked = false;
+    });
+
+    // Reset Recurring
+    resetRecurringFields();
+
+    // Reset Receipt
+    receiptInput.value = "";
+    receiptImage = null;
+    croppedReceipt = null;
+
+    ctx.clearRect(0, 0, receiptCanvas.width, receiptCanvas.height);
+
+    receiptPreview.classList.add("hidden");
+  } catch (error) {
+    console.error("Create transaction error:", error);
+
+    showToast(
+      error.response?.data?.data?.message ||
+        error.response?.data?.message ||
+        "ثبت تراکنش انجام نشد.",
+      "error",
+    );
+  }
 }
 
 // Delete + Edit
-transactionBody.addEventListener("click", (event) => {
+transactionBody.addEventListener("click", async (event) => {
   // Delete
   const deleteBtn = event.target.closest(".delete-btn");
 
   if (deleteBtn) {
     const row = deleteBtn.closest("tr");
 
-    row.classList.add("slide-out");
+    if (!row) {
+      return;
+    }
 
-    setTimeout(() => {
-      row.remove();
+    const transactionId = row.dataset.id;
 
-      transactions = transactions.filter((transaction) => transaction !== row);
-    }, 400);
+    if (!transactionId) {
+      showToast("شناسه تراکنش پیدا نشد.", "error");
+
+      return;
+    }
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      showToast("توکن ورود پیدا نشد. دوباره وارد شوید.", "error");
+
+      return;
+    }
+
+    try {
+      await api.delete(`/transaction/delete/${transactionId}`);
+
+      const savedTags = JSON.parse(
+        localStorage.getItem("transactionTags") || "{}",
+      );
+
+      delete savedTags[String(transactionId)];
+
+      localStorage.setItem("transactionTags", JSON.stringify(savedTags));
+
+      showToast("تراکنش با موفقیت حذف شد.", "success");
+
+      row.classList.add("slide-out");
+
+      setTimeout(() => {
+        transactions = transactions.filter(
+          (transaction) => String(transaction.id) !== String(transactionId),
+        );
+
+        row.remove();
+
+        filterTransactions();
+      }, 400);
+    } catch (error) {
+      showToast(
+        error.response?.data?.message || "حذف تراکنش انجام نشد.",
+        "error",
+      );
+    }
 
     return;
   }
@@ -325,41 +979,94 @@ transactionBody.addEventListener("click", (event) => {
   if (editBtn) {
     const row = editBtn.closest("tr");
 
+    if (!row) {
+      return;
+    }
+
     openEditModal(row);
   }
 });
 
-// ============================================
 // Edit Modal
-// ============================================
-
 function openEditModal(row) {
-  const title = row.children[1].textContent.trim();
+  const transactionId = row.dataset.id;
 
-  const amount = Math.abs(+row.dataset.amount);
+  const transaction = transactions.find(
+    (item) => String(item.id) === String(transactionId),
+  );
 
+  if (!transaction) {
+    showToast("تراکنش پیدا نشد.", "error");
+
+    return;
+  }
+
+  editingTransaction = transaction;
+
+  // Title
+  const title = getTransactionTitle(transaction);
   transactionModalTitle.value = title;
 
+  // Amount
+  const amount = Math.abs(getTransactionAmount(transaction));
   transactionModalAmount.value = amount;
 
-  // Select category
+  // Category
+  resetCategorySelection();
+  const categoryId = getTransactionCategoryId(transaction);
+  const categoryName = getTransactionCategoryName(transaction);
+  const parentCategory = findParentCategory(categoryId);
+
   categoryOptionsContainer
     .querySelectorAll(".category-option")
-    .forEach((category) => {
-      category.classList.remove("active");
+    .forEach((categoryButton) => {
+      const buttonCategoryId = categoryButton.dataset.categoryId;
 
-      const text = category.querySelector("span").textContent.trim();
+      categoryButton.classList.remove("active");
 
-      if (text === row.children[2].textContent.trim()) {
-        category.classList.add("active");
+      if (
+        String(buttonCategoryId) === String(parentCategory?.id || categoryId)
+      ) {
+        categoryButton.classList.add("active");
 
-        selectedCategory = text;
+        const currentCategory = findCategoryById(buttonCategoryId);
+        const children = currentCategory
+          ? getCategoryChildren(currentCategory)
+          : [];
+
+        if (children.length > 0) {
+          selectedParentCategoryId = String(buttonCategoryId);
+          selectedCategory = "";
+          selectedCategoryId = "";
+          categoryError.classList.remove("hidden");
+
+          showSubcategories(children, categoryButton);
+
+          const dropdown = categoryButton.parentElement.querySelector(
+            ".subcategory-dropdown",
+          );
+
+          const child = children.find(
+            (item) => String(item.id) === String(categoryId),
+          );
+
+          if (dropdown && child) {
+            dropdown.value = child.id;
+            selectedCategory = child.name;
+            selectedCategoryId = String(child.id);
+            categoryError.classList.add("hidden");
+          }
+        } else {
+          selectedCategory = categoryName;
+          selectedCategoryId = String(categoryId);
+          selectedParentCategoryId = null;
+          categoryError.classList.add("hidden");
+        }
       }
     });
 
-  // Transaction type
-  const transactionType = +row.dataset.amount >= 0 ? "income" : "expense";
-
+  // Transaction Type
+  const transactionType = getTransactionType(transaction);
   const typeRadio = document.querySelector(
     `input[name="transactionType"][value="${transactionType}"]`,
   );
@@ -368,12 +1075,86 @@ function openEditModal(row) {
     typeRadio.checked = true;
   }
 
-  transactionModal.classList.remove("hidden");
+  // Payment
+  const payment = getTransactionPayment(transaction);
+  const paymentRadio = document.querySelector(
+    `input[name="payment"][value="${payment}"]`,
+  );
 
+  if (paymentRadio) {
+    paymentRadio.checked = true;
+  }
+
+  // TAG
+  const transactionTag = getTransactionTag(transaction);
+  document.querySelectorAll(".tag-option input").forEach((input) => {
+    input.checked = normalizeTag(input.value) === normalizeTag(transactionTag);
+  });
+
+  // Recurring
+  const isPeriodic =
+    transaction.is_periodic === true ||
+    transaction.is_periodic === 1 ||
+    transaction.is_periodic === "1" ||
+    transaction.is_periodic === "true";
+
+  if (recurringTransaction) {
+    recurringTransaction.checked = isPeriodic;
+
+    if (recurringFields) {
+      if (isPeriodic) {
+        recurringFields.classList.remove("hidden");
+      } else {
+        recurringFields.classList.add("hidden");
+      }
+    }
+  }
+
+  // Frequency
+  const transactionFrequency = transaction.frequency || "";
+  const frequencyRadio = document.querySelector(
+    `input[name="frequency"][value="${transactionFrequency}"]`,
+  );
+
+  if (frequencyRadio) {
+    frequencyRadio.checked = true;
+  }
+
+  const frequencySelect =
+    document.getElementById("frequency") ||
+    document.querySelector('select[name="frequency"]');
+
+  if (frequencySelect) {
+    frequencySelect.value = transactionFrequency;
+  }
+
+  // Repeat Count
+  const repeatCountInput =
+    document.getElementById("repeatCount") ||
+    document.getElementById("repeat_count") ||
+    document.querySelector('[name="repeat_count"]') ||
+    document.querySelector('[name="repeatCount"]');
+
+  if (repeatCountInput) {
+    repeatCountInput.value = transaction.repeat_count || "";
+  }
+
+  // End Date
+  const endDateInput =
+    document.getElementById("endDate") ||
+    document.getElementById("end_date") ||
+    document.querySelector('[name="end_date"]') ||
+    document.querySelector('[name="endDate"]');
+
+  if (endDateInput) {
+    endDateInput.value = transaction.end_date || "";
+  }
+
+  // Open Modal
+  transactionModal.classList.remove("hidden");
   modalContent.classList.add("animate");
 
-  // IMPORTANT:
-  // جلوگیری از اضافه شدن چندباره event listener
+  // Save
   saveBtn.onclick = (e) => {
     e.preventDefault();
 
@@ -381,47 +1162,144 @@ function openEditModal(row) {
   };
 }
 
-// ============================================
 // Update Transaction
-// ============================================
-
-function updateTransaction(row) {
+async function updateTransaction(row) {
   const newTitle = transactionModalTitle.value.trim();
-
   const amount = +transactionModalAmount.value;
 
-  if (!newTitle || !amount || !selectedCategory) {
-    alert("لطفاً اطلاعات تراکنش را کامل کنید.");
+  if (!newTitle || !amount || !selectedCategoryId) {
+    showToast("لطفاً اطلاعات تراکنش را کامل کنید.", "error");
+
     return;
   }
 
+  // Transaction Type
   const transactionType = document.querySelector(
     'input[name="transactionType"]:checked',
   )?.value;
 
-  const finalAmount =
-    transactionType === "expense" ? -Math.abs(amount) : Math.abs(amount);
+  if (!transactionType) {
+    showToast("نوع تراکنش را انتخاب کنید.", "error");
 
-  // Update DOM
-  row.children[1].textContent = newTitle;
-  row.children[2].textContent = selectedCategory;
-  row.children[3].textContent = `${finalAmount} $`;
+    return;
+  }
 
-  // Update data
-  row.dataset.amount = finalAmount;
-  row.dataset.category = getCategoryValue(selectedCategory);
+  // Payment
+  const selectedPayment = document.querySelector(
+    'input[name="payment"]:checked',
+  );
 
-  closeModal();
+  const payment = selectedPayment ? selectedPayment.value : "cash";
+  // Amount
+  const finalAmount = Math.abs(amount);
 
-  transactionModalTitle.value = "";
-  transactionModalAmount.value = "";
+  // Transaction ID
+  const transactionId = editingTransaction?.id;
 
-  resetCategorySelection();
+  if (!transactionId) {
+    showToast("شناسه تراکنش پیدا نشد.", "error");
 
-  // Restore create button behavior
-  saveBtn.onclick = createNewTransaction;
+    return;
+  }
 
-  filterTransactions();
+  // Token
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    showToast("توکن ورود پیدا نشد. دوباره وارد شوید.", "error");
+
+    return;
+  }
+
+  // Date
+  const transactionDate =
+    getTransactionDate(editingTransaction) ||
+    new Date().toISOString().split("T")[0];
+
+  // TAG
+  const selectedTag = document.querySelector(".tag-option input:checked");
+  const tag = selectedTag ? selectedTag.value : "";
+
+  // Recurring
+  const isPeriodic = recurringTransaction?.checked || false;
+  let frequency = "";
+  let repeatCount = "";
+  let endDate = "";
+
+  if (isPeriodic) {
+    frequency = getFrequencyValue();
+    repeatCount = getRepeatCountValue();
+    endDate = getEndDateValue();
+
+    if (!frequency) {
+      showToast("لطفاً دوره تکرار تراکنش را انتخاب کنید.", "error");
+
+      return;
+    }
+
+    if (!repeatCount || +repeatCount <= 0) {
+      showToast("لطفاً تعداد تکرار را وارد کنید.", "error");
+
+      return;
+    }
+
+    if (!endDate) {
+      showToast("لطفاً تاریخ پایان را انتخاب کنید.", "error");
+
+      return;
+    }
+  }
+
+  // Update Data
+  const transactionData = {
+    category_id: +selectedCategoryId,
+    title: newTitle,
+    payment_method: payment,
+    type: transactionType,
+    amount: finalAmount,
+    transaction_date: transactionDate,
+    frequency: frequency,
+    repeat_count: repeatCount,
+    is_periodic: isPeriodic,
+    end_date: endDate,
+  };
+
+  // Send Update
+  try {
+    await api.put(`/transaction/update/${transactionId}`, transactionData);
+
+    // Save Tag Frontend
+    saveTransactionTag(transactionId, tag);
+
+    // Reload
+    await getTransactions();
+    filterTransactions();
+
+    showToast("تراکنش با موفقیت ویرایش شد.", "success");
+
+    // Reset
+    transactionModalTitle.value = "";
+    transactionModalAmount.value = "";
+    resetCategorySelection();
+
+    document.querySelectorAll(".tag-option input").forEach((input) => {
+      input.checked = false;
+    });
+
+    resetRecurringFields();
+
+    editingTransaction = null;
+    saveBtn.onclick = createNewTransaction;
+
+    closeModal();
+  } catch (error) {
+    console.error("Update transaction error:", error);
+
+    showToast(
+      error.response?.data?.message || "ویرایش تراکنش انجام نشد.",
+      "error",
+    );
+  }
 }
 
 // Events
@@ -434,19 +1312,25 @@ sortFilter.addEventListener("change", filterTransactions);
 
 // Add Transaction
 addTransactionBtn.addEventListener("click", () => {
+  editingTransaction = null;
+
   saveBtn.onclick = createNewTransaction;
+  resetCategorySelection();
+  resetRecurringFields();
+
+  document.querySelectorAll(".tag-option input").forEach((input) => {
+    input.checked = false;
+  });
 
   openModal();
 });
 
-// Close buttons
+// Close Buttons
 closeModalBtn.addEventListener("click", closeModal);
 cancelBtn.addEventListener("click", closeModal);
-
-// Close by overlay
 modalOverlay.addEventListener("click", closeModal);
 
-// Recurring transaction
+// Recurring Transaction
 recurringTransaction.addEventListener("change", () => {
   if (recurringTransaction.checked) {
     recurringFields.classList.remove("hidden");
@@ -455,21 +1339,19 @@ recurringTransaction.addEventListener("change", () => {
   }
 });
 
-// Initial Render
-filterTransactions();
-
 // Receipt Upload
 const ctx = receiptCanvas.getContext("2d");
 let receiptImage = null;
 let croppedReceipt = null;
 
-// File selected
+// File Selected
 receiptInput.addEventListener("change", (event) => {
   const file = event.target.files[0];
 
-  if (!file) return;
+  if (!file) {
+    return;
+  }
 
-  // Show progress
   uploadProgress.classList.remove("hidden");
   uploadProgressFill.style.width = "0%";
   uploadPercent.textContent = "0%";
@@ -507,6 +1389,7 @@ receiptInput.addEventListener("change", (event) => {
 });
 
 // Draw Receipt
+
 function drawReceipt(img) {
   const maxWidth = 800;
   const maxHeight = 500;
@@ -521,29 +1404,29 @@ function drawReceipt(img) {
 
   if (height > maxHeight) {
     width = width * (maxHeight / height);
+
     height = maxHeight;
   }
 
   receiptCanvas.width = width;
   receiptCanvas.height = height;
-
   ctx.clearRect(0, 0, receiptCanvas.width, receiptCanvas.height);
   ctx.drawImage(img, 0, 0, width, height);
 }
 
 // Crop Receipt
 cropReceiptBtn.addEventListener("click", () => {
-  if (!receiptImage) return;
+  if (!receiptImage) {
+    return;
+  }
 
   const cropWidth = receiptCanvas.width * 0.8;
   const cropHeight = receiptCanvas.height * 0.8;
   const startX = (receiptCanvas.width - cropWidth) / 2;
   const startY = (receiptCanvas.height - cropHeight) / 2;
   const croppedCanvas = document.createElement("canvas");
-
   croppedCanvas.width = cropWidth;
   croppedCanvas.height = cropHeight;
-
   const croppedCtx = croppedCanvas.getContext("2d");
 
   croppedCtx.drawImage(
@@ -560,55 +1443,112 @@ cropReceiptBtn.addEventListener("click", () => {
 
   receiptCanvas.width = cropWidth;
   receiptCanvas.height = cropHeight;
+  ctx.clearRect(0, 0, receiptCanvas.width, receiptCanvas.height);
   ctx.drawImage(croppedCanvas, 0, 0);
-
   croppedReceipt = croppedCanvas.toDataURL("image/jpeg", 0.9);
 });
-
 // Remove Receipt
 removeReceiptBtn.addEventListener("click", () => {
   receiptInput.value = "";
   receiptImage = null;
   croppedReceipt = null;
+
   ctx.clearRect(0, 0, receiptCanvas.width, receiptCanvas.height);
   receiptPreview.classList.add("hidden");
 });
-
 // Get Categories From API
-async function getTransactions() {
+async function getCategories() {
   const token = localStorage.getItem("token");
-  
-  if (!token) return;
+
+  if (!token) {
+    showToast("توکن ورود پیدا نشد. دوباره وارد شوید.", "error");
+
+    return;
+  }
 
   try {
-    const response = await api.get("/categories", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    const categories = response.data?.data?.categories;
+    const response = await api.get("/categories");
 
-    if (!categories) return;
+    categories = response.data?.data?.categories || [];
+
+    if (!Array.isArray(categories)) {
+      categories = [];
+    }
+
+    // Category Filter
+    categoryFilter.innerHTML = `
+      <option value="all">
+        همه دسته‌ها
+      </option>
+    `;
 
     categories.forEach((category) => {
-      // Filter category
+      const parentId = getParentId(category);
+
+      if (parentId !== null && parentId !== undefined && parentId !== "") {
+        return;
+      }
+
       const option = document.createElement("option");
       option.value = category.id;
       option.textContent = category.name;
-      categoryFilter.append(option);
+      categoryFilter.appendChild(option);
+    });
 
-      // Modal category
+    // Category Options
+    categoryOptionsContainer.innerHTML = "";
+    categories.forEach((category) => {
       const categoryBtn = document.createElement("button");
       categoryBtn.type = "button";
       categoryBtn.className = "category-option";
       categoryBtn.dataset.categoryId = category.id;
-      categoryBtn.innerHTML = `<span>${category.name}</span>`;
+      categoryBtn.innerHTML = `
+          <span>
+            ${category.name}
+          </span>
+        `;
 
-      categoryOptionsContainer.append(categoryBtn);
+      categoryOptionsContainer.appendChild(categoryBtn);
     });
   } catch (error) {
-    console.error("Error loading categories:", error);
+    console.error("Categories Error:", error);
+
+    showToast(
+      error.response?.data?.message || "دسته‌بندی‌ها دریافت نشدند.",
+      "error",
+    );
   }
 }
-// Load Categories
+
+// Get Transactions From API
+async function getTransactions() {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    showToast("توکن ورود پیدا نشد. دوباره وارد شوید.", "error");
+
+    return;
+  }
+
+  try {
+    const response = await api.get("/transactions");
+    transactions = response.data?.data?.transactions || [];
+
+    if (!Array.isArray(transactions)) {
+      transactions = [];
+    }
+
+    filterTransactions();
+  } catch (error) {
+    console.error("Transactions Error:", error);
+
+    showToast(
+      error.response?.data?.message || "تراکنش‌ها دریافت نشدند.",
+      "error",
+    );
+  }
+}
+
+// Init
+getCategories();
 getTransactions();

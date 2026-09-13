@@ -1,6 +1,7 @@
 import { initProfile } from "./profile.js";
 import "./wallet.js";
 import api from "./api.js";
+import { showToast } from "../../utils/Toast.js";
 
 initProfile();
 
@@ -17,31 +18,105 @@ const parentCategorySelect = document.querySelector("#parentCategory");
 const iconPicker = document.querySelector("#iconPicker");
 const colorPicker = document.querySelector("#colorPicker");
 
-let categories = JSON.parse(localStorage.getItem("categories") || "[]");
-if (!Array.isArray(categories)) {
-  categories = [];
-}
-
+// State
+let categories = [];
 let editingCategoryId = null;
 let selectedIcon = "fa-shopping-cart";
 let selectedColor = "#43a047";
 
-function saveCategories() {
-  localStorage.setItem("categories", JSON.stringify(categories));
+let categoryStyles = JSON.parse(localStorage.getItem("categoryStyles") || "{}");
+
+if (!categoryStyles || typeof categoryStyles !== "object") {
+  categoryStyles = {};
+}
+
+// Save Frontend Styles
+function saveCategoryStyles() {
+  localStorage.setItem("categoryStyles", JSON.stringify(categoryStyles));
+}
+
+// Get Style For Category
+function getCategoryStyle(categoryId) {
+  return (
+    categoryStyles[String(categoryId)] || {
+      icon: "fa-shopping-cart",
+      color: "#43a047",
+    }
+  );
+}
+
+// Load Categories From API
+async function loadCategories() {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    console.error("Token not found");
+    return;
+  }
+
+  try {
+    const response = await api.get("/categories");
+    const apiCategories = response.data?.data?.categories || [];
+
+    categories = [];
+
+    apiCategories.forEach((category) => {
+      const categoryId = category.category_id ?? category.id;
+
+      const parentStyle = getCategoryStyle(categoryId);
+
+      // Parent Category
+      categories.push({
+        id: categoryId,
+        name: category.name,
+        parentId: null,
+
+        icon: parentStyle.icon,
+        color: parentStyle.color,
+      });
+
+      // Children
+      if (Array.isArray(category.children) && category.children.length > 0) {
+        category.children.forEach((child) => {
+          const childId = child.category_id ?? child.id;
+          const childStyle = getCategoryStyle(childId);
+          categories.push({
+            id: childId,
+            name: child.name,
+            parentId: categoryId,
+
+            icon: childStyle.icon,
+            color: childStyle.color,
+          });
+        });
+      }
+    });
+    renderCategories();
+  } catch (error) {
+    console.error("Error loading categories:", error);
+
+    const message =
+      error.response?.data?.data?.message ||
+      error.response?.data?.message ||
+      "خطا در دریافت دسته‌بندی‌ها.";
+
+    showToast(message);
+  }
 }
 
 // Render Categories
 function renderCategories() {
   if (!categoryList) return;
-
   categoryList.innerHTML = "";
   const parentCategories = categories.filter(
-    (category) => category.parentId === null,
+    (category) =>
+      category.parentId === null ||
+      category.parentId === undefined ||
+      category.parentId === "",
   );
 
   parentCategories.forEach((parent) => {
     const group = createCategoryGroup(parent);
-
     categoryList.appendChild(group);
   });
 
@@ -61,14 +136,16 @@ function createCategoryGroup(parent) {
 
   // Children
   const children = categories.filter(
-    (category) => +category.parentId === +parent.id,
+    (category) =>
+      category.parentId !== null &&
+      category.parentId !== undefined &&
+      String(category.parentId) === String(parent.id),
   );
 
   if (children.length > 0) {
     const subcategoryList = document.createElement("div");
     subcategoryList.className = "subcategory-list";
     subcategoryList.dataset.parentId = parent.id;
-
     children.forEach((child) => {
       const childElement = createCategoryElement(child, true);
       subcategoryList.appendChild(childElement);
@@ -76,6 +153,7 @@ function createCategoryGroup(parent) {
 
     group.appendChild(subcategoryList);
   }
+
   return group;
 }
 
@@ -108,11 +186,12 @@ function createCategoryElement(category, isSubcategory) {
   // Icon
   const icon = document.createElement("div");
   icon.className = "category-icon";
-  icon.style.setProperty("--category-color", category.color);
-  icon.style.setProperty("--category-bg", hexToRgba(category.color, 0.1));
-
+  const categoryColor = category.color || "#43a047";
+  const categoryIcon = category.icon || "fa-shopping-cart";
+  icon.style.setProperty("--category-color", categoryColor);
+  icon.style.setProperty("--category-bg", hexToRgba(categoryColor, 0.1));
   icon.innerHTML = `
-    <i class="fas ${category.icon}"></i>
+    <i class="fas ${categoryIcon}"></i>
   `;
 
   // Info
@@ -120,6 +199,7 @@ function createCategoryElement(category, isSubcategory) {
   info.className = "category-info";
   info.innerHTML = `
     <h3>${category.name}</h3>
+
     <span>
       ${isSubcategory ? getParentName(category.parentId) : "دسته اصلی"}
     </span>
@@ -183,7 +263,7 @@ function createCategoryElement(category, isSubcategory) {
   // Toggle Children
   if (!isSubcategory) {
     const children = categories.filter(
-      (child) => child.parentId === category.id,
+      (child) => String(child.parentId) === String(category.id),
     );
 
     if (children.length > 0) {
@@ -218,17 +298,27 @@ function createCategoryElement(category, isSubcategory) {
 
 // Get Parent Name
 function getParentName(parentId) {
-  const parent = categories.find((category) => category.id === parentId);
+  const parent = categories.find(
+    (category) => String(category.id) === String(parentId),
+  );
+
   return parent ? `زیر دسته ${parent.name}` : "زیر دسته";
 }
 
-// HEX → RGBA=
+// HEX → RGBA
 function hexToRgba(hex, opacity) {
+  if (!hex) {
+    hex = "#43a047";
+  }
+
   hex = hex.replace("#", "");
+  if (hex.length !== 6) {
+    return `rgba(67, 160, 71, ${opacity})`;
+  }
+
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);
   const b = parseInt(hex.substring(4, 6), 16);
-
   return `rgba(${r}, ${g}, ${b}, ${opacity})`;
 }
 
@@ -238,7 +328,9 @@ function openCategoryModal(categoryId = null, parentId = null) {
 
   // Edit
   if (categoryId) {
-    const category = categories.find((item) => item.id === categoryId);
+    const category = categories.find(
+      (item) => String(item.id) === String(categoryId),
+    );
 
     if (!category) {
       return;
@@ -246,9 +338,8 @@ function openCategoryModal(categoryId = null, parentId = null) {
 
     categoryModalTitle.textContent = "ویرایش دسته";
     categoryNameInput.value = category.name;
-    parentCategorySelect.value = category.parentId || "";
-    selectedIcon = category.icon;
-    selectedColor = category.color;
+    selectedIcon = category.icon || "fa-shopping-cart";
+    selectedColor = category.color || "#43a047";
   }
 
   // Add
@@ -257,7 +348,6 @@ function openCategoryModal(categoryId = null, parentId = null) {
     categoryForm.reset();
     selectedIcon = "fa-shopping-cart";
     selectedColor = "#43a047";
-    parentCategorySelect.value = parentId || "";
   }
 
   updateParentSelect();
@@ -265,9 +355,11 @@ function openCategoryModal(categoryId = null, parentId = null) {
   parentCategorySelect.value =
     parentId ||
     (categoryId
-      ? categories.find((item) => item.id === categoryId)?.parentId || ""
+      ? categories.find((item) => String(item.id) === String(categoryId))
+          ?.parentId || ""
       : "");
 
+  // Update Picker
   updateIconPicker();
   updateColorPicker();
 
@@ -363,6 +455,7 @@ if (categoryForm) {
     // Validation
     if (!name) {
       categoryNameInput.classList.add("input-error");
+
       return;
     }
 
@@ -372,7 +465,6 @@ if (categoryForm) {
     if (editingCategoryId) {
       try {
         const token = localStorage.getItem("token");
-
         const categoryData = {
           name: name,
           parent_id: parentId,
@@ -380,32 +472,40 @@ if (categoryForm) {
 
         const response = await api.put(
           `/category/update/${editingCategoryId}`,
-          categoryData,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
+          categoryData
         );
+
+        // Update Frontend
         const category = categories.find(
-          (item) => +(item.id) === +(editingCategoryId),
+          (item) => String(item.id) === String(editingCategoryId),
         );
 
         if (category) {
           category.name = name;
           category.parentId = parentId;
+
           category.icon = selectedIcon;
           category.color = selectedColor;
         }
 
-        saveCategories();
-        renderCategories();
-        closeCategoryModalHandler();
-      } catch (error) {
+        // Save Icon + Color
+        categoryStyles[String(editingCategoryId)] = {
+          icon: selectedIcon,
+          color: selectedColor,
+        };
 
-        alert(
+        saveCategoryStyles();
+
+        // Refresh From API
+        await loadCategories();
+        closeCategoryModalHandler();
+
+        showToast("دسته‌بندی با موفقیت ویرایش شد.", "success")
+      } catch (error) {
+        console.error("Update category error:", error);
+
+        showToast(
           error.response?.data?.data?.message ||
-            error.response?.data?.message ||
             "ویرایش دسته‌بندی انجام نشد.",
         );
       }
@@ -423,27 +523,36 @@ if (categoryForm) {
         categoryData.append("parent_id", parentId);
       }
 
-      const response = await api.post("/category/create", categoryData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await api.post("/category/create", categoryData);
 
-      const backendId = response.data.data.category_id;
-      const newCategory = {
-        id: backendId,
-        name: name,
-        parentId: parentId,
+      // Get Backend ID
+      const backendId =
+        response.data?.data?.category_id ?? response.data?.data?.id;
+
+      if (!backendId) {
+        throw new Error("Category ID not found");
+      }
+
+      // Save Frontend Style
+      categoryStyles[String(backendId)] = {
         icon: selectedIcon,
         color: selectedColor,
       };
-      categories.push(newCategory);
-      saveCategories();
 
-      renderCategories();
+      saveCategoryStyles();
+
+      // Reload From API
+      await loadCategories();
       closeCategoryModalHandler();
+
+      showToast("دسته‌بندی با موفقیت اضافه شد.", "success")
     } catch (error) {
-      console.log(error.response.data);
+      console.error("Create category error:", error);
+
+      showToast(
+        error.response?.data?.data?.message ||
+          "افزودن دسته‌بندی انجام نشد.",
+      );
     }
   });
 }
@@ -454,31 +563,30 @@ function updateParentSelect() {
     return;
   }
 
-  const currentValue = parentCategorySelect.value;
-
   parentCategorySelect.innerHTML = `
     <option value="">
       بدون والد — دسته اصلی
     </option>
   `;
 
-  const parents = categories.filter((category) => category.parentId === null);
+  const parents = categories.filter(
+    (category) =>
+      category.parentId === null ||
+      category.parentId === undefined ||
+      category.parentId === "",
+  );
 
   parents.forEach((category) => {
-    // Don't allow a category to become its own parent
-    if (category.id === editingCategoryId) {
+    if (String(category.id) === String(editingCategoryId)) {
       return;
     }
 
     const option = document.createElement("option");
     option.value = category.id;
     option.textContent = category.name;
+
     parentCategorySelect.appendChild(option);
   });
-
-  if (parents.some((category) => category.id === currentValue)) {
-    parentCategorySelect.value = currentValue;
-  }
 }
 
 // Delete Category
@@ -487,47 +595,34 @@ async function deleteCategory(categoryId) {
     (item) => String(item.id) === String(categoryId),
   );
 
-  if (!category) return;
+  if (!category) {
+    return;
+  }
 
   const confirmed = confirm(`آیا از حذف «${category.name}» مطمئن هستید؟`);
 
-  if (!confirmed) return;
+  if (!confirmed) {
+    return;
+  }
 
   try {
     const token = localStorage.getItem("token");
-    await api.delete(`/category/delete/${categoryId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await api.delete(`/category/delete/${categoryId}`);
 
-    categories = categories.filter(
-      (item) => String(item.id) !== String(categoryId),
-    );
-    saveCategories();
+    // Remove Frontend Style
+    delete categoryStyles[String(categoryId)];
 
-    const element = categoryList.querySelector(
-      `.category-item[data-id="${categoryId}"]`,
-    );
+    saveCategoryStyles();
 
-    if (element) {
-      if (category.parentId === null) {
-        const group = element.closest(".category-group");
+    // Reload API
+    await loadCategories();
 
-        if (group) {
-          group.remove();
-        }
-      } else {
-        element.remove();
-      }
-    }
-    updateParentSelect();
+    showToast("دسته‌بندی با موفقیت حذف شد.", "success")
   } catch (error) {
-    console.error(error);
+    console.error("Delete category error:", error);
 
-    alert(
+    showToast(
       error.response?.data?.data?.message ||
-        error.response?.data?.message ||
         "حذف دسته با خطا مواجه شد.",
     );
   }
@@ -538,7 +633,9 @@ let draggedCategoryId = null;
 
 // Initialize Drag & Drop
 function initializeDragAndDrop() {
-  if (!categoryList) return;
+  if (!categoryList) {
+    return;
+  }
 
   const categoryItems = categoryList.querySelectorAll(".category-item");
 
@@ -556,6 +653,7 @@ function initializeDragAndDrop() {
   groups.forEach((group) => {
     group.addEventListener("dragover", (event) => {
       event.preventDefault();
+
       event.dataTransfer.dropEffect = "move";
     });
   });
@@ -566,7 +664,6 @@ function handleDragStart(event) {
   const item = event.currentTarget;
   draggedCategoryId = String(item.dataset.id);
   item.classList.add("dragging");
-
   event.dataTransfer.effectAllowed = "move";
 }
 
@@ -579,7 +676,6 @@ function handleDragOver(event) {
 // Drag Enter
 function handleDragEnter(event) {
   event.preventDefault();
-
   const targetItem = event.currentTarget;
   const targetId = String(targetItem.dataset.id);
 
@@ -627,18 +723,22 @@ function handleDrop(event) {
     String(targetCategory.parentId) === draggedCategoryId ||
     isDescendant(targetCategoryId, draggedCategoryId)
   ) {
-    alert("امکان انتقال دسته به زیرمجموعه خودش وجود ندارد.");
+    showToast("امکان انتقال دسته به زیرمجموعه خودش وجود ندارد.")
     return;
   }
 
-  if (targetCategory.parentId === null) {
+  // Change Parent
+  if (
+    targetCategory.parentId === null ||
+    targetCategory.parentId === undefined
+  ) {
     draggedCategory.parentId = targetCategory.id;
   } else {
     draggedCategory.parentId = targetCategory.parentId;
   }
 
+  // Reorder
   reorderCategories(draggedCategoryId, targetCategoryId);
-  saveCategories();
   renderCategories();
 }
 
@@ -657,6 +757,7 @@ function reorderCategories(draggedId, targetId) {
   }
 
   const [draggedCategory] = categories.splice(draggedIndex, 1);
+
   const newTargetIndex = categories.findIndex(
     (category) => String(category.id) === String(targetId),
   );
@@ -670,7 +771,11 @@ function isDescendant(targetId, sourceId) {
     (category) => String(category.id) === String(targetId),
   );
 
-  while (current && current.parentId !== null) {
+  while (
+    current &&
+    current.parentId !== null &&
+    current.parentId !== undefined
+  ) {
     if (String(current.parentId) === String(sourceId)) {
       return true;
     }
@@ -679,6 +784,7 @@ function isDescendant(targetId, sourceId) {
       (category) => String(category.id) === String(current.parentId),
     );
   }
+
   return false;
 }
 
@@ -691,8 +797,9 @@ function handleDragEnd(event) {
       item.classList.remove("drag-over");
     });
   }
+
   draggedCategoryId = null;
 }
 
-// Initial Render
-renderCategories();
+// Initial Load
+loadCategories();
