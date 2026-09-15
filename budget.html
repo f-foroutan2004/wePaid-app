@@ -11,7 +11,13 @@
     />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
   </head>
+
   <body>
+    <!-- Global Loader -->
+    <div id="globalLoader" class="overlay hidden">
+      <span class="loader"></span>
+    </div>
+
     <!-- Header -->
     <header class="header">
       <div class="welcome">
@@ -33,19 +39,23 @@
           <i class="fas fa-wallet"></i>
           مدیریت هزینه
         </h2>
+
         <nav class="sidebar-nav">
           <a href="./dashboard.html" class="nav-link">
             <i class="fas fa-home"></i>
             <span>داشبورد</span>
           </a>
+
           <a href="./transaction.html" class="nav-link">
             <i class="fas fa-exchange-alt"></i>
             <span>تراکنش‌ها</span>
           </a>
+
           <a href="./budget.html" class="nav-link active">
             <i class="fas fa-chart-pie"></i>
             <span>بودجه‌ها</span>
           </a>
+
           <a href="./setting.html" class="nav-link">
             <i class="fas fa-user"></i>
             <span>تنظیمات</span>
@@ -59,153 +69,26 @@
         <div class="budget-header">
           <div>
             <h2>مدیریت بودجه ها</h2>
-            <p>برای هر دسته‌ بندی یک بودجه مشخص کنید و میزان مصرف را کنترل کنید</p>
+
+            <p>
+              برای هر دسته‌ بندی یک بودجه مشخص کنید و میزان مصرف را کنترل کنید
+            </p>
           </div>
+
           <button class="add-budget-btn" id="addBudgetBtn" type="button">
             <i class="fas fa-plus"></i>
             افزودن بودجه
           </button>
         </div>
+
         <!-- Budget Cards -->
         <div class="budget-list" id="budgetList">
-          <!-- Food -->
-          <div class="budget-card" data-category="food" data-aos="fade-right">
-            <div class="budget-card-header">
-              <div class="budget-title">
-                <div class="budget-icon food">
-                  <i class="fas fa-utensils"></i>
-                </div>
-                <div>
-                  <h3>غذا</h3>
-                  <span> بودجه ماهانه </span>
-                </div>
-              </div>
-              <button class="edit-budget" type="button">
-                <i class="fas fa-pen"></i>
-              </button>
-            </div>
-            <div class="budget-amounts">
-              <div>
-                <span> مصرف شده </span>
-                <strong class="spent"> 3,500,000 تومان </strong>
-              </div>
-              <div>
-                <span> بودجه کل </span>
-                <strong class="total"> 5,000,000 تومان </strong>
-              </div>
-            </div>
-            <div class="progress-info">
-              <span class="percentage"> 70٪ مصرف شده </span>
-              <span class="remaining"> 1,500,000 تومان باقی‌مانده </span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill"></div>
-            </div>
-          </div>
+          <!--Budget cards loaded by budget.js-->
 
-          <!-- Transport -->
-          <div class="budget-card" data-category="transport" data-aos="fade-right">
-            <div class="budget-card-header">
-              <div class="budget-title">
-                <div class="budget-icon transport">
-                  <i class="fas fa-car"></i>
-                </div>
-                <div>
-                  <h3>حمل و نقل</h3>
-                  <span> بودجه ماهانه </span>
-                </div>
-              </div>
-              <button class="edit-budget" type="button">
-                <i class="fas fa-pen"></i>
-              </button>
-            </div>
-            <div class="budget-amounts">
-              <div>
-                <span> مصرف شده </span>
-                <strong class="spent"> 1,200,000 تومان </strong>
-              </div>
-              <div>
-                <span> بودجه کل </span>
-                <strong class="total"> 3,000,000 تومان </strong>
-              </div>
-            </div>
-            <div class="progress-info">
-              <span class="percentage"> 40٪ مصرف شده </span>
-              <span class="remaining"> 1,800,000 تومان باقی‌مانده </span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill"></div>
-            </div>
-          </div>
-
-          <!-- Shopping -->
-          <div class="budget-card" data-category="shopping" data-aos="fade-right">
-            <div class="budget-card-header">
-              <div class="budget-title">
-                <div class="budget-icon shopping">
-                  <i class="fas fa-shopping-bag"></i>
-                </div>
-                <div>
-                  <h3>خرید</h3>
-                  <span> بودجه ماهانه </span>
-                </div>
-              </div>
-              <button class="edit-budget" type="button">
-                <i class="fas fa-pen"></i>
-              </button>
-            </div>
-            <div class="budget-amounts">
-              <div>
-                <span> مصرف شده </span>
-                <strong class="spent"> 4,500,000 تومان </strong>
-              </div>
-              <div>
-                <span> بودجه کل </span>
-                <strong class="total"> 5,000,000 تومان </strong>
-              </div>
-            </div>
-            <div class="progress-info">
-              <span class="percentage"> 90٪ مصرف شده </span>
-              <span class="remaining"> 500,000 تومان باقی‌مانده </span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill warning"></div>
-            </div>
-          </div>
-
-          <!-- Entertainment -->
-          <div class="budget-card" data-category="entertainment" data-aos="fade-right">
-            <div class="budget-card-header">
-              <div class="budget-title">
-                <div class="budget-icon entertainment">
-                  <i class="fas fa-gamepad"></i>
-                </div>
-                <div>
-                  <h3>تفریح</h3>
-                  <span> بودجه ماهانه </span>
-                </div>
-              </div>
-              <button class="edit-budget" type="button">
-                <i class="fas fa-pen"></i>
-              </button>
-            </div>
-            <div class="budget-amounts">
-              <div>
-                <span> مصرف شده </span>
-                <strong class="spent"> 800,000 تومان </strong>
-              </div>
-              <div>
-                <span> بودجه کل </span>
-                <strong class="total"> 2,000,000 تومان </strong>
-              </div>
-            </div>
-            <div class="progress-info">
-              <span class="percentage"> 40٪ مصرف شده </span>
-              <span class="remaining"> 1,200,000 تومان باقی‌مانده </span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill"></div>
-            </div>
+          <!-- Local Loader -->
+          <div id="budgetLoader" class="local-loader hidden">
+            <span class="loader"></span>
+            <span class="local-loader-text"> در حال دریافت بودجه‌ها... </span>
           </div>
         </div>
       </section>
@@ -215,73 +98,332 @@
         <nav class="mobile-navigation">
           <ul class="mobile-navigation-list">
             <li class="nav-bottom-link">
-              <a href="./dashboard.html"><i class="fas fa-home"></i></a>
+              <a href="./dashboard.html">
+                <i class="fas fa-home"></i>
+              </a>
             </li>
+
             <li class="nav-bottom-link">
-              <a href="./transaction.html"
-                ><i class="fas fa-exchange-alt"></i
-              ></a>
+              <a href="./transaction.html">
+                <i class="fas fa-exchange-alt"></i>
+              </a>
             </li>
-            <li class="nav-bottom-link">
-              <a href=""><i class="fas fa-plus"></i></a>
+
+            <li class="nav-bottom-link" id="quickAddBtn">
+              <a href="#">
+                <i class="fas fa-plus"></i>
+              </a>
             </li>
+
             <li class="nav-bottom-link activeNav">
-              <a href="./budget.html"><i class="fas fa-chart-pie"></i></a>
+              <a href="./budget.html">
+                <i class="fas fa-chart-pie"></i>
+              </a>
             </li>
+
             <li class="nav-bottom-link">
-              <a href="./profile.html"><i class="fas fa-user"></i></a>
+              <a href="./setting.html">
+                <i class="fas fa-user"></i>
+              </a>
             </li>
           </ul>
         </nav>
       </section>
-  
+
       <!-- Budget Modal -->
       <div class="budget-modal hidden">
         <div class="modal-overlay"></div>
+
         <div class="modal-content">
+          <!-- Modal Header -->
           <div class="modal-header">
             <div>
               <h2 id="modalTitle">افزودن بودجه</h2>
               <p>اطلاعات بودجه را وارد کنید.</p>
             </div>
+
             <button class="close-modal" id="closeBudgetModal" type="button">
               <i class="fas fa-times"></i>
             </button>
           </div>
-  
+
+          <!-- Budget Form -->
           <form id="budgetForm">
+            <!-- Category -->
             <div class="form-group">
               <label for="budgetCategory"> دسته‌بندی </label>
+
               <select id="budgetCategory">
                 <option value="food">غذا</option>
                 <option value="transport">حمل و نقل</option>
                 <option value="shopping">خرید</option>
+
                 <option value="entertainment">تفریح</option>
               </select>
             </div>
+
+            <!-- Amount -->
             <div class="form-group">
               <label for="budgetAmount"> مبلغ بودجه </label>
+
               <input
                 type="number"
                 id="budgetAmount"
                 min="1"
                 placeholder="مثلاً 5000000"
               />
+
               <p class="amountError hidden">لطفاً مبلغ معتبر وارد کنید.</p>
             </div>
+
+            <!-- Actions -->
             <div class="modal-actions">
               <button class="cancel-btn" id="cancelBudget" type="button">
                 انصراف
               </button>
+
               <button class="save-btn" type="submit">ذخیره بودجه</button>
             </div>
           </form>
         </div>
       </div>
 
+      <!-- Transaction Modal -->
+      <div class="transaction-modal hidden">
+        <div class="modal-overlay"></div>
+
+        <div class="modal-content">
+          <!-- Modal Header -->
+          <div class="modal-header">
+            <div>
+              <h2>افزودن تراکنش</h2>
+
+              <p>اطلاعات تراکنش جدید را وارد کنید.</p>
+            </div>
+            <button class="close-modal" id="closeModal" type="button">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <!-- Transaction Form -->
+          <form class="transaction-form" autocomplete="off">
+            <div class="form-group">
+              <label for="transactionTitle"> عنوان تراکنش </label>
+
+              <input
+                type="text"
+                id="transactionTitle"
+                placeholder="مثلاً خرید از فروشگاه"
+              />
+
+              <p class="transactionTitleError hidden">
+                عنوان وارد شده صحیح نمی‌باشد
+              </p>
+            </div>
+
+            <!-- Amount + Type -->
+            <div class="form-row">
+              <!-- Amount -->
+              <div class="form-group">
+                <label for="transactionAmount"> مقدار </label>
+
+                <input
+                  type="number"
+                  id="transactionAmount"
+                  placeholder="0"
+                  min="0"
+                />
+
+                <p class="transactionAmountError hidden">
+                  مقدار وارد شده صحیح نمی‌باشد
+                </p>
+              </div>
+
+              <!-- Transaction Type -->
+              <div class="form-group">
+                <label> نوع تراکنش </label>
+                <div class="transaction-type">
+                  <label class="type-option income">
+                    <input type="radio" name="transactionType" value="income" />
+                    <span>
+                      <i class="fas fa-arrow-down"></i>
+                      درآمد
+                    </span>
+                  </label>
+                  <label class="type-option expense">
+                    <input
+                      type="radio"
+                      name="transactionType"
+                      value="expense"
+                      checked
+                    />
+
+                    <span>
+                      <i class="fas fa-arrow-up"></i>
+                      هزینه
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Category -->
+            <div class="form-group">
+              <label> دسته‌بندی </label>
+              <div class="category-options">
+                <!-- Categories created by JS -->
+              </div>
+
+              <p class="categoryError hidden">دسته بندی را انتخاب کنید</p>
+            </div>
+
+            <!-- Tags -->
+            <div class="form-group">
+              <label> برچسب‌ها </label>
+              <div class="tag-options">
+                <label class="tag-option">
+                  <input type="checkbox" value="ضروری" />
+                  <span> ضروری </span>
+                </label>
+                <label class="tag-option">
+                  <input type="checkbox" value="روزانه" />
+                  <span> روزانه </span>
+                </label>
+                <label class="tag-option">
+                  <input type="checkbox" value="کار" />
+                  <span> کار </span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="form-group">
+              <label> روش پرداخت </label>
+              <div class="payment-options">
+                <label class="payment-option">
+                  <input type="radio" name="payment" value="cash" />
+                  <span>
+                    <i class="fas fa-money-bill-wave"></i>
+                    نقدی
+                  </span>
+                </label>
+                <label class="payment-option">
+                  <input type="radio" name="payment" value="online" />
+                  <span>
+                    <i class="fas fa-globe"></i>
+                    آنلاین
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Receipt -->
+            <div class="form-group">
+              <label> تصویر رسید </label>
+              <div class="receipt-upload">
+                <label for="receiptInput" class="receipt-upload-box">
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  <span> آپلود تصویر رسید </span>
+                  <small> PNG, JPG یا JPEG </small>
+                </label>
+                <input
+                  type="file"
+                  id="receiptInput"
+                  accept="image/png, image/jpeg, image/jpg"
+                  hidden
+                />
+
+                <div class="receipt-preview hidden" id="receiptPreview">
+                  <canvas id="receiptCanvas"></canvas>
+
+                  <!-- Upload Progress -->
+                  <div class="upload-progress hidden">
+                    <div class="upload-progress-info">
+                      <span> در حال آپلود تصویر </span>
+
+                      <span id="uploadPercent"> 0% </span>
+                    </div>
+
+                    <div class="upload-progress-bar">
+                      <div class="upload-progress-fill"></div>
+                    </div>
+                  </div>
+
+                  <!-- Receipt Actions -->
+                  <div class="receipt-actions">
+                    <button type="button" id="cropReceiptBtn">
+                      <i class="fas fa-crop"></i>
+                      برش تصویر
+                    </button>
+                    <button type="button" id="removeReceiptBtn">
+                      <i class="fas fa-trash"></i>
+                      حذف
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recurring Transaction -->
+            <div class="form-group recurring-group">
+              <div class="recurring-header">
+                <div>
+                  <label> تراکنش دوره‌ای </label>
+                  <small> این تراکنش به صورت خودکار تکرار می‌شود. </small>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="recurringTransaction" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Recurring Fields -->
+              <div class="recurring-fields hidden" id="recurringFields">
+                <!-- Frequency -->
+                <div class="form-group">
+                  <label for="recurringFrequency"> تکرار </label>
+                  <select id="recurringFrequency">
+                    <option value="daily">روزانه</option>
+                    <option value="weekly">هفتگی</option>
+                    <option value="monthly" selected>ماهانه</option>
+                    <option value="yearly">سالانه</option>
+                  </select>
+                </div>
+
+                <!-- Repeat Count + End Date -->
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="repeatCount"> تعداد دفعات </label>
+                    <input
+                      type="number"
+                      id="repeatCount"
+                      min="1"
+                      placeholder="مثلاً 12"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="recurringEndDate"> تاریخ پایان </label>
+                    <input type="date" id="recurringEndDate" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Modal Buttons -->
+            <div class="modal-actions">
+              <button type="button" class="cancel-btn">لغو</button>
+              <button type="submit" class="save-btn">
+                <i class="fas fa-check"></i>
+                <span> ذخیره تراکنش </span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </main>
 
-    <script src="./src/assets/js/budget.js"></script>
+    <script type="module" src="./src/assets/js/budget.js"></script>
+    <script type="module" src="./src/assets/js/quickTransaction.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
       AOS.init();

@@ -313,6 +313,9 @@ label i {
   padding: 0.5rem;
 }
 
+/* ====================================================== */
+/* Global Loader */
+/* ====================================================== */
 .loader {
   --color-1: #fff;
   --size: 0.9px;
@@ -361,6 +364,76 @@ label i {
   }
 }
 
+/* ====================================================== */
+/* Local Loader */
+/* ====================================================== */
+
+.local-loader {
+  width: 100%;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 15px;
+
+  grid-column: 1 / -1;
+}
+
+.local-loader.hidden {
+  display: none;
+}
+
+.local-loader-text {
+  font-size: 14px;
+  color: #777;
+}
+
+.empty-budget {
+  color: var(--very-pink);
+}
+/* ====================================================== */
+/* Loader */
+/* ====================================================== */
+
+/* .loader {
+  width: 45px;
+  height: 45px;
+
+  border: 4px solid #e5e5e5;
+  border-top-color: #8b5cf6;
+
+  border-radius: 50%;
+
+  animation: loaderSpin 0.8s linear infinite;
+} */
+
+/* @keyframes loaderSpin {
+  to {
+    transform: rotate(360deg);
+  }
+} */
+
+/* ======================================================
+   Budget Debt
+====================================================== */
+
+.debt {
+  color: #e85d75;
+  font-weight: 700;
+  background: rgba(232, 93, 117, 0.1);
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.remaining {
+  color: #28a745;
+  background: rgba(136, 214, 128, 0.1);
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
 /* =========================Dashboard Page========================= */
 .notification-wrapper {
   position: relative;
@@ -483,7 +556,7 @@ label i {
   text-align: center;
   color: #999;
 }
-``` .dashboard {
+.dashboard {
   min-height: 100vh;
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
@@ -1671,12 +1744,59 @@ tbody tr.slide-out {
   width: 0;
   height: 100%;
   border-radius: 10px;
-
+  background-color: #28a745;
   transition:
     width 1.2s ease,
     background-color 0.5s ease;
 }
 
+.progress-fill.warning {
+  background-color: #e85d75;
+}
+
+.budget-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.edit-budget,
+.delete-budget {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.edit-budget {
+  background-color: #f3e8ff;
+  color: #8b5cf6;
+}
+
+.edit-budget:hover {
+  background-color: #8b5cf6;
+  color: #ffffff;
+}
+
+.delete-budget {
+  background-color: #fee2e2;
+  color: #ef4444;
+}
+
+.delete-budget:hover {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+.edit-budget i,
+.delete-budget i {
+  font-size: 14px;
+}
 /* Budget Modal */
 .budget-modal {
   position: fixed;
@@ -2463,7 +2583,6 @@ tbody tr.slide-out {
   color: #9ca3af;
 }
 
-
 /* Icon Picker */
 .icon-picker {
   display: grid;
@@ -2589,7 +2708,463 @@ tbody tr.slide-out {
 .nav-bottom-link.activeNav {
   transform: scale(1.5);
 }
+/* =====================================================
+   QUICK TRANSACTION
+===================================================== */
+.quick-transaction-modal {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.25s ease,
+    visibility 0.25s ease;
 
+  z-index: 99999;
+}
+
+/* Open */
+.quick-transaction-modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* =====================================================
+   BOX
+===================================================== */
+.quick-transaction-box {
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 25px 25px 0 0;
+  padding: 22px;
+  box-sizing: border-box;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+}
+
+.quick-transaction-modal.show .quick-transaction-box {
+  transform: translateY(0);
+}
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.quick-transaction-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+
+.quick-transaction-header h3 {
+  margin: 0 0 5px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.quick-transaction-header span {
+  font-size: 13px;
+  color: #888;
+}
+
+.quick-close-btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  border-radius: 50%;
+  background: #f3f3f3;
+  color: #555;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.quick-close-btn:active {
+  transform: scale(0.95);
+}
+
+/* =====================================================
+   TYPE BUTTONS
+===================================================== */
+
+.quick-type-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.quick-type-btn {
+  flex: 1;
+  height: 48px;
+  border: 1px solid #e3e3e3;
+  border-radius: 13px;
+  background: #fff;
+  color: #555;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-family: inherit;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.quick-type-btn.active {
+  background: #7c3aed;
+  color: #fff;
+  border-color: #7c3aed;
+}
+
+.quick-type-btn i {
+  font-size: 14px;
+}
+
+/* =====================================================
+   FORM
+===================================================== */
+
+.quick-form-group {
+  margin-bottom: 16px;
+}
+
+.quick-form-group label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.quick-form-group input,
+.quick-form-group select {
+  width: 100%;
+  height: 48px;
+  box-sizing: border-box;
+  padding: 0 13px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  outline: none;
+  background: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.quick-form-group input:focus,
+.quick-form-group select:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.08);
+}
+
+/* =====================================================
+   SUBMIT
+===================================================== */
+
+.quick-save-btn {
+  width: 100%;
+  height: 50px;
+  border: none;
+  border-radius: 13px;
+  background: #7c3aed;
+  color: #fff;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.quick-save-btn:active {
+  transform: scale(0.98);
+}
+
+/* ======================================================
+   Wallet Members
+   ====================================================== */
+
+/* Clickable member count */
+.wallet-members.members-btn {
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.wallet-members.members-btn:hover {
+  background: rgba(124, 58, 237, 0.08);
+  color: #7c3aed;
+}
+
+.wallet-members.members-btn i {
+  font-size: 14px;
+}
+
+/* ======================================================
+   Members Modal
+   ====================================================== */
+
+#membersModal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#membersModal.hidden {
+  display: none;
+}
+
+.members-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+/* Modal Box */
+
+.members-modal-box {
+  position: relative;
+  z-index: 2;
+  width: min(500px, calc(100% - 30px));
+  max-height: 80vh;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  animation: membersModalShow 0.25s ease;
+}
+
+@keyframes membersModalShow {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ======================================================
+   Modal Header
+   ====================================================== */
+
+.members-modal-box .modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 22px 24px;
+  border-bottom: 1px solid #eee;
+}
+
+.members-modal-box .modal-header h2 {
+  margin: 0 0 5px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.members-modal-box .modal-header p {
+  margin: 0;
+  font-size: 13px;
+  color: #8b8b8b;
+}
+
+#closeMembersModal {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 10px;
+  background: #f5f5f7;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+#closeMembersModal:hover {
+  background: #fce7ef;
+  color: #e85d75;
+}
+
+/* ======================================================
+   Members Content
+   ====================================================== */
+
+.members-modal-content {
+  padding: 18px 20px 22px;
+  max-height: calc(80vh - 90px);
+  overflow-y: auto;
+}
+
+.members-modal-content::-webkit-scrollbar {
+  width: 5px;
+}
+
+.members-modal-content::-webkit-scrollbar-thumb {
+  background: #d6d6d6;
+  border-radius: 10px;
+}
+
+/* ======================================================
+   Members List
+   ====================================================== */
+
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Member Item */
+
+.wallet-member-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 14px;
+  border: 1px solid #eeeeee;
+  border-radius: 14px;
+  background: #fff;
+  transition: all 0.2s ease;
+}
+
+.wallet-member-item:hover {
+  border-color: rgba(124, 58, 237, 0.2);
+  background: #faf9ff;
+}
+
+/* Member Info */
+
+.wallet-member-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.wallet-member-avatar {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #7c3aed, #ec4899);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.wallet-member-details {
+  min-width: 0;
+}
+
+.wallet-member-details h4 {
+  margin: 0 0 4px;
+  color: #252525;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.wallet-member-details p {
+  margin: 0;
+  color: #999;
+  font-size: 12px;
+  direction: ltr;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Member Role */
+
+.wallet-member-role {
+  display: inline-block;
+  margin-top: 5px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: #f3e8ff;
+  color: #7c3aed;
+  font-size: 10px;
+}
+
+/* ======================================================
+   Remove Member Button
+   ====================================================== */
+
+.remove-member-btn {
+  border: none;
+  background: #fff1f2;
+  color: #e85d75;
+  border-radius: 9px;
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.remove-member-btn:hover {
+  background: #e85d75;
+  color: #fff;
+}
+
+.remove-member-btn i {
+  font-size: 12px;
+}
+
+/* ======================================================
+   Empty State
+   ====================================================== */
+
+.members-list .empty-state {
+  padding: 35px 15px;
+  text-align: center;
+  color: #999;
+  font-size: 13px;
+}
+
+.overlay.hidden {
+  display: none;
+}
 @media (max-width: 1024px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
@@ -2605,6 +3180,55 @@ tbody tr.slide-out {
 }
 
 @media (max-width: 768px) {
+  
+  .members-modal-box {
+    width: calc(100% - 20px);
+    max-height: 85vh;
+    border-radius: 17px;
+  }
+
+  .members-modal-box .modal-header {
+    padding: 18px;
+  }
+
+  .members-modal-box .modal-header h2 {
+    font-size: 17px;
+  }
+
+  .members-modal-content {
+    padding: 14px;
+    max-height: calc(85vh - 80px);
+  }
+
+  .wallet-member-item {
+    padding: 11px;
+  }
+
+  .wallet-member-avatar {
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+  }
+
+  .wallet-member-details h4 {
+    font-size: 13px;
+  }
+
+  .wallet-member-details p {
+    max-width: 150px;
+  }
+
+  .remove-member-btn {
+    padding: 7px 8px;
+    font-size: 11px;
+  }
+
+  .remove-member-btn i {
+    font-size: 11px;
+  }
+  .quick-transaction-modal {
+    display: none !important;
+  }
   .dashboard {
     display: block;
   }

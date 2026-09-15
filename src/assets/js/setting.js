@@ -19,6 +19,7 @@ const iconPicker = document.querySelector("#iconPicker");
 const colorPicker = document.querySelector("#colorPicker");
 
 // State
+
 let categories = [];
 let editingCategoryId = null;
 let selectedIcon = "fa-shopping-cart";
@@ -472,7 +473,7 @@ if (categoryForm) {
 
         const response = await api.put(
           `/category/update/${editingCategoryId}`,
-          categoryData
+          categoryData,
         );
 
         // Update Frontend
@@ -500,13 +501,12 @@ if (categoryForm) {
         await loadCategories();
         closeCategoryModalHandler();
 
-        showToast("دسته‌بندی با موفقیت ویرایش شد.", "success")
+        showToast("دسته‌بندی با موفقیت ویرایش شد.", "success");
       } catch (error) {
         console.error("Update category error:", error);
 
         showToast(
-          error.response?.data?.data?.message ||
-            "ویرایش دسته‌بندی انجام نشد.",
+          error.response?.data?.data?.message || "ویرایش دسته‌بندی انجام نشد.",
         );
       }
 
@@ -545,13 +545,12 @@ if (categoryForm) {
       await loadCategories();
       closeCategoryModalHandler();
 
-      showToast("دسته‌بندی با موفقیت اضافه شد.", "success")
+      showToast("دسته‌بندی با موفقیت اضافه شد.", "success");
     } catch (error) {
       console.error("Create category error:", error);
 
       showToast(
-        error.response?.data?.data?.message ||
-          "افزودن دسته‌بندی انجام نشد.",
+        error.response?.data?.data?.message || "افزودن دسته‌بندی انجام نشد.",
       );
     }
   });
@@ -617,13 +616,12 @@ async function deleteCategory(categoryId) {
     // Reload API
     await loadCategories();
 
-    showToast("دسته‌بندی با موفقیت حذف شد.", "success")
+    showToast("دسته‌بندی با موفقیت حذف شد.", "success");
   } catch (error) {
     console.error("Delete category error:", error);
 
     showToast(
-      error.response?.data?.data?.message ||
-        "حذف دسته با خطا مواجه شد.",
+      error.response?.data?.data?.message || "حذف دسته با خطا مواجه شد.",
     );
   }
 }
@@ -723,7 +721,7 @@ function handleDrop(event) {
     String(targetCategory.parentId) === draggedCategoryId ||
     isDescendant(targetCategoryId, draggedCategoryId)
   ) {
-    showToast("امکان انتقال دسته به زیرمجموعه خودش وجود ندارد.")
+    showToast("امکان انتقال دسته به زیرمجموعه خودش وجود ندارد.");
     return;
   }
 

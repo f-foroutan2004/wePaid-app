@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>transaction</title>
     <link rel="stylesheet" href="./src/assets/css/style.css" />
     <link
@@ -13,6 +14,11 @@
   </head>
 
   <body>
+    <!-- Global Loader -->
+    <div id="globalLoader" class="overlay hidden">
+      <span class="loader"></span>
+    </div>
+
     <!-- Header -->
     <header class="header">
       <div class="welcome">
@@ -20,34 +26,38 @@
           سلام
           <span id="headerUsername"></span>
         </h1>
+
         <p>خلاصه وضعیت مالی شما</p>
       </div>
-      <button class="notification-btn">
+      <button class="notification-btn" type="button">
         <i class="fas fa-bell"></i>
       </button>
     </header>
 
-    <!-- Main -->
     <main class="main">
-      <!-- SideBar -->
+      <!-- Sidebar -->
       <aside class="sidebar" data-aos="fade-left">
         <h2 class="logo">
           <i class="fas fa-wallet"></i>
           مدیریت هزینه
         </h2>
+
         <nav class="sidebar-nav">
           <a href="./dashboard.html" class="nav-link">
             <i class="fas fa-home"></i>
             <span>داشبورد</span>
           </a>
+
           <a href="./transaction.html" class="nav-link active">
             <i class="fas fa-exchange-alt"></i>
             <span>تراکنش‌ها</span>
           </a>
+
           <a href="./budget.html" class="nav-link">
             <i class="fas fa-chart-pie"></i>
             <span>بودجه‌ها</span>
           </a>
+
           <a href="./setting.html" class="nav-link">
             <i class="fas fa-user"></i>
             <span>تنظیمات</span>
@@ -55,10 +65,11 @@
         </nav>
       </aside>
 
-      <!-- Transactions -->
+      <!-- Transactions Page -->
       <section class="page transactions">
+        <!-- Search + Filters -->
         <div class="search-section">
-          <!-- search -->
+          <!-- Search -->
           <div class="search-box">
             <i class="fas fa-search"></i>
 
@@ -68,17 +79,14 @@
               placeholder="جستجوی تراکنش..."
               autocomplete="off"
             />
-
-            <!-- <button id="filterBtn" type="button">
-              <i class="fas fa-filter"></i>
-              فیلتر
-            </button> -->
           </div>
 
           <!-- Filters -->
           <div class="filters">
+            <!-- Month -->
+
             <div class="filter-item">
-              <label for="monthFilter">ماه</label>
+              <label for="monthFilter"> ماه </label>
 
               <select id="monthFilter">
                 <option value="all">همه ماه‌ها</option>
@@ -97,26 +105,30 @@
               </select>
             </div>
 
+            <!-- Category -->
             <div class="filter-item">
-              <label for="categoryFilter">دسته</label>
+              <label for="categoryFilter"> دسته </label>
+
               <select id="categoryFilter">
                 <option value="all">همه دسته‌ها</option>
-                <!-- create options from js -->
+                <!-- Options created by JS -->
               </select>
             </div>
 
+            <!-- Tag -->
             <div class="filter-item">
-              <label for="tagFilter">برچسب</label>
+              <label for="tagFilter"> برچسب </label>
               <select id="tagFilter">
-                <option value="all">همه برچسب‌ ها</option>
+                <option value="all">همه برچسب‌ها</option>
                 <option value="important">ضروری</option>
                 <option value="daily">روزانه</option>
                 <option value="work">کار</option>
               </select>
             </div>
 
+            <!-- Payment -->
             <div class="filter-item">
-              <label for="paymentFilter">روش پرداخت</label>
+              <label for="paymentFilter"> روش پرداخت </label>
               <select id="paymentFilter">
                 <option value="all">همه روش‌ها</option>
                 <option value="cash">نقدی</option>
@@ -124,8 +136,9 @@
               </select>
             </div>
 
+            <!-- Sort -->
             <div class="filter-item">
-              <label for="sortFilter">مرتب‌سازی</label>
+              <label for="sortFilter"> مرتب‌سازی </label>
               <select id="sortFilter">
                 <option value="highest">بیشترین مبلغ</option>
                 <option value="lowest">کمترین مبلغ</option>
@@ -133,78 +146,111 @@
             </div>
           </div>
         </div>
+
+        <!-- Transaction List -->
         <div class="list-part" data-aos="fade-up">
           <div class="panel-header">
-            <h3>لیست تراکنش ها</h3>
-            <button class="add-btn">
+            <h3>لیست تراکنش‌ها</h3>
+
+            <button class="add-btn" type="button">
               <i class="fas fa-plus"></i>
               تراکنش جدید
             </button>
           </div>
 
-          <table>
-            <thead>
-              <tr>
-                <th>ردیف</th>
-                <th>عنوان</th>
-                <th>دسته</th>
-                <th>مقدار</th>
-                <th>برچسب</th>
-                <th>تاریخ</th>
-                <th>عملیات</th>
-              </tr>
-            </thead>
+          <!-- Table -->
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>ردیف</th>
+                  <th>عنوان</th>
+                  <th>دسته</th>
+                  <th>مقدار</th>
+                  <th>برچسب</th>
+                  <th>تاریخ</th>
+                  <th>عملیات</th>
+                </tr>
+              </thead>
 
-            <tbody id="transactionBody">
-              <!-- create by js -->
-            </tbody>
-          </table>
+              <tbody id="transactionBody">
+                <!-- Transactions created by JS -->
+              </tbody>
+            </table>
+
+            <!-- Local Loader -->
+            <div id="transactionLoader" class="local-loader hidden">
+              <span class="loader"></span>
+
+              <span class="local-loader-text">
+                در حال دریافت تراکنش‌ها...
+              </span>
+            </div>
+
+            <!-- Infinite Scroll Sentinel -->
+            <div
+              id="scrollSentinel"
+              class="scroll-sentinel"
+              aria-hidden="true"
+            ></div>
+          </div>
         </div>
       </section>
 
-      <!-- Transaction Modal -->
+   <!-- Transaction Modal -->
       <div class="transaction-modal hidden">
         <div class="modal-overlay"></div>
+
         <div class="modal-content">
           <!-- Modal Header -->
           <div class="modal-header">
             <div>
               <h2>افزودن تراکنش</h2>
+
               <p>اطلاعات تراکنش جدید را وارد کنید.</p>
             </div>
-
-            <button class="close-modal" id="closeModal">
+            <button class="close-modal" id="closeModal" type="button">
               <i class="fas fa-times"></i>
             </button>
           </div>
 
           <!-- Transaction Form -->
-          <form class="transaction-form">
-            <!-- Title -->
+          <form class="transaction-form" autocomplete="off">
             <div class="form-group">
-              <label for="transactionTitle">عنوان تراکنش</label>
+              <label for="transactionTitle"> عنوان تراکنش </label>
+
               <input
                 type="text"
                 id="transactionTitle"
                 placeholder="مثلاً خرید از فروشگاه"
               />
+
               <p class="transactionTitleError hidden">
-                عنوان وارد شده صحیح نمی باشد
+                عنوان وارد شده صحیح نمی‌باشد
               </p>
             </div>
 
-            <!-- Amount & Type -->
+            <!-- Amount + Type -->
             <div class="form-row">
+              <!-- Amount -->
               <div class="form-group">
-                <label for="transactionAmount">مقدار</label>
-                <input type="number" id="transactionAmount" placeholder="0" />
+                <label for="transactionAmount"> مقدار </label>
+
+                <input
+                  type="number"
+                  id="transactionAmount"
+                  placeholder="0"
+                  min="0"
+                />
+
                 <p class="transactionAmountError hidden">
-                  مقدار وارد شده صحیح نمی باشد
+                  مقدار وارد شده صحیح نمی‌باشد
                 </p>
               </div>
 
+              <!-- Transaction Type -->
               <div class="form-group">
-                <label>نوع تراکنش</label>
+                <label> نوع تراکنش </label>
                 <div class="transaction-type">
                   <label class="type-option income">
                     <input type="radio" name="transactionType" value="income" />
@@ -213,7 +259,6 @@
                       درآمد
                     </span>
                   </label>
-
                   <label class="type-option expense">
                     <input
                       type="radio"
@@ -221,6 +266,7 @@
                       value="expense"
                       checked
                     />
+
                     <span>
                       <i class="fas fa-arrow-up"></i>
                       هزینه
@@ -232,37 +278,36 @@
 
             <!-- Category -->
             <div class="form-group">
-              <label>دسته‌بندی</label>
+              <label> دسته‌بندی </label>
               <div class="category-options">
-                <!-- upload from js -->
+                <!-- Categories created by JS -->
               </div>
+
               <p class="categoryError hidden">دسته بندی را انتخاب کنید</p>
             </div>
 
             <!-- Tags -->
             <div class="form-group">
-              <label>برچسب‌ها</label>
+              <label> برچسب‌ها </label>
               <div class="tag-options">
                 <label class="tag-option">
                   <input type="checkbox" value="ضروری" />
-                  <span>ضروری</span>
+                  <span> ضروری </span>
                 </label>
-
                 <label class="tag-option">
                   <input type="checkbox" value="روزانه" />
-                  <span>روزانه</span>
+                  <span> روزانه </span>
                 </label>
-
                 <label class="tag-option">
                   <input type="checkbox" value="کار" />
-                  <span>کار</span>
+                  <span> کار </span>
                 </label>
               </div>
             </div>
 
             <!-- Payment Method -->
             <div class="form-group">
-              <label>روش پرداخت</label>
+              <label> روش پرداخت </label>
               <div class="payment-options">
                 <label class="payment-option">
                   <input type="radio" name="payment" value="cash" />
@@ -271,7 +316,6 @@
                     نقدی
                   </span>
                 </label>
-
                 <label class="payment-option">
                   <input type="radio" name="payment" value="online" />
                   <span>
@@ -284,12 +328,12 @@
 
             <!-- Receipt -->
             <div class="form-group">
-              <label>تصویر رسید</label>
+              <label> تصویر رسید </label>
               <div class="receipt-upload">
                 <label for="receiptInput" class="receipt-upload-box">
                   <i class="fas fa-cloud-upload-alt"></i>
-                  <span>آپلود تصویر رسید</span>
-                  <small>PNG, JPG یا JPEG</small>
+                  <span> آپلود تصویر رسید </span>
+                  <small> PNG, JPG یا JPEG </small>
                 </label>
                 <input
                   type="file"
@@ -301,21 +345,25 @@
                 <div class="receipt-preview hidden" id="receiptPreview">
                   <canvas id="receiptCanvas"></canvas>
 
+                  <!-- Upload Progress -->
                   <div class="upload-progress hidden">
                     <div class="upload-progress-info">
-                      <span>در حال آپلود تصویر</span>
-                      <span id="uploadPercent">0%</span>
+                      <span> در حال آپلود تصویر </span>
+
+                      <span id="uploadPercent"> 0% </span>
                     </div>
+
                     <div class="upload-progress-bar">
                       <div class="upload-progress-fill"></div>
                     </div>
                   </div>
+
+                  <!-- Receipt Actions -->
                   <div class="receipt-actions">
                     <button type="button" id="cropReceiptBtn">
                       <i class="fas fa-crop"></i>
                       برش تصویر
                     </button>
-
                     <button type="button" id="removeReceiptBtn">
                       <i class="fas fa-trash"></i>
                       حذف
@@ -329,21 +377,20 @@
             <div class="form-group recurring-group">
               <div class="recurring-header">
                 <div>
-                  <label>تراکنش دوره‌ای</label>
+                  <label> تراکنش دوره‌ای </label>
                   <small> این تراکنش به صورت خودکار تکرار می‌شود. </small>
                 </div>
-
                 <label class="switch">
                   <input type="checkbox" id="recurringTransaction" />
                   <span class="slider"></span>
                 </label>
               </div>
 
+              <!-- Recurring Fields -->
               <div class="recurring-fields hidden" id="recurringFields">
                 <!-- Frequency -->
                 <div class="form-group">
                   <label for="recurringFrequency"> تکرار </label>
-
                   <select id="recurringFrequency">
                     <option value="daily">روزانه</option>
                     <option value="weekly">هفتگی</option>
@@ -352,7 +399,7 @@
                   </select>
                 </div>
 
-                <!-- Repeat Count -->
+                <!-- Repeat Count + End Date -->
                 <div class="form-row">
                   <div class="form-group">
                     <label for="repeatCount"> تعداد دفعات </label>
@@ -363,7 +410,6 @@
                       placeholder="مثلاً 12"
                     />
                   </div>
-
                   <div class="form-group">
                     <label for="recurringEndDate"> تاریخ پایان </label>
                     <input type="date" id="recurringEndDate" />
@@ -372,38 +418,50 @@
               </div>
             </div>
 
-            <!-- Buttons -->
+            <!-- Modal Buttons -->
             <div class="modal-actions">
               <button type="button" class="cancel-btn">لغو</button>
               <button type="submit" class="save-btn">
                 <i class="fas fa-check"></i>
-                ذخیره تراکنش
+                <span> ذخیره تراکنش </span>
               </button>
             </div>
           </form>
         </div>
-      </div>
+      </div>   
 
       <!-- Mobile Navigation -->
       <section class="mobile-nav">
         <nav class="mobile-navigation">
           <ul class="mobile-navigation-list">
             <li class="nav-bottom-link">
-              <a href="./dashboard.html"><i class="fas fa-home"></i></a>
+              <a href="./dashboard.html">
+                <i class="fas fa-home"></i>
+              </a>
             </li>
+
             <li class="nav-bottom-link activeNav">
-              <a href="./transaction.html"
-                ><i class="fas fa-exchange-alt"></i
-              ></a>
+              <a href="./transaction.html">
+                <i class="fas fa-exchange-alt"></i>
+              </a>
             </li>
+
             <li class="nav-bottom-link">
-              <a href=""><i class="fas fa-plus"></i></a>
+              <a href="#" id="quickAddBtn">
+                <i class="fas fa-plus"></i>
+              </a>
             </li>
+
             <li class="nav-bottom-link">
-              <a href="./budget.html"><i class="fas fa-chart-pie"></i></a>
+              <a href="./budget.html">
+                <i class="fas fa-chart-pie"></i>
+              </a>
             </li>
+
             <li class="nav-bottom-link">
-              <a href="./setting.html"><i class="fas fa-user"></i></a>
+              <a href="./setting.html">
+                <i class="fas fa-user"></i>
+              </a>
             </li>
           </ul>
         </nav>
@@ -411,7 +469,9 @@
     </main>
 
     <script type="module" src="./src/assets/js/transaction.js"></script>
+    <script type="module" src="./src/assets/js/quickTransaction.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
     <script>
       AOS.init();
     </script>

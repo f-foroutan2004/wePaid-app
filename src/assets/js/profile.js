@@ -1,6 +1,5 @@
 import api from "./api.js";
-
-// ==================== DOM Elements ====================
+import { showToast } from "../../utils/Toast.js";
 
 const profileForm = document.getElementById("profileForm");
 const usernameInput = document.getElementById("username");
@@ -8,121 +7,206 @@ const currencySelect = document.getElementById("currency");
 const headerUsername = document.getElementById("headerUsername");
 const nameError = document.querySelector(".nameError");
 
-// ==================== Profile Data ====================
+// GET PROFILE
+async function loadProfile() {
+  try {
+    const token = localStorage.getItem("token");
 
-let profile = JSON.parse(localStorage.getItem("profile")) || {
-  username: "",
-  currency: "",
-};
+    if (!token) {
+      showToast("توکن ورود پیدا نشد.", "error");
+      return;
+    }
 
-// ==================== Load Currencies ====================
+    const response = await api.get("/profile");
+    let profileData = response.data.data.profile;
+
+    // Name
+    const name = profileData.name ?? "";
+
+    // Currency ID
+    const currencyId = profileData.currency.id ?? "";
+
+    if (usernameInput) {
+      usernameInput.value = name;
+    }
+
+    if (currencySelect && currencyId !== "") {
+      currencySelect.value = String(currencyId);
+    }
+
+    if (name) {
+      localStorage.setItem("userName", name);
+    }
+
+    // Header
+    if (headerUsername) {
+      headerUsername.textContent = name || "کاربر";
+    }
+  } catch (error) {
+    showToast(message, "error");
+  }
+}
+
+// ======================================================
+// GET CURRENCIES
+// ======================================================
 
 async function loadCurrencies() {
   try {
-    // Show loading state
-    currencySelect.innerHTML = `
-      <option value="">در حال دریافت ارزها...</option>
-    `;
+    const token = localStorage.getItem("token");
 
-    currencySelect.disabled = true;
+    if (!token) {
+      showToast("توکن ورود پیدا نشد.", "error");
+      return;
+    }
 
     const response = await api.get("/currencies");
 
-    const currencies = response.data.data.currencies;
+    const currencies = response.data?.data?.currencies || [];
 
-    // Clear select
+    if (!currencySelect) return;
+
     currencySelect.innerHTML = "";
 
-    // Add currencies
+    if (!Array.isArray(currencies) || currencies.length === 0) {
+      const option = document.createElement("option");
+
+      option.value = "";
+      option.textContent = "واحد پولی پیدا نشد";
+
+      currencySelect.appendChild(option);
+
+      return;
+    }
+
     currencies.forEach((currency) => {
       const option = document.createElement("option");
 
-      option.value = currency.name;
-      option.textContent = currency.name;
+      if (typeof currency === "object") {
+        const id = currency.id ?? currency.currency_id ?? currency.currencyId;
+
+        const name =
+          currency.name ??
+          currency.title ??
+          currency.currency_name ??
+          currency.code ??
+          "";
+
+        option.value = id ?? "";
+        option.textContent = name;
+      } else {
+        option.value = currency;
+        option.textContent = currency;
+      }
 
       currencySelect.appendChild(option);
     });
-
-    // Select saved currency
-    if (profile.currency) {
-      currencySelect.value = profile.currency;
-    }
-
-    currencySelect.disabled = false;
   } catch (error) {
-    console.error("Error loading currencies:", error);
+    const message =
+      error.response?.data?.message || "دریافت واحدهای پولی با خطا مواجه شد.";
 
-    currencySelect.innerHTML = `
-      <option value="">خطا در دریافت ارزها</option>
-    `;
-
-    currencySelect.disabled = false;
+    showToast(message, "error");
   }
 }
 
-// ==================== Load Profile ====================
+// UPDATE PROFILE
+async function saveProfile(name, currencyId) {
+  try {
+    const token = localStorage.getItem("token");
 
-function loadProfile() {
-  const username = localStorage.getItem("userName");
+    if (!token) {
+      showToast("توکن ورود پیدا نشد.", "error");
+      return false;
+    }
 
-  usernameInput.value = profile.username || "";
+    const profileData = {
+      name: name,
+      currency_id: Number(currencyId),
+    };
 
-  headerUsername.textContent = username || "کاربر";
+    const response = await api.put("/profile/update", profileData);
+
+    localStorage.setItem("userName", name);
+
+    if (headerUsername) {
+      headerUsername.textContent = name;
+    }
+
+    showToast(
+      response.data?.message || "پروفایل با موفقیت ذخیره شد.",
+      "success",
+    );
+
+    return true;
+  } catch (error) {
+    const message =
+      error.response?.data?.message ||
+      error.response?.data?.error ||
+      "ذخیره پروفایل با خطا مواجه شد.";
+
+    showToast(message, "error");
+
+    return false;
+  }
 }
 
-// ==================== Save Profile ====================
-
-function saveProfile() {
-  localStorage.setItem("profile", JSON.stringify(profile));
-}
-
-// ==================== Profile Form Submit ====================
-
-function handleProfileSubmit(event) {
+// FORM SUBMIT
+async function handleProfileSubmit(event) {
   event.preventDefault();
 
-  const username = usernameInput.value.trim();
-  const currency = currencySelect.value;
+  const name = usernameInput?.value.trim();
+  const currencyId = currencySelect?.value;
 
-  // Validate username
-  if (username === "") {
-    nameError.classList.remove("hidden");
+  //
+  // Name validation
+  if (!name) {
+    if (nameError) {
+      nameError.textContent = "نام الزامی است.";
+      nameError.style.display = "block";
+    }
+
+    usernameInput?.focus();
+
     return;
   }
 
-  nameError.classList.add("hidden");
+  if (nameError) {
+    nameError.textContent = "";
+    nameError.style.display = "none";
+  }
 
-  // Update profile
-  profile = {
-    username,
-    currency,
-  };
+  // Currency validation
+  if (!currencyId) {
+    showToast("لطفاً واحد پول را انتخاب کنید.", "error");
 
-  // Save in localStorage
-  saveProfile();
-
-  // Update header
-  headerUsername.textContent = username;
-
-  alert("تغییرات با موفقیت ذخیره شد.");
+    return;
+  }
+  // Save
+  await saveProfile(name, currencyId);
 }
 
-// ==================== Username Input ====================
+// Name input
+function handleNameInput() {
+  if (!nameError) return;
 
-function handleUsernameInput() {
-  if (usernameInput.value.trim() !== "") {
-    nameError.classList.add("hidden");
+  nameError.textContent = "";
+  nameError.style.display = "none";
+}
+
+// INIT
+export async function initProfile() {
+  await loadCurrencies();
+  await loadProfile();
+
+  // Submit
+  if (profileForm) {
+    profileForm.addEventListener("submit", handleProfileSubmit);
+  }
+
+  // Input
+  if (usernameInput) {
+    usernameInput.addEventListener("input", handleNameInput);
   }
 }
 
-// ==================== Initialize Profile ====================
-
-export async function initProfile() {
-  loadProfile();
-
-  await loadCurrencies();
-
-  profileForm.addEventListener("submit", handleProfileSubmit);
-
-  usernameInput.addEventListener("input", handleUsernameInput);
-}
+export { loadProfile, loadCurrencies, saveProfile };

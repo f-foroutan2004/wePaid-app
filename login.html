@@ -10,30 +10,42 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
     />
   </head>
+
   <body>
+    <!-- Global Loader -->
+    <div class="overlay hidden">
+      <span class="loader"></span>
+    </div>
+
     <div class="container">
       <div class="content">
         <div class="circle1"></div>
         <div class="circle2"></div>
-
         <form action="./dashboard.html" class="box" autocomplete="off">
           <div class="box1 step">
             <h3 class="title">ورود به حساب کاربری</h3>
             <div class="form-inputs">
               <div class="email-input">
-                <label for="email"><i class="fas fa-envelope"></i>ایمیل</label>
+                <label for="email">
+                  <i class="fas fa-envelope"></i>
+                  ایمیل
+                </label>
+
                 <input
                   type="text"
                   name="email"
                   id="email"
                   placeholder="xxxx@gmail.com"
                 />
+
                 <p class="emailError hidden">ایمیل وارد شده صحیح نمی باشد</p>
               </div>
+
               <div class="password-input">
-                <label for="password"
-                  ><i class="fas fa-lock"></i>رمز عبور</label
-                >
+                <label for="password">
+                  <i class="fas fa-lock"></i>
+                  رمز عبور
+                </label>
                 <input
                   type="password"
                   name="password"
@@ -41,14 +53,20 @@
                   maxlength="8"
                   placeholder="********"
                 />
+
                 <p class="passwordError hidden">رمز وارد شده صحیح نمی باشد</p>
               </div>
             </div>
+
             <div class="buttons">
+              <!--  Local Loader -->
+
               <button class="signIn-btn" type="submit">
-                <span>ورود</span>
-                <i class="fas fa-arrow-right"></i>
+                <span class="login-text"> ورود </span>
+                <i class="fas fa-arrow-right login-icon"></i>
+                <span class="local-loader hidden"></span>
               </button>
+
               <button class="signUp-btn" type="button">
                 <a href="./register.html">
                   <span>ثبت نام</span>
@@ -60,5 +78,6 @@
       </div>
     </div>
   </body>
+
   <script type="module" src="./src/assets/js/login.js"></script>
 </html>

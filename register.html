@@ -14,16 +14,14 @@
       rel="stylesheet"
     />
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
-    <!-- <link
-      rel="stylesheet"
-      type="text/css"
-      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
-    /> -->
   </head>
+
   <body>
+    <!-- Global Loader -->
     <div class="overlay hidden">
       <span class="loader"></span>
     </div>
+
     <div class="container">
       <div class="content">
         <div class="circle1"></div>
@@ -32,33 +30,46 @@
         <form action="./dashboard.html" class="box" autocomplete="off">
           <div class="box1 step step1">
             <h3 class="title">ایجاد حساب کاربری</h3>
+
             <div class="form-inputs">
               <div class="name-input">
-                <label for="username"
-                  ><i class="fas fa-user"></i>نام کاربری</label
-                >
+                <label for="username">
+                  <i class="fas fa-user"></i>
+                  نام کاربری
+                </label>
+
                 <input
                   type="text"
                   name="username"
                   id="username"
                   placeholder="فائزه فروتن"
                 />
+
                 <p class="userNameError hidden">نام وارد شده صحیح نمی باشد</p>
               </div>
+
               <div class="email-input">
-                <label for="email"><i class="fas fa-envelope"></i>ایمیل</label>
+                <label for="email">
+                  <i class="fas fa-envelope"></i>
+                  ایمیل
+                </label>
+
                 <input
                   type="text"
                   name="email"
                   id="email"
                   placeholder="xxxx@gmail.com"
                 />
+
                 <p class="emailError hidden">ایمیل وارد شده صحیح نمی باشد</p>
               </div>
+
               <div class="phone-input">
-                <label for="phone"
-                  ><i class="fas fa-phone"></i>شماره تلفن</label
-                >
+                <label for="phone">
+                  <i class="fas fa-phone"></i>
+                  شماره تلفن
+                </label>
+
                 <input
                   type="text"
                   name="phone"
@@ -66,12 +77,16 @@
                   maxlength="11"
                   placeholder="09*********"
                 />
+
                 <p class="phoneError hidden">شماره وارد شده صحیح نمی باشد</p>
               </div>
+
               <div class="password-input">
-                <label for="password"
-                  ><i class="fas fa-lock"></i>رمز عبور</label
-                >
+                <label for="password">
+                  <i class="fas fa-lock"></i>
+                  رمز عبور
+                </label>
+
                 <input
                   type="password"
                   name="password"
@@ -79,14 +94,17 @@
                   maxlength="8"
                   placeholder="********"
                 />
+
                 <p class="passwordError hidden">رمز وارد شده صحیح نمی باشد</p>
               </div>
             </div>
+
             <div class="buttons">
               <button class="next-btn" type="button">
                 <span>ادامه</span>
                 <i class="fas fa-arrow-right"></i>
               </button>
+
               <button class="signIn-page-btn" type="button">
                 <a href="./login.html">
                   <span>ورود به حساب</span>
@@ -94,23 +112,29 @@
               </button>
             </div>
           </div>
+
           <div class="box1 step step2 hidden">
             <h3 class="title">ارز پایه حساب خود را انتخاب کنید</h3>
             <div class="currency_input form-inputs">
               <label for="currency">
                 <i class="fas fa-coins"></i>
+
                 ارز پایه
               </label>
+
               <select name="currency" id="currency"></select>
+
               <p class="currencyError hidden">لطفا ارز پایه را انتخاب کنید</p>
             </div>
 
             <div class="step_buttons">
-              <button type="submit" class="signUp-create-btn">
-                <i class="fas fa-user-plus"></i>
-                <span>ایجاد حساب</span>
-              </button>
+              <!-- Register Button + Local Loader -->
 
+              <button type="submit" class="signUp-create-btn">
+                <i class="fas fa-user-plus register-icon"></i>
+                <span class="register-text"> ایجاد حساب </span>
+                <span class="local-loader hidden"></span>
+              </button>
               <button type="button" class="prev-btn">
                 <i class="fas fa-arrow-left"></i>
                 قبلی
@@ -120,23 +144,17 @@
         </form>
       </div>
     </div>
-  </body>
-
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
-  <!-- <script
-    type="text/javascript"
-    src="https://cdn.jsdelivr.net/npm/toastify-js"
-  ></script> -->
-  <!-- change the text of select2 -->
-  <script>
-    $(document).ready(function () {
-      $("#currency").select2({
-        language: {
-          noResults: () => "موردی یافت نشد.",
-        },
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0/dist/js/select2.min.js"></script>
+    <script>
+      $(document).ready(function () {
+        $("#currency").select2({
+          language: {
+            noResults: () => "موردی یافت نشد.",
+          },
+        });
       });
-    });
-  </script>
-  <script type="module" src="./src/assets/js/register.js"></script>
+    </script>
+    <script type="module" src="./src/assets/js/register.js"></script>
+  </body>
 </html>
