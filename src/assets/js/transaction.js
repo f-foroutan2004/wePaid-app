@@ -2,6 +2,8 @@ import api from "./api.js";
 
 import { showToast } from "../../utils/Toast.js";
 
+import "../../utils/notification.js";
+
 // ======================================================
 // Elements
 // ======================================================
@@ -9,31 +11,21 @@ import { showToast } from "../../utils/Toast.js";
 const usernameElement = document.querySelector("#headerUsername");
 
 const searchInput = document.getElementById("search");
-
 const monthFilter = document.getElementById("monthFilter");
-
 const categoryFilter = document.getElementById("categoryFilter");
-
 const tagFilter = document.getElementById("tagFilter");
-
 const paymentFilter = document.getElementById("paymentFilter");
-
 const sortFilter = document.getElementById("sortFilter");
 
 const transactionBody = document.getElementById("transactionBody");
 
 const addTransactionBtn = document.querySelector(".add-btn");
-
 const closeModalBtn = document.querySelector(".close-modal");
-
 const transactionModal = document.querySelector(".transaction-modal");
-
 const cancelBtn = document.querySelector(".cancel-btn");
-
 const saveBtn = document.querySelector(".save-btn");
 
 const transactionModalTitle = document.getElementById("transactionTitle");
-
 const transactionModalAmount = document.getElementById("transactionAmount");
 
 const categoryOptionsContainer = document.querySelector(".category-options");
@@ -41,13 +33,9 @@ const categoryOptionsContainer = document.querySelector(".category-options");
 const categoryError = document.querySelector(".categoryError");
 
 const receiptInput = document.getElementById("receiptInput");
-
 const receiptPreview = document.getElementById("receiptPreview");
-
 const receiptCanvas = document.getElementById("receiptCanvas");
-
 const cropReceiptBtn = document.getElementById("cropReceiptBtn");
-
 const removeReceiptBtn = document.getElementById("removeReceiptBtn");
 
 const recurringTransaction = document.getElementById("recurringTransaction");
@@ -55,30 +43,39 @@ const recurringTransaction = document.getElementById("recurringTransaction");
 const recurringFields = document.getElementById("recurringFields");
 
 const modalContent = document.querySelector(".modal-content");
-
 const modalOverlay = document.querySelector(".modal-overlay");
 
-const transactionTitleError = document.querySelector(".transactionTitleError");
-
-const transactionAmountError = document.querySelector(
-  ".transactionAmountError",
-);
-
 const uploadProgress = document.querySelector(".upload-progress");
-
 const uploadPercent = document.querySelector("#uploadPercent");
-
 const uploadProgressFill = document.querySelector(".upload-progress-fill");
 
-const overlay = document.querySelector(".overlay");
+const tagOptionsContainer = document.querySelector(".tag-options");
+const paymentOptionsContainer = document.querySelector(".payment-options");
 
-const transactionLoader = document.getElementById("transactionLoader");
+// ======================================================
+// State
+// ======================================================
 
-const saveIcon = document.querySelector(".save-icon");
+let selectedCategory = "";
+let selectedCategoryId = "";
+let selectedParentCategoryId = null;
 
-const saveText = document.querySelector(".save-text");
+let categories = [];
+let transactions = [];
+let tags = [];
+let paymentMethods = [];
 
-const localLoader = document.querySelector(".local-loader");
+let editingTransaction = null;
+
+let isLoadingMore = false;
+let hasMoreTransactions = true;
+let currentTransactionCount = 0;
+
+let baseCurrency = "";
+let displayCurrency = null;
+
+let receiptImage = null;
+let croppedReceipt = null;
 
 // ======================================================
 // Username
@@ -91,202 +88,112 @@ if (usernameElement) {
 }
 
 // ======================================================
-// Base Currency
+// Format Money
 // ======================================================
 
-let baseCurrency = "";
-
-/**
- * فرمت کردن عدد
- */
-function formatNumber(number) {
-  const numericValue = Number(number) || 0;
-
-  return numericValue.toLocaleString("en-US");
-}
-
-/**
- * فرمت مبلغ با سمبل ارز پایه
- *
- * مثال:
- * 1,500 $
- * 2,000 €
- * 3,000 ﷼
- */
 function formatMoney(number) {
-  const formatted = formatNumber(number);
+  const numericNumber = Number(number) || 0;
 
-  if (!baseCurrency) {
+  const formatted = numericNumber.toLocaleString("en-US", {
+    maximumFractionDigits: 2,
+  });
+
+  const currency =
+    displayCurrency?.symbol ||
+    displayCurrency?.currency_symbol ||
+    displayCurrency?.currencySymbol ||
+    baseCurrency ||
+    "";
+
+  if (!currency) {
     return formatted;
   }
 
-  return `${formatted} ${baseCurrency}`;
+  return `${formatted} ${currency}`;
 }
 
-/**
- * دریافت ارز پایه از پروفایل
- */
+// ======================================================
+// Load Base Currency
+// ======================================================
+
 async function loadBaseCurrency() {
   try {
-    console.log("در حال دریافت پروفایل برای ارز پایه...");
-
     const response = await api.get("/profile");
 
-    console.log("Profile response:", response.data);
-
-    const profile =
-      response.data?.data?.profile ||
-      response.data?.data ||
-      response.data?.profile ||
-      response.data;
+    const profile = response.data?.data?.profile;
 
     if (!profile) {
       console.error("اطلاعات پروفایل پیدا نشد.");
       return;
     }
 
-    let currencyId =
-      profile.currency_id ??
-      profile.currencyId ??
-      profile.currency?.id ??
-      profile.currency?.currency_id ??
-      null;
+    const profileCurrency = profile.currency;
 
-    /*
-      اگر خود پروفایل آبجکت ارز را برگرداند،
-      مستقیماً سمبل را استفاده می‌کنیم.
-    */
-    if (profile.currency && typeof profile.currency === "object") {
-      const profileCurrency = profile.currency;
-
+    if (profileCurrency && typeof profileCurrency === "object") {
       baseCurrency =
         profileCurrency.symbol ||
         profileCurrency.currency_symbol ||
-        profileCurrency.code ||
-        profileCurrency.name ||
+        profileCurrency.currencySymbol ||
         "";
 
       if (baseCurrency) {
-        console.log("✅ Base Currency Symbol From Profile:", baseCurrency);
-
         return;
       }
     }
 
+    const currencyId =
+      profileCurrency?.id ?? profile.currency_id ?? profile.currencyId ?? null;
+
     if (currencyId === null || currencyId === undefined || currencyId === "") {
-      console.error("currency_id در پروفایل پیدا نشد.");
-
       baseCurrency = "";
-
       return;
     }
 
     await loadCurrencyById(currencyId);
   } catch (error) {
-    console.error("خطا در دریافت ارز پایه:", error);
-
+    console.error("Base Currency Error:", error);
     baseCurrency = "";
   }
 }
 
-/**
- * پیدا کردن ارز بر اساس currency_id
- */
+// ======================================================
+// Load Currency By ID
+// ======================================================
+
 async function loadCurrencyById(currencyId) {
   try {
-    console.log("در حال دریافت ارز با ID:", currencyId);
-
     const response = await api.get("/currencies");
 
-    console.log("Currencies response:", response.data);
-
-    const currencies =
-      response.data?.data?.currencies ||
-      response.data?.data ||
-      response.data?.currencies ||
-      [];
+    const currencies = response.data?.data?.currencies || [];
 
     if (!Array.isArray(currencies)) {
-      console.error("لیست ارزها معتبر نیست:", currencies);
-
       baseCurrency = "";
-
       return;
     }
 
     const currency = currencies.find(
-      (item) =>
-        Number(item.id) === Number(currencyId) ||
-        Number(item.currency_id) === Number(currencyId),
+      (item) => +item.id === +currencyId || +item.currency_id === +currencyId,
     );
-
-    console.log("Selected currency:", currency);
 
     if (!currency) {
       console.error("ارز پایه پیدا نشد:", currencyId);
-
       baseCurrency = "";
-
       return;
     }
 
-    /*
-      فقط سمبل ارز نمایش داده می‌شود.
-      اولویت:
-      symbol
-      currency_symbol
-      code
-      name
-    */
     baseCurrency =
       currency.symbol ||
       currency.currency_symbol ||
-      currency.code ||
-      currency.name ||
+      currency.currencySymbol ||
       "";
-
-    console.log("✅ Base Currency Symbol:", baseCurrency);
   } catch (error) {
-    console.error("خطا در دریافت ارزها:", error);
-
+    console.error("Currencies Error:", error);
     baseCurrency = "";
   }
 }
 
 // ======================================================
-// Global Loader
-// ======================================================
-
-function showGlobalLoader() {
-  if (overlay) {
-    overlay.classList.remove("hidden");
-  }
-}
-
-function hideGlobalLoader() {
-  if (overlay) {
-    overlay.classList.add("hidden");
-  }
-}
-
-// ======================================================
-// Bottom / Infinite Scroll Loader
-// ======================================================
-
-function showTransactionLoader() {
-  if (transactionLoader) {
-    transactionLoader.classList.remove("hidden");
-  }
-}
-
-function hideTransactionLoader() {
-  if (transactionLoader) {
-    transactionLoader.classList.add("hidden");
-  }
-}
-
-// ======================================================
-// Local Save Loader
+// Save Button Loading
 // ======================================================
 
 function showSaveLoader() {
@@ -295,19 +202,14 @@ function showSaveLoader() {
   }
 
   saveBtn.disabled = true;
+  saveBtn.classList.add("loading");
 
-  if (saveIcon) {
-    saveIcon.classList.add("hidden");
-  }
+  const text = saveBtn.querySelector("span");
 
-  if (saveText) {
-    saveText.textContent = editingTransaction
+  if (text) {
+    text.textContent = editingTransaction
       ? "در حال ویرایش..."
       : "در حال ذخیره...";
-  }
-
-  if (localLoader) {
-    localLoader.classList.remove("hidden");
   }
 }
 
@@ -317,47 +219,64 @@ function hideSaveLoader() {
   }
 
   saveBtn.disabled = false;
+  saveBtn.classList.remove("loading");
 
-  if (saveIcon) {
-    saveIcon.classList.remove("hidden");
-  }
+  const text = saveBtn.querySelector("span");
 
-  if (saveText) {
-    saveText.textContent = editingTransaction
-      ? "ویرایش تراکنش"
-      : "ذخیره تراکنش";
-  }
-
-  if (localLoader) {
-    localLoader.classList.add("hidden");
+  if (text) {
+    text.textContent = editingTransaction ? "ویرایش تراکنش" : "ذخیره تراکنش";
   }
 }
 
 // ======================================================
-// Categories
+// Skeleton Loader
 // ======================================================
 
-let selectedCategory = "";
+function showTransactionSkeleton(count = 6) {
+  if (!transactionBody) {
+    return;
+  }
 
-let selectedCategoryId = "";
+  transactionBody.innerHTML = "";
 
-let selectedParentCategoryId = null;
+  for (let i = 0; i < count; i++) {
+    const row = document.createElement("tr");
 
-let categories = [];
+    row.className = "skeleton-row";
 
-let transactions = [];
+    row.innerHTML = `
+      <td>
+        <span class="skeleton skeleton-short"></span>
+      </td>
 
-let editingTransaction = null;
+      <td>
+        <span class="skeleton skeleton-long"></span>
+      </td>
 
-// ======================================================
-// Infinite Scroll State
-// ======================================================
+      <td>
+        <span class="skeleton skeleton-medium"></span>
+      </td>
 
-let isLoadingMore = false;
+      <td>
+        <span class="skeleton skeleton-number"></span>
+      </td>
 
-let hasMoreTransactions = true;
+      <td>
+        <span class="skeleton skeleton-medium"></span>
+      </td>
 
-let currentTransactionCount = 0;
+      <td>
+        <span class="skeleton skeleton-medium"></span>
+      </td>
+
+      <td>
+        <span class="skeleton skeleton-actions"></span>
+      </td>
+    `;
+
+    transactionBody.appendChild(row);
+  }
+}
 
 // ======================================================
 // Parent ID
@@ -515,67 +434,63 @@ function getParentCategoryId(categoryId) {
 // Category Click
 // ======================================================
 
-categoryOptionsContainer.addEventListener("click", (event) => {
-  const categoryButton = event.target.closest(".category-option");
+if (categoryOptionsContainer) {
+  categoryOptionsContainer.addEventListener("click", (event) => {
+    const categoryButton = event.target.closest(".category-option");
 
-  if (!categoryButton) {
-    return;
-  }
+    if (!categoryButton) {
+      return;
+    }
 
-  const categoryId = String(categoryButton.dataset.categoryId);
+    const categoryId = String(categoryButton.dataset.categoryId);
 
-  const categoryName =
-    categoryButton.querySelector("span")?.textContent.trim() || "";
+    const categoryName =
+      categoryButton.querySelector("span")?.textContent.trim() || "";
 
-  categoryOptionsContainer
-    .querySelectorAll(".category-option")
-    .forEach((item) => {
-      item.classList.remove("active");
-    });
+    categoryOptionsContainer
+      .querySelectorAll(".category-option")
+      .forEach((item) => {
+        item.classList.remove("active");
+      });
 
-  categoryButton.classList.add("active");
+    categoryButton.classList.add("active");
 
-  const currentCategory = findCategoryById(categoryId);
+    const currentCategory = findCategoryById(categoryId);
 
-  if (!currentCategory) {
-    console.error("Category not found:", categoryId);
-    return;
-  }
+    if (!currentCategory) {
+      console.error("Category not found:", categoryId);
+      return;
+    }
 
-  const children = getCategoryChildren(currentCategory);
+    const children = getCategoryChildren(currentCategory);
 
-  // Parent
+    if (children.length > 0) {
+      selectedCategory = "";
+      selectedCategoryId = "";
+      selectedParentCategoryId = categoryId;
 
-  if (children.length > 0) {
-    selectedCategory = "";
-    selectedCategoryId = "";
-    selectedParentCategoryId = categoryId;
+      categoryError?.classList.remove("hidden");
 
-    categoryError.classList.remove("hidden");
+      showSubcategories(children, categoryButton);
 
-    showSubcategories(children, categoryButton);
+      return;
+    }
 
-    return;
-  }
+    selectedCategory = categoryName;
+    selectedCategoryId = categoryId;
+    selectedParentCategoryId = null;
 
-  // Category Without Children
+    categoryError?.classList.add("hidden");
 
-  selectedCategory = categoryName;
+    const oldDropdown = categoryButton.parentElement.querySelector(
+      ".subcategory-dropdown",
+    );
 
-  selectedCategoryId = categoryId;
-
-  selectedParentCategoryId = null;
-
-  categoryError.classList.add("hidden");
-
-  const oldDropdown = categoryButton.parentElement.querySelector(
-    ".subcategory-dropdown",
-  );
-
-  if (oldDropdown) {
-    oldDropdown.remove();
-  }
-});
+    if (oldDropdown) {
+      oldDropdown.remove();
+    }
+  });
+}
 
 // ======================================================
 // Show Subcategories
@@ -604,7 +519,6 @@ function showSubcategories(children, parentButton) {
     const option = document.createElement("option");
 
     option.value = child.id;
-
     option.textContent = child.name;
 
     dropdown.appendChild(option);
@@ -615,10 +529,9 @@ function showSubcategories(children, parentButton) {
 
     if (!selectedId) {
       selectedCategory = "";
-
       selectedCategoryId = "";
 
-      categoryError.classList.remove("hidden");
+      categoryError?.classList.remove("hidden");
 
       return;
     }
@@ -628,17 +541,15 @@ function showSubcategories(children, parentButton) {
     );
 
     if (!selectedChild) {
-      console.error("Subcategory not found");
       return;
     }
 
     selectedCategory = selectedChild.name;
-
     selectedCategoryId = String(selectedChild.id);
 
     selectedParentCategoryId = String(parentButton.dataset.categoryId);
 
-    categoryError.classList.add("hidden");
+    categoryError?.classList.add("hidden");
   });
 
   parentButton.parentElement.appendChild(dropdown);
@@ -658,8 +569,14 @@ function getTransactionTitle(transaction) {
   );
 }
 
+// مبلغ اصلی تراکنش
 function getTransactionAmount(transaction) {
-  return +transaction.amount || 0;
+  return Number(transaction.amount) || 0;
+}
+
+// مبلغ تبدیل‌شده برای نمایش
+function getTransactionDisplayAmount(transaction) {
+  return Number(transaction.display_amount) || 0;
 }
 
 function getTransactionType(transaction) {
@@ -712,72 +629,370 @@ function getTransactionCategoryName(transaction) {
 // ======================================================
 
 function getTransactionPayment(transaction) {
-  return (
-    transaction.payment_method ||
-    transaction.paymentMethod ||
-    transaction.payment ||
-    "cash"
-  );
-}
-
-// ======================================================
-// TAG
-// ======================================================
-
-function normalizeTag(tag) {
-  if (tag === null || tag === undefined || tag === "") {
+  if (!transaction) {
     return "";
   }
 
-  const value = String(tag).trim().toLowerCase();
+  const payment =
+    transaction.payment_method ??
+    transaction.paymentMethod ??
+    transaction.payment ??
+    "";
 
-  const tagMap = {
-    daily: "روزانه",
-    روزانه: "روزانه",
+  if (!payment) {
+    return "";
+  }
 
-    necessary: "ضروری",
-    essential: "ضروری",
-    important: "ضروری",
-    ضروری: "ضروری",
+  if (typeof payment === "object" && payment !== null) {
+    return (
+      payment.name ||
+      payment.title ||
+      payment.label ||
+      payment.method ||
+      payment.payment_method ||
+      payment.code ||
+      payment.id ||
+      ""
+    );
+  }
 
-    work: "کار",
-    job: "کار",
-    کار: "کار",
-  };
-
-  return tagMap[value] || String(tag).trim();
+  return String(payment).trim();
 }
 
 // ======================================================
-// Get Transaction Tag
+// Tags
 // ======================================================
+
+function getTagId(tag) {
+  if (!tag) {
+    return "";
+  }
+
+  if (typeof tag === "object") {
+    return tag.id ?? tag.tag_id ?? tag.tagId ?? "";
+  }
+
+  return tag;
+}
+
+function getTagName(tag) {
+  if (!tag) {
+    return "";
+  }
+
+  if (typeof tag === "string") {
+    return tag;
+  }
+
+  return tag.name || tag.title || tag.label || "";
+}
+
+function findTagById(tagId) {
+  if (tagId === null || tagId === undefined || tagId === "") {
+    return null;
+  }
+
+  return tags.find((tag) => String(getTagId(tag)) === String(tagId)) || null;
+}
+
+function getTransactionTagId(transaction) {
+  if (!transaction) {
+    return "";
+  }
+
+  if (
+    transaction.tag_id !== undefined &&
+    transaction.tag_id !== null &&
+    transaction.tag_id !== ""
+  ) {
+    return transaction.tag_id;
+  }
+
+  if (Array.isArray(transaction.tags) && transaction.tags.length > 0) {
+    const firstTag = transaction.tags[0];
+
+    if (typeof firstTag === "object") {
+      return firstTag.id ?? firstTag.tag_id ?? firstTag.tagId ?? "";
+    }
+
+    return firstTag;
+  }
+
+  return "";
+}
 
 function getTransactionTag(transaction) {
-  if (!transaction?.id) {
+  if (!transaction) {
     return "";
   }
 
-  const savedTags = JSON.parse(localStorage.getItem("transactionTags") || "{}");
+  if (Array.isArray(transaction.tags) && transaction.tags.length > 0) {
+    const tagNames = transaction.tags
+      .map((tag) => getTagName(tag))
+      .filter(Boolean);
 
-  const savedTag = savedTags[String(transaction.id)] || "";
+    if (tagNames.length > 0) {
+      return tagNames.join("، ");
+    }
+  }
 
-  return normalizeTag(savedTag);
+  if (transaction.tag?.name) {
+    return transaction.tag.name;
+  }
+
+  const tagId = getTransactionTagId(transaction);
+
+  if (!tagId) {
+    return "";
+  }
+
+  const tag = findTagById(tagId);
+
+  return getTagName(tag);
 }
 
 // ======================================================
-// Save TAG
+// Get Tags From API
 // ======================================================
 
-function saveTransactionTag(transactionId, tag) {
-  if (!transactionId) {
+async function getTags() {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    showToast("توکن ورود پیدا نشد. دوباره وارد شوید.", "error");
+
     return;
   }
 
-  const savedTags = JSON.parse(localStorage.getItem("transactionTags") || "{}");
+  try {
+    const response = await api.get("/tags");
 
-  savedTags[String(transactionId)] = normalizeTag(tag);
+    tags =
+      response.data?.data?.tags ||
+      response.data?.data ||
+      response.data?.tags ||
+      [];
 
-  localStorage.setItem("transactionTags", JSON.stringify(savedTags));
+    if (!Array.isArray(tags)) {
+      tags = [];
+    }
+
+    if (tagFilter) {
+      tagFilter.innerHTML = `
+        <option value="all">
+          همه برچسب‌ها
+        </option>
+      `;
+
+      tags.forEach((tag) => {
+        const tagId = getTagId(tag);
+        const tagName = getTagName(tag);
+
+        if (!tagId || !tagName) {
+          return;
+        }
+
+        const option = document.createElement("option");
+
+        option.value = tagId;
+        option.textContent = tagName;
+
+        tagFilter.appendChild(option);
+      });
+    }
+
+    if (tagOptionsContainer) {
+      tagOptionsContainer.innerHTML = "";
+
+      tags.forEach((tag) => {
+        const tagId = getTagId(tag);
+        const tagName = getTagName(tag);
+
+        if (!tagId || !tagName) {
+          return;
+        }
+
+        const label = document.createElement("label");
+
+        label.className = "tag-option";
+
+        label.innerHTML = `
+          <input
+            type="checkbox"
+            value="${tagId}"
+            data-tag-id="${tagId}"
+          />
+
+          <span>
+            ${tagName}
+          </span>
+        `;
+
+        tagOptionsContainer.appendChild(label);
+      });
+    }
+  } catch (error) {
+    console.error("Tags Error:", error);
+
+    showToast(
+      error.response?.data?.message || "برچسب‌ها دریافت نشدند.",
+      "error",
+    );
+  }
+}
+
+// ======================================================
+// Tag Selection
+// ======================================================
+
+if (tagOptionsContainer) {
+  tagOptionsContainer.addEventListener("change", (event) => {
+    const input = event.target.closest('.tag-option input[type="checkbox"]');
+
+    if (!input) {
+      return;
+    }
+
+    const allInputs = tagOptionsContainer.querySelectorAll(
+      'input[type="checkbox"]',
+    );
+
+    allInputs.forEach((item) => {
+      if (item !== input) {
+        item.checked = false;
+      }
+    });
+  });
+}
+
+// ======================================================
+// Get Payment Methods
+// ======================================================
+
+async function getPaymentMethods() {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    showToast("توکن ورود پیدا نشد. دوباره وارد شوید.", "error");
+
+    return;
+  }
+
+  try {
+    const response = await api.get("/payment-methods");
+
+    paymentMethods =
+      response.data?.data?.payment_methods ||
+      response.data?.data?.paymentMethods ||
+      response.data?.payment_methods ||
+      response.data?.paymentMethods ||
+      [];
+
+    if (!Array.isArray(paymentMethods)) {
+      paymentMethods = [];
+    }
+
+    if (paymentFilter) {
+      paymentFilter.innerHTML = `
+        <option value="all">
+          همه روش‌های پرداخت
+        </option>
+      `;
+
+      paymentMethods.forEach((method) => {
+        if (!method) {
+          return;
+        }
+
+        const methodId =
+          typeof method === "object"
+            ? (method.id ??
+              method.payment_method_id ??
+              method.paymentMethodId ??
+              "")
+            : method;
+
+        const methodName =
+          typeof method === "string"
+            ? method
+            : method.name ||
+              method.title ||
+              method.label ||
+              method.method ||
+              "";
+
+        if (!methodName) {
+          return;
+        }
+
+        const option = document.createElement("option");
+
+        option.value = methodId || methodName;
+
+        option.textContent = methodName;
+        option.dataset.name = methodName;
+
+        paymentFilter.appendChild(option);
+      });
+    }
+
+    if (paymentOptionsContainer) {
+      paymentOptionsContainer.innerHTML = "";
+
+      paymentMethods.forEach((method) => {
+        if (!method) {
+          return;
+        }
+
+        const methodId =
+          typeof method === "object"
+            ? (method.id ??
+              method.payment_method_id ??
+              method.paymentMethodId ??
+              "")
+            : method;
+
+        const methodName =
+          typeof method === "string"
+            ? method
+            : method.name ||
+              method.title ||
+              method.label ||
+              method.method ||
+              "";
+
+        if (!methodName) {
+          return;
+        }
+
+        const label = document.createElement("label");
+
+        label.className = "payment-option";
+
+        label.innerHTML = `
+          <input
+            type="radio"
+            name="payment"
+            value="${methodName}"
+            data-payment-id="${methodId || ""}"
+          />
+
+          <span>
+            ${methodName}
+          </span>
+        `;
+
+        paymentOptionsContainer.appendChild(label);
+      });
+    }
+  } catch (error) {
+    console.error("Payment Methods Error:", error);
+
+    showToast(
+      error.response?.data?.message || "روش‌های پرداخت دریافت نشدند.",
+      "error",
+    );
+  }
 }
 
 // ======================================================
@@ -881,6 +1096,10 @@ function resetRecurringFields() {
 // ======================================================
 
 function showTransactions(transactionList) {
+  if (!transactionBody) {
+    return;
+  }
+
   transactionBody.innerHTML = "";
 
   if (transactionList.length === 0) {
@@ -904,7 +1123,7 @@ function showTransactions(transactionList) {
 
     const title = getTransactionTitle(transaction);
 
-    const amount = getTransactionAmount(transaction);
+    const displayAmountValue = getTransactionDisplayAmount(transaction);
 
     const type = getTransactionType(transaction);
 
@@ -916,22 +1135,21 @@ function showTransactions(transactionList) {
 
     const tag = getTransactionTag(transaction);
 
+    const tagId = getTransactionTagId(transaction);
+
     const date = getTransactionDate(transaction);
 
-    const displayAmount =
-      type === "expense" ? -Math.abs(amount) : Math.abs(amount);
-
     /*
-      مبلغ نمایش داده شده:
-      قبلاً:
-      ${displayAmount}
+     * income = مثبت
+     * expense = منفی
+     */
+    const displayAmount =
+      type === "expense"
+        ? Math.abs(displayAmountValue)
+        : Math.abs(displayAmountValue);
 
-      الان:
-      ${formatMoney(displayAmount)}
-    */
     const formattedAmount = formatMoney(displayAmount);
-
-    // Month
+    const amountClass = type === "expense" ? "expense-amount" : "income-amount";
 
     let month = "all";
 
@@ -942,8 +1160,6 @@ function showTransactions(transactionList) {
         month = String(dateObject.getMonth() + 1);
       }
     }
-
-    // Data Attributes
 
     row.dataset.id = transaction.id || "";
 
@@ -955,53 +1171,57 @@ function showTransactions(transactionList) {
 
     row.dataset.tag = tag;
 
+    row.dataset.tagId = tagId;
+
     row.dataset.payment = payment;
 
+    /*
+     * برای نمایش و مرتب‌سازی UI
+     * مبلغ تبدیل‌شده را نگه می‌داریم
+     */
     row.dataset.amount = displayAmount;
 
-    // Table Row
-
     row.innerHTML = `
-      <td class="listId">
-        ${index + 1}
-      </td>
+        <td class="listId">
+          ${index + 1}
+        </td>
 
-      <td>
-        ${title}
-      </td>
+        <td>
+          ${title}
+        </td>
 
-      <td>
-        ${categoryName}
-      </td>
+        <td>
+          ${categoryName}
+        </td>
 
-      <td>
-        ${formattedAmount}
-      </td>
+        <td class="${amountClass}">
+          ${formattedAmount}
+        </td>
 
-      <td>
-        ${tag}
-      </td>
+        <td>
+          ${tag || "-"}
+        </td>
 
-      <td>
-        ${date}
-      </td>
+        <td>
+          ${date}
+        </td>
 
-      <td>
-        <button
-          class="delete-btn"
-          data-id="${transaction.id || ""}"
-        >
-          <i class="fas fa-trash"></i>
-        </button>
+        <td>
+          <button
+            class="delete-btn"
+            data-id="${transaction.id || ""}"
+          >
+            <i class="fas fa-trash"></i>
+          </button>
 
-        <button
-          class="edit-btn"
-          data-id="${transaction.id || ""}"
-        >
-          <i class="fas fa-edit"></i>
-        </button>
-      </td>
-    `;
+          <button
+            class="edit-btn"
+            data-id="${transaction.id || ""}"
+          >
+            <i class="fas fa-edit"></i>
+          </button>
+        </td>
+      `;
 
     transactionBody.appendChild(row);
   });
@@ -1012,17 +1232,24 @@ function showTransactions(transactionList) {
 // ======================================================
 
 function filterTransactions() {
-  const searchValue = searchInput.value.trim().toLowerCase();
+  const searchValue = searchInput?.value.trim().toLowerCase() || "";
 
-  const selectedMonth = monthFilter.value;
+  const selectedMonth = monthFilter?.value || "all";
 
-  const selectedCategoryFilter = categoryFilter.value;
+  const selectedCategoryFilter = categoryFilter?.value || "all";
 
-  const selectedTag = tagFilter.value;
+  const selectedTag = tagFilter?.value || "all";
 
-  const selectedPayment = paymentFilter.value;
+  const selectedPayment = paymentFilter?.value || "all";
 
-  const selectedSort = sortFilter.value;
+  const selectedSort = sortFilter?.value || "";
+
+  const paymentNameMap = {
+    cash: "نقدی",
+    card: "کارت",
+    online: "آنلاین",
+    bank_transfer: "انتقال بانکی",
+  };
 
   let filteredTransactions = transactions.filter((transaction) => {
     const title = getTransactionTitle(transaction);
@@ -1031,13 +1258,21 @@ function filterTransactions() {
 
     const categoryId = getTransactionCategoryId(transaction);
 
-    const categoryName = getTransactionCategoryName(transaction);
+    const transactionTagId = getTransactionTagId(transaction);
 
-    const tag = getTransactionTag(transaction);
+    const paymentValue =
+      transaction.payment_method ??
+      transaction.paymentMethod ??
+      transaction.payment ??
+      "";
 
     const payment = getTransactionPayment(transaction);
 
-    // Month
+    let paymentName = payment;
+
+    if (typeof paymentValue === "string") {
+      paymentName = paymentNameMap[paymentValue.toLowerCase()] || paymentValue;
+    }
 
     let month = "all";
 
@@ -1049,18 +1284,12 @@ function filterTransactions() {
       }
     }
 
-    // Search
-
     const matchesSearch = title.toString().toLowerCase().includes(searchValue);
-
-    // Month
 
     const matchesMonth =
       selectedMonth === "all" ||
       selectedMonth === "" ||
       month === selectedMonth;
-
-    // Category Parent / Child
 
     const parentCategoryId = getParentCategoryId(categoryId);
 
@@ -1070,24 +1299,16 @@ function filterTransactions() {
       String(categoryId) === String(selectedCategoryFilter) ||
       String(parentCategoryId) === String(selectedCategoryFilter);
 
-    // TAG
-
-    const normalizedTransactionTag = normalizeTag(tag);
-
-    const normalizedSelectedTag = normalizeTag(selectedTag);
-
     const matchesTag =
       selectedTag === "all" ||
       selectedTag === "" ||
-      !selectedTag ||
-      normalizedTransactionTag === normalizedSelectedTag;
-
-    // Payment
+      String(transactionTagId) === String(selectedTag);
 
     const matchesPayment =
       selectedPayment === "all" ||
       selectedPayment === "" ||
-      String(payment) === String(selectedPayment);
+      paymentName === selectedPayment ||
+      String(paymentValue) === String(selectedPayment);
 
     return (
       matchesSearch &&
@@ -1098,12 +1319,14 @@ function filterTransactions() {
     );
   });
 
+  // ====================================================
   // Sort
+  // ====================================================
 
   filteredTransactions.sort((a, b) => {
-    const amountA = Math.abs(getTransactionAmount(a));
+    const amountA = Math.abs(getTransactionDisplayAmount(a));
 
-    const amountB = Math.abs(getTransactionAmount(b));
+    const amountB = Math.abs(getTransactionDisplayAmount(b));
 
     if (selectedSort === "highest") {
       return amountB - amountA;
@@ -1124,9 +1347,9 @@ function filterTransactions() {
 // ======================================================
 
 function openModal() {
-  transactionModal.classList.remove("hidden");
+  transactionModal?.classList.remove("hidden");
 
-  modalContent.classList.add("animate");
+  modalContent?.classList.add("animate");
 }
 
 // ======================================================
@@ -1134,9 +1357,9 @@ function openModal() {
 // ======================================================
 
 function closeModal() {
-  transactionModal.classList.add("hidden");
+  transactionModal?.classList.add("hidden");
 
-  modalContent.classList.remove("animate");
+  modalContent?.classList.remove("animate");
 }
 
 // ======================================================
@@ -1145,10 +1368,12 @@ function closeModal() {
 
 function resetCategorySelection() {
   selectedCategory = "";
-
   selectedCategoryId = "";
-
   selectedParentCategoryId = null;
+
+  if (!categoryOptionsContainer) {
+    return;
+  }
 
   categoryOptionsContainer
     .querySelectorAll(".category-option")
@@ -1162,7 +1387,39 @@ function resetCategorySelection() {
       dropdown.remove();
     });
 
-  categoryError.classList.add("hidden");
+  categoryError?.classList.add("hidden");
+}
+
+// ======================================================
+// Reset Tags
+// ======================================================
+
+function resetTagSelection() {
+  if (!tagOptionsContainer) {
+    return;
+  }
+
+  tagOptionsContainer
+    .querySelectorAll('input[type="checkbox"]')
+    .forEach((input) => {
+      input.checked = false;
+    });
+}
+
+// ======================================================
+// Reset Payment
+// ======================================================
+
+function resetPaymentSelection() {
+  if (!paymentOptionsContainer) {
+    return;
+  }
+
+  paymentOptionsContainer
+    .querySelectorAll('input[name="payment"]')
+    .forEach((input) => {
+      input.checked = false;
+    });
 }
 
 // ======================================================
@@ -1172,53 +1429,62 @@ function resetCategorySelection() {
 async function createNewTransaction(e) {
   e.preventDefault();
 
+  const title = document.getElementById("transactionTitle")?.value.trim();
+
+  const amount = Number(transactionAmount.value.replace(/,/g, ""));
+
+  const selectedPayment = document.querySelector(
+    'input[name="payment"]:checked',
+  );
+
+  const paymentMethod = selectedPayment?.value || "";
+
+  const token = localStorage.getItem("token");
+
+  const walletId = localStorage.getItem("walletId");
+
+  if (!title) {
+    showToast("عنوان تراکنش را وارد کنید.", "error");
+    return;
+  }
+
+  if (!amount || amount <= 0) {
+    showToast("مبلغ تراکنش باید بیشتر از صفر باشد.", "error");
+    return;
+  }
+
+  if (!paymentMethod) {
+    showToast("لطفاً روش پرداخت را انتخاب کنید.", "error");
+    return;
+  }
+
+  if (!token) {
+    showToast("توکن ورود پیدا نشد.", "error");
+    return;
+  }
+
+  if (!walletId) {
+    showToast("کیف پول انتخاب نشده است.", "error");
+    return;
+  }
+
+  if (!selectedCategoryId) {
+    showToast("لطفاً دسته‌بندی را انتخاب کنید.", "error");
+    return;
+  }
+
   showSaveLoader();
 
   try {
-    const title = document.getElementById("transactionTitle")?.value.trim();
-
-    const amount = Number(document.getElementById("transactionAmount")?.value);
-
-    const paymentMethod =
-      document.getElementById("paymentMethod")?.value || "cash";
-
-    const token = localStorage.getItem("token");
-
-    const walletId = localStorage.getItem("walletId");
-
-    if (!title) {
-      showToast("عنوان تراکنش را وارد کنید.", "error");
-      return;
-    }
-
-    if (!amount || amount <= 0) {
-      showToast("مبلغ تراکنش باید بیشتر از صفر باشد.", "error");
-      return;
-    }
-
-    if (!token) {
-      showToast("توکن ورود پیدا نشد.", "error");
-      return;
-    }
-
-    if (!walletId) {
-      showToast("کیف پول انتخاب نشده است.", "error");
-      return;
-    }
-
-    if (!selectedCategoryId) {
-      showToast("لطفاً دسته‌بندی را انتخاب کنید.", "error");
-      return;
-    }
-
     const type =
       document.querySelector('input[name="transactionType"]:checked')?.value ||
       "expense";
 
-    const selectedTag =
-      document.querySelector(".tag-option.selected")?.dataset.tag ||
-      document.querySelector(".tag-option.active")?.dataset.tag ||
-      null;
+    const selectedTagInput = document.querySelector(
+      '.tag-option input[type="checkbox"]:checked',
+    );
+
+    const selectedTagId = selectedTagInput?.value || "";
 
     const transactionData = new FormData();
 
@@ -1234,16 +1500,17 @@ async function createNewTransaction(e) {
 
     transactionData.append("amount", amount);
 
+    if (selectedTagId) {
+      transactionData.append("tag_ids[]", selectedTagId);
+    }
+
     if (croppedReceipt) {
       transactionData.append("receipt_image", croppedReceipt);
     } else {
       transactionData.append("receipt_image", "");
     }
 
-    // recurring
-
-    const isPeriodic =
-      document.getElementById("recurringToggle")?.checked || false;
+    const isPeriodic = recurringTransaction?.checked || false;
 
     transactionData.append("is_periodic", isPeriodic);
 
@@ -1268,8 +1535,6 @@ async function createNewTransaction(e) {
       transactionData.append("end_date", "");
     }
 
-    // First Request
-
     let response;
 
     try {
@@ -1289,14 +1554,10 @@ async function createNewTransaction(e) {
             "این تراکنش باعث عبور از بودجه تعیین‌شده می‌شود. آیا همچنان می‌خواهید آن را ثبت کنید؟",
         );
 
-        // Cancel
-
         if (!confirmed) {
           closeModal();
           return;
         }
-
-        // OK
 
         showSaveLoader();
 
@@ -1309,25 +1570,11 @@ async function createNewTransaction(e) {
     }
 
     if (response?.data?.success !== false) {
+      /*
+       * دوباره transactions را می‌گیریم
+       * تا display_amount جدید هم از API بیاید.
+       */
       await getTransactions();
-
-      const createdTransaction = transactions.find(
-        (transaction) =>
-          transaction.title === title &&
-          Number(transaction.amount) === Number(amount),
-      );
-
-      if (createdTransaction && selectedTag) {
-        const savedTags = JSON.parse(
-          localStorage.getItem("transactionTags") || "{}",
-        );
-
-        savedTags[createdTransaction.id] = selectedTag;
-
-        localStorage.setItem("transactionTags", JSON.stringify(savedTags));
-      }
-
-      filterTransactions();
 
       showToast(
         response?.data?.message || "تراکنش با موفقیت ثبت شد.",
@@ -1337,6 +1584,8 @@ async function createNewTransaction(e) {
       closeModal();
 
       resetRecurringFields();
+      resetTagSelection();
+      resetPaymentSelection();
 
       croppedReceipt = null;
     }
@@ -1349,8 +1598,6 @@ async function createNewTransaction(e) {
         "ثبت تراکنش انجام نشد.",
       "error",
     );
-
-    closeModal();
   } finally {
     hideSaveLoader();
   }
@@ -1360,96 +1607,90 @@ async function createNewTransaction(e) {
 // Delete + Edit
 // ======================================================
 
-transactionBody.addEventListener("click", async (event) => {
-  // Delete
+if (transactionBody) {
+  transactionBody.addEventListener("click", async (event) => {
+    // Delete
 
-  const deleteBtn = event.target.closest(".delete-btn");
+    const deleteBtn = event.target.closest(".delete-btn");
 
-  if (deleteBtn) {
-    const row = deleteBtn.closest("tr");
+    if (deleteBtn) {
+      const row = deleteBtn.closest("tr");
 
-    if (!row) {
-      return;
-    }
+      if (!row) {
+        return;
+      }
 
-    const transactionId = row.dataset.id;
+      const transactionId = row.dataset.id;
 
-    if (!transactionId) {
-      showToast("شناسه تراکنش پیدا نشد.", "error");
-      return;
-    }
+      if (!transactionId) {
+        showToast("شناسه تراکنش پیدا نشد.", "error");
 
-    const token = localStorage.getItem("token");
+        return;
+      }
 
-    if (!token) {
-      showToast("توکن ورود پیدا نشد. دوباره وارد شوید.", "error");
-      return;
-    }
+      const token = localStorage.getItem("token");
 
-    try {
-      const originalDeleteContent = deleteBtn.innerHTML;
+      if (!token) {
+        showToast("توکن ورود پیدا نشد. دوباره وارد شوید.", "error");
 
-      deleteBtn.disabled = true;
+        return;
+      }
 
-      deleteBtn.innerHTML = `
-          <span class="local-loader"></span>
-        `;
+      try {
+        deleteBtn.disabled = true;
 
-      await api.delete(`/transaction/delete/${transactionId}`);
+        deleteBtn.innerHTML = `
+            <i class="fas fa-spinner fa-spin"></i>
+          `;
 
-      const savedTags = JSON.parse(
-        localStorage.getItem("transactionTags") || "{}",
-      );
+        await api.delete(`/transaction/delete/${transactionId}`);
 
-      delete savedTags[String(transactionId)];
+        showToast("تراکنش با موفقیت حذف شد.", "success");
 
-      localStorage.setItem("transactionTags", JSON.stringify(savedTags));
+        row.classList.add("slide-out");
 
-      showToast("تراکنش با موفقیت حذف شد.", "success");
+        setTimeout(() => {
+          transactions = transactions.filter(
+            (transaction) => String(transaction.id) !== String(transactionId),
+          );
 
-      row.classList.add("slide-out");
+          row.remove();
 
-      setTimeout(() => {
-        transactions = transactions.filter(
-          (transaction) => String(transaction.id) !== String(transactionId),
+          filterTransactions();
+        }, 400);
+      } catch (error) {
+        console.error("Delete transaction error:", error);
+
+        showToast(
+          error.response?.data?.message || "حذف تراکنش انجام نشد.",
+          "error",
         );
 
-        row.remove();
+        deleteBtn.disabled = false;
 
-        filterTransactions();
-      }, 400);
-    } catch (error) {
-      console.error("Delete transaction error:", error);
+        deleteBtn.innerHTML = `
+            <i class="fas fa-trash"></i>
+          `;
+      }
 
-      showToast(
-        error.response?.data?.message || "حذف تراکنش انجام نشد.",
-        "error",
-      );
-
-      deleteBtn.disabled = false;
-
-      deleteBtn.innerHTML = `
-          <i class="fas fa-trash"></i>
-        `;
-    }
-
-    return;
-  }
-
-  // Edit
-
-  const editBtn = event.target.closest(".edit-btn");
-
-  if (editBtn) {
-    const row = editBtn.closest("tr");
-
-    if (!row) {
       return;
     }
 
-    openEditModal(row);
-  }
-});
+    // Edit
+
+    const editBtn = event.target.closest(".edit-btn");
+
+    if (editBtn) {
+      const row = editBtn.closest("tr");
+
+      if (!row) {
+        return;
+      }
+
+      openEditModal(row);
+    }
+  });
+}
 
 // ======================================================
 // Edit Modal
@@ -1464,6 +1705,7 @@ function openEditModal(row) {
 
   if (!transaction) {
     showToast("تراکنش پیدا نشد.", "error");
+
     return;
   }
 
@@ -1471,15 +1713,13 @@ function openEditModal(row) {
 
   // Title
 
-  const title = getTransactionTitle(transaction);
-
-  transactionModalTitle.value = title;
+  transactionModalTitle.value = getTransactionTitle(transaction);
 
   // Amount
 
-  const amount = Math.abs(getTransactionAmount(transaction));
-
-  transactionModalAmount.value = amount;
+  transactionModalAmount.value = Math.abs(
+    getTransactionAmount(transaction),
+  ).toLocaleString("en-US");
 
   // Category
 
@@ -1491,63 +1731,64 @@ function openEditModal(row) {
 
   const parentCategory = findParentCategory(categoryId);
 
-  categoryOptionsContainer
-    .querySelectorAll(".category-option")
-    .forEach((categoryButton) => {
-      const buttonCategoryId = categoryButton.dataset.categoryId;
+  if (categoryOptionsContainer) {
+    categoryOptionsContainer
+      .querySelectorAll(".category-option")
+      .forEach((categoryButton) => {
+        const buttonCategoryId = categoryButton.dataset.categoryId;
 
-      categoryButton.classList.remove("active");
+        categoryButton.classList.remove("active");
 
-      if (
-        String(buttonCategoryId) === String(parentCategory?.id || categoryId)
-      ) {
-        categoryButton.classList.add("active");
+        if (
+          String(buttonCategoryId) === String(parentCategory?.id || categoryId)
+        ) {
+          categoryButton.classList.add("active");
 
-        const currentCategory = findCategoryById(buttonCategoryId);
+          const currentCategory = findCategoryById(buttonCategoryId);
 
-        const children = currentCategory
-          ? getCategoryChildren(currentCategory)
-          : [];
+          const children = currentCategory
+            ? getCategoryChildren(currentCategory)
+            : [];
 
-        if (children.length > 0) {
-          selectedParentCategoryId = String(buttonCategoryId);
+          if (children.length > 0) {
+            selectedParentCategoryId = String(buttonCategoryId);
 
-          selectedCategory = "";
+            selectedCategory = "";
+            selectedCategoryId = "";
 
-          selectedCategoryId = "";
+            categoryError?.classList.remove("hidden");
 
-          categoryError.classList.remove("hidden");
+            showSubcategories(children, categoryButton);
 
-          showSubcategories(children, categoryButton);
+            const dropdown = categoryButton.parentElement.querySelector(
+              ".subcategory-dropdown",
+            );
 
-          const dropdown = categoryButton.parentElement.querySelector(
-            ".subcategory-dropdown",
-          );
+            const child = children.find(
+              (item) => String(item.id) === String(categoryId),
+            );
 
-          const child = children.find(
-            (item) => String(item.id) === String(categoryId),
-          );
+            if (dropdown && child) {
+              dropdown.value = child.id;
 
-          if (dropdown && child) {
-            dropdown.value = child.id;
+              selectedCategory = child.name;
 
-            selectedCategory = child.name;
+              selectedCategoryId = String(child.id);
 
-            selectedCategoryId = String(child.id);
+              categoryError?.classList.add("hidden");
+            }
+          } else {
+            selectedCategory = categoryName;
 
-            categoryError.classList.add("hidden");
+            selectedCategoryId = String(categoryId);
+
+            selectedParentCategoryId = null;
+
+            categoryError?.classList.add("hidden");
           }
-        } else {
-          selectedCategory = categoryName;
-
-          selectedCategoryId = String(categoryId);
-
-          selectedParentCategoryId = null;
-
-          categoryError.classList.add("hidden");
         }
-      }
-    });
+      });
+  }
 
   // Transaction Type
 
@@ -1565,21 +1806,25 @@ function openEditModal(row) {
 
   const payment = getTransactionPayment(transaction);
 
-  const paymentRadio = document.querySelector(
-    `input[name="payment"][value="${payment}"]`,
-  );
-
-  if (paymentRadio) {
-    paymentRadio.checked = true;
+  if (paymentOptionsContainer) {
+    paymentOptionsContainer
+      .querySelectorAll('input[name="payment"]')
+      .forEach((input) => {
+        input.checked = String(input.value) === String(payment);
+      });
   }
 
-  // TAG
+  // Tag
 
-  const transactionTag = getTransactionTag(transaction);
+  const transactionTagId = getTransactionTagId(transaction);
 
-  document.querySelectorAll(".tag-option input").forEach((input) => {
-    input.checked = normalizeTag(input.value) === normalizeTag(transactionTag);
-  });
+  if (tagOptionsContainer) {
+    tagOptionsContainer
+      .querySelectorAll('input[type="checkbox"]')
+      .forEach((input) => {
+        input.checked = String(input.value) === String(transactionTagId);
+      });
+  }
 
   // Recurring
 
@@ -1593,11 +1838,7 @@ function openEditModal(row) {
     recurringTransaction.checked = isPeriodic;
 
     if (recurringFields) {
-      if (isPeriodic) {
-        recurringFields.classList.remove("hidden");
-      } else {
-        recurringFields.classList.add("hidden");
-      }
+      recurringFields.classList.toggle("hidden", !isPeriodic);
     }
   }
 
@@ -1645,17 +1886,10 @@ function openEditModal(row) {
     endDateInput.value = transaction.end_date || "";
   }
 
-  // Open Modal
-
-  transactionModal.classList.remove("hidden");
-
-  modalContent.classList.add("animate");
-
-  // Save / Update
+  openModal();
 
   saveBtn.onclick = (e) => {
     e.preventDefault();
-
     updateTransaction(row);
   };
 }
@@ -1667,15 +1901,13 @@ function openEditModal(row) {
 async function updateTransaction(row) {
   const newTitle = transactionModalTitle.value.trim();
 
-  const amount = +transactionModalAmount.value;
+  const amount = Number(transactionAmount.value.replace(/,/g, ""));
 
   if (!newTitle || !amount || !selectedCategoryId) {
     showToast("لطفاً اطلاعات تراکنش را کامل کنید.", "error");
 
     return;
   }
-
-  // Transaction Type
 
   const transactionType = document.querySelector(
     'input[name="transactionType"]:checked',
@@ -1687,19 +1919,19 @@ async function updateTransaction(row) {
     return;
   }
 
-  // Payment
-
   const selectedPayment = document.querySelector(
     'input[name="payment"]:checked',
   );
 
-  const payment = selectedPayment ? selectedPayment.value : "cash";
+  const payment = selectedPayment?.value || "";
 
-  // Amount
+  if (!payment) {
+    showToast("لطفاً روش پرداخت را انتخاب کنید.", "error");
+
+    return;
+  }
 
   const finalAmount = Math.abs(amount);
-
-  // Transaction ID
 
   const transactionId = editingTransaction?.id;
 
@@ -1709,8 +1941,6 @@ async function updateTransaction(row) {
     return;
   }
 
-  // Token
-
   const token = localStorage.getItem("token");
 
   if (!token) {
@@ -1719,26 +1949,20 @@ async function updateTransaction(row) {
     return;
   }
 
-  // Date
-
   const transactionDate =
     getTransactionDate(editingTransaction) ||
     new Date().toISOString().split("T")[0];
 
-  // TAG
+  const selectedTag = document.querySelector(
+    '.tag-option input[type="checkbox"]:checked',
+  );
 
-  const selectedTag = document.querySelector(".tag-option input:checked");
-
-  const tag = selectedTag ? selectedTag.value : "";
-
-  // Recurring
+  const tagId = selectedTag?.value || null;
 
   const isPeriodic = recurringTransaction?.checked || false;
 
   let frequency = "";
-
   let repeatCount = "";
-
   let endDate = "";
 
   if (isPeriodic) {
@@ -1767,61 +1991,39 @@ async function updateTransaction(row) {
     }
   }
 
-  // Update Data
-
   const transactionData = {
     category_id: +selectedCategoryId,
-
     title: newTitle,
-
     payment_method: payment,
-
     type: transactionType,
-
     amount: finalAmount,
-
     transaction_date: transactionDate,
-
-    frequency: frequency,
-
+    frequency,
     repeat_count: repeatCount,
-
     is_periodic: isPeriodic,
-
     end_date: endDate,
+    tag_ids: tagId ? [Number(tagId)] : [],
   };
-
-  // Send Update
 
   try {
     showSaveLoader();
 
     await api.put(`/transaction/update/${transactionId}`, transactionData);
 
-    // Save Tag Frontend
-
-    saveTransactionTag(transactionId, tag);
-
-    // Reload
-
+    /*
+     * دوباره اطلاعات را می‌گیریم
+     * تا display_amount جدید از API دریافت شود.
+     */
     await getTransactions();
-
-    filterTransactions();
 
     showToast("تراکنش با موفقیت ویرایش شد.", "success");
 
-    // Reset
-
     transactionModalTitle.value = "";
-
     transactionModalAmount.value = "";
 
     resetCategorySelection();
-
-    document.querySelectorAll(".tag-option input").forEach((input) => {
-      input.checked = false;
-    });
-
+    resetTagSelection();
+    resetPaymentSelection();
     resetRecurringFields();
 
     editingTransaction = null;
@@ -1845,135 +2047,168 @@ async function updateTransaction(row) {
 // Events
 // ======================================================
 
-searchInput.addEventListener("input", filterTransactions);
+if (searchInput) {
+  searchInput.addEventListener("input", filterTransactions);
+}
 
-monthFilter.addEventListener("change", filterTransactions);
+if (monthFilter) {
+  monthFilter.addEventListener("change", filterTransactions);
+}
 
-categoryFilter.addEventListener("change", filterTransactions);
+if (categoryFilter) {
+  categoryFilter.addEventListener("change", filterTransactions);
+}
 
-tagFilter.addEventListener("change", filterTransactions);
+if (tagFilter) {
+  tagFilter.addEventListener("change", filterTransactions);
+}
 
-paymentFilter.addEventListener("change", filterTransactions);
+if (paymentFilter) {
+  paymentFilter.addEventListener("change", filterTransactions);
+}
 
-sortFilter.addEventListener("change", filterTransactions);
+if (sortFilter) {
+  sortFilter.addEventListener("change", filterTransactions);
+}
 
 // ======================================================
 // Add Transaction
 // ======================================================
 
-addTransactionBtn.addEventListener("click", () => {
-  editingTransaction = null;
+if (addTransactionBtn) {
+  addTransactionBtn.addEventListener("click", () => {
+    editingTransaction = null;
 
-  saveBtn.onclick = createNewTransaction;
+    saveBtn.onclick = createNewTransaction;
 
-  resetCategorySelection();
+    transactionModalTitle.value = "";
+    transactionModalAmount.value = "";
+    resetCategorySelection();
+    resetRecurringFields();
+    resetTagSelection();
+    resetPaymentSelection();
 
-  resetRecurringFields();
-
-  document.querySelectorAll(".tag-option input").forEach((input) => {
-    input.checked = false;
+    openModal();
   });
-
-  openModal();
-});
+}
 
 // ======================================================
 // Close Buttons
 // ======================================================
 
-closeModalBtn.addEventListener("click", closeModal);
+if (closeModalBtn) {
+  closeModalBtn.addEventListener("click", closeModal);
+}
 
-cancelBtn.addEventListener("click", closeModal);
+if (cancelBtn) {
+  cancelBtn.addEventListener("click", closeModal);
+}
 
-modalOverlay.addEventListener("click", closeModal);
+if (modalOverlay) {
+  modalOverlay.addEventListener("click", closeModal);
+}
 
 // ======================================================
 // Recurring Transaction
 // ======================================================
 
-recurringTransaction.addEventListener("change", () => {
-  if (recurringTransaction.checked) {
-    recurringFields.classList.remove("hidden");
-  } else {
-    recurringFields.classList.add("hidden");
-  }
-});
+if (recurringTransaction) {
+  recurringTransaction.addEventListener("change", () => {
+    if (recurringTransaction.checked) {
+      recurringFields?.classList.remove("hidden");
+    } else {
+      recurringFields?.classList.add("hidden");
+    }
+  });
+}
 
 // ======================================================
 // Receipt Upload
 // ======================================================
 
-const ctx = receiptCanvas.getContext("2d");
-
-let receiptImage = null;
-
-let croppedReceipt = null;
+const ctx = receiptCanvas?.getContext("2d");
 
 // ======================================================
 // File Selected
 // ======================================================
 
-receiptInput.addEventListener("change", (event) => {
-  const file = event.target.files[0];
+if (receiptInput) {
+  receiptInput.addEventListener("change", (event) => {
+    const file = event.target.files[0];
 
-  if (!file) {
-    return;
-  }
-
-  uploadProgress.classList.remove("hidden");
-
-  uploadProgressFill.style.width = "0%";
-
-  uploadPercent.textContent = "0%";
-
-  const reader = new FileReader();
-
-  reader.addEventListener("progress", (event) => {
-    if (event.lengthComputable) {
-      const percent = Math.round((event.loaded / event.total) * 100);
-
-      uploadProgressFill.style.width = `${percent}%`;
-
-      uploadPercent.textContent = `${percent}%`;
+    if (!file) {
+      return;
     }
-  });
 
-  reader.addEventListener("load", (e) => {
-    const img = new Image();
+    uploadProgress?.classList.remove("hidden");
 
-    img.addEventListener("load", () => {
-      receiptImage = img;
+    if (uploadProgressFill) {
+      uploadProgressFill.style.width = "0%";
+    }
 
-      drawReceipt(img);
+    if (uploadPercent) {
+      uploadPercent.textContent = "0%";
+    }
 
-      receiptPreview.classList.remove("hidden");
+    const reader = new FileReader();
 
-      uploadProgressFill.style.width = "100%";
+    reader.addEventListener("progress", (event) => {
+      if (event.lengthComputable) {
+        const percent = Math.round((event.loaded / event.total) * 100);
 
-      uploadPercent.textContent = "100%";
+        if (uploadProgressFill) {
+          uploadProgressFill.style.width = `${percent}%`;
+        }
 
-      setTimeout(() => {
-        uploadProgress.classList.add("hidden");
-      }, 500);
+        if (uploadPercent) {
+          uploadPercent.textContent = `${percent}%`;
+        }
+      }
     });
 
-    img.src = e.target.result;
-  });
+    reader.addEventListener("load", (e) => {
+      const img = new Image();
 
-  reader.readAsDataURL(file);
-});
+      img.addEventListener("load", () => {
+        receiptImage = img;
+
+        drawReceipt(img);
+
+        receiptPreview?.classList.remove("hidden");
+
+        if (uploadProgressFill) {
+          uploadProgressFill.style.width = "100%";
+        }
+
+        if (uploadPercent) {
+          uploadPercent.textContent = "100%";
+        }
+
+        setTimeout(() => {
+          uploadProgress?.classList.add("hidden");
+        }, 500);
+      });
+
+      img.src = e.target.result;
+    });
+
+    reader.readAsDataURL(file);
+  });
+}
 
 // ======================================================
 // Draw Receipt
 // ======================================================
 
 function drawReceipt(img) {
-  const maxWidth = 800;
+  if (!receiptCanvas || !ctx) {
+    return;
+  }
 
+  const maxWidth = 800;
   const maxHeight = 500;
 
   let width = img.width;
-
   let height = img.height;
 
   if (width > maxWidth) {
@@ -1989,7 +2224,6 @@ function drawReceipt(img) {
   }
 
   receiptCanvas.width = width;
-
   receiptCanvas.height = height;
 
   ctx.clearRect(0, 0, receiptCanvas.width, receiptCanvas.height);
@@ -2001,69 +2235,72 @@ function drawReceipt(img) {
 // Crop Receipt
 // ======================================================
 
-cropReceiptBtn.addEventListener("click", () => {
-  if (!receiptImage) {
-    return;
-  }
+if (cropReceiptBtn) {
+  cropReceiptBtn.addEventListener("click", () => {
+    if (!receiptImage || !receiptCanvas || !ctx) {
+      return;
+    }
 
-  const cropWidth = receiptCanvas.width * 0.8;
+    const cropWidth = receiptCanvas.width * 0.8;
 
-  const cropHeight = receiptCanvas.height * 0.8;
+    const cropHeight = receiptCanvas.height * 0.8;
 
-  const startX = (receiptCanvas.width - cropWidth) / 2;
+    const startX = (receiptCanvas.width - cropWidth) / 2;
 
-  const startY = (receiptCanvas.height - cropHeight) / 2;
+    const startY = (receiptCanvas.height - cropHeight) / 2;
 
-  const croppedCanvas = document.createElement("canvas");
+    const croppedCanvas = document.createElement("canvas");
 
-  croppedCanvas.width = cropWidth;
+    croppedCanvas.width = cropWidth;
 
-  croppedCanvas.height = cropHeight;
+    croppedCanvas.height = cropHeight;
 
-  const croppedCtx = croppedCanvas.getContext("2d");
+    const croppedCtx = croppedCanvas.getContext("2d");
 
-  croppedCtx.drawImage(
-    receiptCanvas,
+    croppedCtx.drawImage(
+      receiptCanvas,
+      startX,
+      startY,
+      cropWidth,
+      cropHeight,
+      0,
+      0,
+      cropWidth,
+      cropHeight,
+    );
 
-    startX,
-    startY,
+    receiptCanvas.width = cropWidth;
 
-    cropWidth,
-    cropHeight,
+    receiptCanvas.height = cropHeight;
 
-    0,
-    0,
+    ctx.clearRect(0, 0, receiptCanvas.width, receiptCanvas.height);
 
-    cropWidth,
-    cropHeight,
-  );
+    ctx.drawImage(croppedCanvas, 0, 0);
 
-  receiptCanvas.width = cropWidth;
-
-  receiptCanvas.height = cropHeight;
-
-  ctx.clearRect(0, 0, receiptCanvas.width, receiptCanvas.height);
-
-  ctx.drawImage(croppedCanvas, 0, 0);
-
-  croppedReceipt = croppedCanvas.toDataURL("image/jpeg", 0.9);
-});
+    croppedReceipt = croppedCanvas.toDataURL("image/jpeg", 0.9);
+  });
+}
 
 // ======================================================
 // Remove Receipt
 // ======================================================
 
-removeReceiptBtn.addEventListener("click", () => {
-  receiptInput.value = "";
+if (removeReceiptBtn) {
+  removeReceiptBtn.addEventListener("click", () => {
+    if (receiptInput) {
+      receiptInput.value = "";
+    }
 
-  receiptImage = null;
+    receiptImage = null;
+    croppedReceipt = null;
 
-  croppedReceipt = null;
+    if (ctx && receiptCanvas) {
+      ctx.clearRect(0, 0, receiptCanvas.width, receiptCanvas.height);
+    }
 
-  ctx.clearRect(0, 0, receiptCanvas.width, receiptCanvas.height);
-
-  receiptPreview.classList.add("hidden");
-});
+    receiptPreview?.classList.add("hidden");
+  });
+}
 
 // ======================================================
 // Get Categories From API
@@ -2087,51 +2324,50 @@ async function getCategories() {
       categories = [];
     }
 
-    // Category Filter
+    if (categoryFilter) {
+      categoryFilter.innerHTML = `
+        <option value="all">
+          همه دسته‌ها
+        </option>
+      `;
 
-    categoryFilter.innerHTML = `
-      <option value="all">
-        همه دسته‌ها
-      </option>
-    `;
+      categories.forEach((category) => {
+        const parentId = getParentId(category);
 
-    categories.forEach((category) => {
-      const parentId = getParentId(category);
+        if (parentId !== null && parentId !== undefined && parentId !== "") {
+          return;
+        }
 
-      if (parentId !== null && parentId !== undefined && parentId !== "") {
-        return;
-      }
+        const option = document.createElement("option");
 
-      const option = document.createElement("option");
+        option.value = category.id;
+        option.textContent = category.name;
 
-      option.value = category.id;
+        categoryFilter.appendChild(option);
+      });
+    }
 
-      option.textContent = category.name;
+    if (categoryOptionsContainer) {
+      categoryOptionsContainer.innerHTML = "";
 
-      categoryFilter.appendChild(option);
-    });
+      categories.forEach((category) => {
+        const categoryBtn = document.createElement("button");
 
-    // Category Options
+        categoryBtn.type = "button";
 
-    categoryOptionsContainer.innerHTML = "";
+        categoryBtn.className = "category-option";
 
-    categories.forEach((category) => {
-      const categoryBtn = document.createElement("button");
+        categoryBtn.dataset.categoryId = category.id;
 
-      categoryBtn.type = "button";
+        categoryBtn.innerHTML = `
+            <span>
+              ${category.name}
+            </span>
+          `;
 
-      categoryBtn.className = "category-option";
-
-      categoryBtn.dataset.categoryId = category.id;
-
-      categoryBtn.innerHTML = `
-          <span>
-            ${category.name}
-          </span>
-        `;
-
-      categoryOptionsContainer.appendChild(categoryBtn);
-    });
+        categoryOptionsContainer.appendChild(categoryBtn);
+      });
+    }
   } catch (error) {
     console.error("Categories Error:", error);
 
@@ -2155,20 +2391,72 @@ async function getTransactions() {
     return;
   }
 
+  // Skeleton ON
+
+  showTransactionSkeleton();
+
   try {
     const response = await api.get("/transactions");
 
-    transactions = response.data?.data?.transactions || [];
+    const data = response.data?.data;
+
+    /*
+     * لیست تراکنش‌ها
+     */
+    transactions = data?.transactions || [];
 
     if (!Array.isArray(transactions)) {
       transactions = [];
     }
 
+    /*
+     * ارز فعلی برای نمایش
+     *
+     * مثال:
+     * {
+     *   id: 2,
+     *   name: "دلار آمریکا",
+     *   ISO: "USD",
+     *   symbol: "$"
+     * }
+     */
+    displayCurrency = data?.display_currency || null;
+
+    /*
+     * اگر display_currency موجود بود،
+     * baseCurrency را هم با آن هماهنگ می‌کنیم.
+     */
+    if (displayCurrency) {
+      baseCurrency =
+        displayCurrency.symbol ||
+        displayCurrency.currency_symbol ||
+        displayCurrency.currencySymbol ||
+        baseCurrency ||
+        "";
+    }
+
     currentTransactionCount = transactions.length;
 
+    hasMoreTransactions = true;
+
+    /*
+     * دوباره render می‌کنیم
+     * تا display_amount جدید نمایش داده شود.
+     */
     filterTransactions();
   } catch (error) {
     console.error("Transactions Error:", error);
+
+    transactionBody.innerHTML = `
+      <tr>
+        <td
+          colspan="7"
+          class="no-result"
+        >
+          دریافت تراکنش‌ها با خطا مواجه شد.
+        </td>
+      </tr>
+    `;
 
     showToast(
       error.response?.data?.message || "تراکنش‌ها دریافت نشدند.",
@@ -2182,29 +2470,13 @@ async function getTransactions() {
 // ======================================================
 
 async function loadMoreTransactions() {
-  if (isLoadingMore) {
+  if (isLoadingMore || !hasMoreTransactions) {
     return;
   }
 
-  if (!hasMoreTransactions) {
-    return;
-  }
-
-  if (transactions.length === currentTransactionCount) {
-    hasMoreTransactions = false;
-
-    return;
-  }
-
-  try {
-    isLoadingMore = true;
-
-    showTransactionLoader();
-  } finally {
-    isLoadingMore = false;
-
-    hideTransactionLoader();
-  }
+  // فعلاً API pagination نداریم.
+  // بعداً اگر API صفحه‌بندی شد،
+  // این قسمت اضافه می‌شود.
 }
 
 // ======================================================
@@ -2230,29 +2502,150 @@ window.addEventListener("scroll", () => {
 // ======================================================
 
 async function initTransactionsPage() {
-  try {
-    // Global Loader ON
+  showTransactionSkeleton();
 
-    showGlobalLoader();
+  await loadBaseCurrency();
 
-    // Base Currency
-    // اول ارز پایه را می‌گیریم تا
-    // مبلغ‌ها با سمبل صحیح رندر شوند.
+  await getCategories();
 
-    await loadBaseCurrency();
+  await getTags();
 
-    // Categories
+  await getPaymentMethods();
 
-    await getCategories();
-
-    // Transactions
-
-    await getTransactions();
-  } finally {
-    // Global Loader OFF
-
-    hideGlobalLoader();
-  }
+  await getTransactions();
 }
+
+// ======================================================
+// Export Transactions
+// ======================================================
+
+const exportWrapper = document.querySelector(".export-wrapper");
+
+const exportBtn = document.getElementById("exportBtn");
+
+const exportMenu = document.getElementById("exportMenu");
+
+const exportOptions = document.querySelectorAll(".export-option");
+
+const exportUrls = {
+  pdf: "https://wepaid.ir/reports/transactions/pdf-link",
+
+  csv: "https://wepaid.ir/reports/transactions/csv-link",
+};
+
+// ======================================================
+// Open / Close Export Menu
+// ======================================================
+
+exportBtn?.addEventListener("click", (e) => {
+  e.stopPropagation();
+
+  exportWrapper.classList.toggle("active");
+});
+
+// ======================================================
+// Download Selected Format
+// ======================================================
+
+exportOptions.forEach((option) => {
+  option.addEventListener("click", async () => {
+    const format = option.dataset.format;
+
+    const url = exportUrls[format];
+
+    if (!url) {
+      return;
+    }
+
+    try {
+      option.disabled = true;
+
+      const originalHTML = option.innerHTML;
+
+      option.innerHTML = `
+            <i class="fas fa-spinner fa-spin"></i>
+            در حال آماده‌سازی...
+          `;
+
+      const response = await api.get(url);
+
+      if (!response.data?.success) {
+        throw new Error("خطا در دریافت فایل");
+      }
+
+      const downloadUrl = response.data?.data?.download_url;
+
+      if (!downloadUrl) {
+        throw new Error("لینک دانلود دریافت نشد");
+      }
+
+      const link = document.createElement("a");
+
+      link.href = downloadUrl;
+
+      link.target = "_blank";
+
+      link.rel = "noopener";
+
+      document.body.appendChild(link);
+
+      link.click();
+
+      link.remove();
+
+      showToast(`فایل ${format.toUpperCase()} با موفقیت آماده شد`, "success");
+
+      exportWrapper.classList.remove("active");
+
+      option.innerHTML = originalHTML;
+
+      option.disabled = false;
+    } catch (error) {
+      console.error("Export error:", error);
+
+      showToast("دریافت خروجی با خطا مواجه شد", "error");
+
+      option.disabled = false;
+
+      if (format === "pdf") {
+        option.innerHTML = `
+              <i class="fas fa-file-pdf"></i>
+              دریافت PDF
+            `;
+      } else {
+        option.innerHTML = `
+              <i class="fas fa-file-csv"></i>
+              دریافت CSV
+            `;
+      }
+    }
+  });
+});
+
+// ======================================================
+// Close Export Menu
+// ======================================================
+
+document.addEventListener("click", (e) => {
+  if (exportWrapper && !exportWrapper.contains(e.target)) {
+    exportWrapper.classList.remove("active");
+  }
+});
+
+transactionModalAmount.addEventListener("input", function () {
+  // فقط عدد
+  let value = this.value.replace(/\D/g, "");
+
+  // جدا کردن سه‌تایی
+  if (value) {
+    this.value = Number(value).toLocaleString("en-US");
+  } else {
+    this.value = "";
+  }
+});
+
+// ======================================================
+// Init
+// ======================================================
 
 initTransactionsPage();

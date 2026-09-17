@@ -1,10 +1,8 @@
 import api from "./api.js";
 import { showToast } from "../../utils/Toast.js";
+import "../../utils/notification.js";
 
-// ======================================================
 // Elements
-// ======================================================
-
 const addBudgetBtn = document.getElementById("addBudgetBtn");
 const budgetModal = document.querySelector(".budget-modal");
 const closeBudgetModal = document.getElementById("closeBudgetModal");
@@ -19,45 +17,26 @@ const modalOverlay = document.querySelector(".modal-overlay");
 const modalContent = document.querySelector(".modal-content");
 const amountError = document.querySelector(".amountError");
 
-// ======================================================
 // Global Loader
-// ======================================================
-
 const globalLoader = document.getElementById("globalLoader");
 
-// ======================================================
 // Local Loader
-// ======================================================
-
 const budgetLoader = document.getElementById("budgetLoader");
 
-// ======================================================
 // Global Variables
-// ======================================================
-
 let editingCard = null;
 let categories = [];
 
-// ======================================================
 // Base Currency
-// ======================================================
+let baseCurrency = "ریال";
 
-let baseCurrency = "تومان";
-
-// ======================================================
 // Username
-// ======================================================
-
 const username = localStorage.getItem("userName");
-
 if (usernameElement) {
   usernameElement.textContent = username || "کاربر";
 }
 
-// ======================================================
 // Global Loader
-// ======================================================
-
 function showGlobalLoader() {
   if (globalLoader) {
     globalLoader.classList.remove("hidden");
@@ -70,10 +49,7 @@ function hideGlobalLoader() {
   }
 }
 
-// ======================================================
 // Local Loader
-// ======================================================
-
 function showBudgetLoader() {
   if (budgetLoader) {
     budgetLoader.classList.remove("hidden");
@@ -86,16 +62,10 @@ function hideBudgetLoader() {
   }
 }
 
-// ======================================================
 // Load Base Currency From Profile
-// ======================================================
-
 async function loadBaseCurrency() {
   try {
     const response = await api.get("/profile");
-
-    console.log("========== PROFILE ==========");
-    console.log("Profile response:", response.data);
 
     const profile =
       response.data?.data?.profile ||
@@ -103,32 +73,16 @@ async function loadBaseCurrency() {
       response.data?.profile ||
       response.data;
 
-    console.log("Profile object:", profile);
-
-    // -----------------------------------------------
-    // پیدا کردن currency_id
-    // -----------------------------------------------
-
     const currencyId =
       profile?.currency_id ??
       profile?.currencyId ??
       profile?.currency?.id ??
       profile?.currency?.currency_id;
 
-    console.log("Profile currency_id:", currencyId);
-
-    // -----------------------------------------------
-    // اگر currency_id داشتیم
-    // -----------------------------------------------
-
     if (currencyId !== null && currencyId !== undefined && currencyId !== "") {
       await loadCurrencyById(currencyId);
       return;
     }
-
-    // -----------------------------------------------
-    // اگر خود currency به صورت object بود
-    // -----------------------------------------------
 
     if (profile?.currency && typeof profile.currency === "object") {
       const currencyName =
@@ -144,10 +98,6 @@ async function loadBaseCurrency() {
         return;
       }
     }
-
-    // -----------------------------------------------
-    // اگر currency به صورت string بود
-    // -----------------------------------------------
 
     if (typeof profile?.currency === "string" && profile.currency.trim()) {
       baseCurrency = profile.currency.trim();
@@ -659,7 +609,7 @@ function createBudgetCard(budget) {
 
       budgetCategory.value = budgetCategoryId || "";
 
-      budgetAmount.value = total;
+      budgetAmount.value = total.toLocaleString("en-US");
 
       modalTitle.textContent = "ویرایش بودجه";
 
@@ -791,7 +741,9 @@ if (budgetForm) {
 
     const categoryId = budgetCategory.value;
 
-    const amount = Number(budgetAmount.value);
+    // مقدار نمایشی: 5,000,000
+    // مقدار واقعی: 5000000
+    const amount = Number(budgetAmount.value.replace(/,/g, ""));
 
     // ==================================================
     // Amount Validation
@@ -799,7 +751,6 @@ if (budgetForm) {
 
     if (!amount || amount <= 0) {
       amountError.classList.remove("hidden");
-
       return;
     }
 
@@ -811,7 +762,6 @@ if (budgetForm) {
 
     if (!categoryId) {
       showToast("لطفاً یک دسته‌بندی انتخاب کنید", "error");
-
       return;
     }
 
@@ -821,7 +771,6 @@ if (budgetForm) {
 
     if (editingCard) {
       await updateBudget(editingCard, categoryId, amount);
-
       return;
     }
 
@@ -890,7 +839,6 @@ async function createBudget(categoryId, amount) {
 async function updateBudget(card, categoryId, amount) {
   try {
     const walletId = localStorage.getItem("walletId");
-    
 
     if (!walletId) {
       showToast("کیف پول انتخاب نشده است", "error");
@@ -1000,6 +948,18 @@ async function init() {
     hideGlobalLoader();
   }
 }
+
+budgetAmount.addEventListener("input", function () {
+  // حذف همه چیز به جز عدد
+  let value = this.value.replace(/\D/g, "");
+
+  // جدا کردن اعداد سه‌تا سه‌تا
+  if (value) {
+    this.value = Number(value).toLocaleString("en-US");
+  } else {
+    this.value = "";
+  }
+});
 
 // ======================================================
 // Init

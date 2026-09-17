@@ -3,7 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <title>transaction</title>
     <link rel="stylesheet" href="./src/assets/css/style.css" />
     <link
@@ -14,11 +13,6 @@
   </head>
 
   <body>
-    <!-- Global Loader -->
-    <div id="globalLoader" class="overlay hidden">
-      <span class="loader"></span>
-    </div>
-
     <!-- Header -->
     <header class="header">
       <div class="welcome">
@@ -26,12 +20,27 @@
           سلام
           <span id="headerUsername"></span>
         </h1>
-
         <p>خلاصه وضعیت مالی شما</p>
       </div>
-      <button class="notification-btn" type="button">
-        <i class="fas fa-bell"></i>
-      </button>
+
+      <div class="notification-wrapper">
+        <button class="notification-btn" id="notificationBtn">
+          <i class="fas fa-bell"></i>
+          <span class="notification-badge hidden" id="notificationBadge"
+            >0</span
+          >
+        </button>
+
+        <div class="notification-dropdown hidden" id="notificationDropdown">
+          <div class="notification-header">
+            <h3>اعلان‌ها</h3>
+          </div>
+
+          <div class="notification-list" id="notificationList">
+            <div class="notification-empty">اعلانی وجود ندارد</div>
+          </div>
+        </div>
+      </div>
     </header>
 
     <main class="main">
@@ -84,10 +93,8 @@
           <!-- Filters -->
           <div class="filters">
             <!-- Month -->
-
             <div class="filter-item">
               <label for="monthFilter"> ماه </label>
-
               <select id="monthFilter">
                 <option value="all">همه ماه‌ها</option>
                 <option value="1">فروردین</option>
@@ -120,20 +127,13 @@
               <label for="tagFilter"> برچسب </label>
               <select id="tagFilter">
                 <option value="all">همه برچسب‌ها</option>
-                <option value="important">ضروری</option>
-                <option value="daily">روزانه</option>
-                <option value="work">کار</option>
               </select>
             </div>
 
             <!-- Payment -->
             <div class="filter-item">
               <label for="paymentFilter"> روش پرداخت </label>
-              <select id="paymentFilter">
-                <option value="all">همه روش‌ها</option>
-                <option value="cash">نقدی</option>
-                <option value="online">آنلاین</option>
-              </select>
+              <select id="paymentFilter"></select>
             </div>
 
             <!-- Sort -->
@@ -151,11 +151,34 @@
         <div class="list-part" data-aos="fade-up">
           <div class="panel-header">
             <h3>لیست تراکنش‌ها</h3>
+            <div class="transaction-actions">
+              <!-- Export -->
+              <div class="export-wrapper">
+                <button class="export-btn" id="exportBtn" type="button">
+                  <i class="fas fa-download"></i>
+                  دریافت خروجی
+                  <i class="fas fa-chevron-down export-arrow"></i>
+                </button>
 
-            <button class="add-btn" type="button">
-              <i class="fas fa-plus"></i>
-              تراکنش جدید
-            </button>
+                <div class="export-menu" id="exportMenu">
+                  <button type="button" class="export-option" data-format="pdf">
+                    <i class="fas fa-file-pdf"></i>
+                    دریافت PDF
+                  </button>
+
+                  <button type="button" class="export-option" data-format="csv">
+                    <i class="fas fa-file-csv"></i>
+                    دریافت CSV
+                  </button>
+                </div>
+              </div>
+
+              <!-- Add Transaction -->
+              <button class="add-btn" type="button">
+                <i class="fas fa-plus"></i>
+                تراکنش جدید
+              </button>
+            </div>
           </div>
 
           <!-- Table -->
@@ -178,15 +201,6 @@
               </tbody>
             </table>
 
-            <!-- Local Loader -->
-            <div id="transactionLoader" class="local-loader hidden">
-              <span class="loader"></span>
-
-              <span class="local-loader-text">
-                در حال دریافت تراکنش‌ها...
-              </span>
-            </div>
-
             <!-- Infinite Scroll Sentinel -->
             <div
               id="scrollSentinel"
@@ -197,16 +211,14 @@
         </div>
       </section>
 
-   <!-- Transaction Modal -->
+      <!-- Transaction Modal -->
       <div class="transaction-modal hidden">
         <div class="modal-overlay"></div>
-
         <div class="modal-content">
           <!-- Modal Header -->
           <div class="modal-header">
             <div>
               <h2>افزودن تراکنش</h2>
-
               <p>اطلاعات تراکنش جدید را وارد کنید.</p>
             </div>
             <button class="close-modal" id="closeModal" type="button">
@@ -218,7 +230,6 @@
           <form class="transaction-form" autocomplete="off">
             <div class="form-group">
               <label for="transactionTitle"> عنوان تراکنش </label>
-
               <input
                 type="text"
                 id="transactionTitle"
@@ -237,12 +248,11 @@
                 <label for="transactionAmount"> مقدار </label>
 
                 <input
-                  type="number"
+                  type="text"
                   id="transactionAmount"
                   placeholder="0"
                   min="0"
                 />
-
                 <p class="transactionAmountError hidden">
                   مقدار وارد شده صحیح نمی‌باشد
                 </p>
@@ -290,18 +300,7 @@
             <div class="form-group">
               <label> برچسب‌ها </label>
               <div class="tag-options">
-                <label class="tag-option">
-                  <input type="checkbox" value="ضروری" />
-                  <span> ضروری </span>
-                </label>
-                <label class="tag-option">
-                  <input type="checkbox" value="روزانه" />
-                  <span> روزانه </span>
-                </label>
-                <label class="tag-option">
-                  <input type="checkbox" value="کار" />
-                  <span> کار </span>
-                </label>
+                <!-- created by js -->
               </div>
             </div>
 
@@ -428,7 +427,7 @@
             </div>
           </form>
         </div>
-      </div>   
+      </div>
 
       <!-- Mobile Navigation -->
       <section class="mobile-nav">

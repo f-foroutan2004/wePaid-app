@@ -1,12 +1,12 @@
 import api from "./api.js";
 import { showToast } from "../../utils/Toast.js";
+import "../../utils/notification.js";
 
 // ======================================================
 // Elements
 // ======================================================
 
 const usernameElement = document.querySelector("#headerUsername");
-
 const ctxCircle = document.querySelector(".incomeChart");
 const ctxLine = document.querySelector(".processChart");
 
@@ -44,6 +44,7 @@ if (!token) {
 let categories = [];
 let transactions = [];
 let budgets = [];
+
 let dashboardData = null;
 
 let circleChart = null;
@@ -109,7 +110,6 @@ async function loadBaseCurrency() {
 
       if (baseCurrency) {
         console.log("✅ Base Currency Symbol From Profile:", baseCurrency);
-
         return;
       }
     }
@@ -176,7 +176,6 @@ async function loadCurrencyById(currencyId) {
 
     if (!Array.isArray(currencies)) {
       console.error("لیست ارزها معتبر نیست:", currencies);
-
       return;
     }
 
@@ -190,13 +189,8 @@ async function loadCurrencyById(currencyId) {
 
     if (!currency) {
       console.error("ارز پایه پیدا نشد:", currencyId);
-
       return;
     }
-
-    // ==================================================
-    // فقط Symbol
-    // ==================================================
 
     baseCurrency =
       currency.symbol ||
@@ -226,20 +220,16 @@ function formatNumber(number) {
 
 function formatMoney(number) {
   const value = Number(number) || 0;
-
   const formatted = formatNumber(value);
 
-  // اگر سمبل ارز پیدا نشده باشد
   if (!baseCurrency) {
     return value < 0 ? `-${formatted}` : formatted;
   }
 
-  // هزینه
   if (value < 0) {
     return `-${formatted} ${baseCurrency}`;
   }
 
-  // درآمد / موجودی مثبت
   return `${formatted} ${baseCurrency}`;
 }
 
@@ -253,7 +243,6 @@ function animateNumber(element, target, duration = 1500) {
   }
 
   const numericTarget = Number(target) || 0;
-
   const startTime = performance.now();
 
   function update(currentTime) {
@@ -341,7 +330,7 @@ function getTransactionTitle(transaction) {
 }
 
 function getTransactionAmount(transaction) {
-  return Number(transaction.amount) || 0;
+  return Number(transaction.display_amount) || 0;
 }
 
 function getTransactionType(transaction) {
@@ -422,15 +411,98 @@ function normalizeTag(tag) {
 // ======================================================
 
 function getTransactionTag(transaction) {
-  if (!transaction?.id) {
+  if (!transaction) {
     return "";
   }
 
-  const savedTags = JSON.parse(localStorage.getItem("transactionTags") || "{}");
+  // ------------------------------------------
+  // API: tags
+  // ------------------------------------------
 
-  const savedTag = savedTags[String(transaction.id)] || "";
+  if (Array.isArray(transaction.tags) && transaction.tags.length) {
+    const tag = transaction.tags[0];
 
-  return normalizeTag(savedTag);
+    if (typeof tag === "object") {
+      return normalizeTag(tag.name || tag.title || tag.label || "");
+    }
+
+    return normalizeTag(tag);
+  }
+
+  // ------------------------------------------
+  // API: tag
+  // ------------------------------------------
+
+  if (transaction.tag) {
+    if (typeof transaction.tag === "object") {
+      return normalizeTag(
+        transaction.tag.name ||
+          transaction.tag.title ||
+          transaction.tag.label ||
+          "",
+      );
+    }
+
+    return normalizeTag(transaction.tag);
+  }
+
+  // ------------------------------------------
+  // API: tag_name
+  // ------------------------------------------
+
+  if (transaction.tag_name) {
+    return normalizeTag(transaction.tag_name);
+  }
+
+  // ------------------------------------------
+  // API: tag_names
+  // ------------------------------------------
+
+  if (Array.isArray(transaction.tag_names) && transaction.tag_names.length) {
+    return normalizeTag(transaction.tag_names[0]);
+  }
+
+  // ------------------------------------------
+  // API: tag_ids
+  // ------------------------------------------
+
+  if (Array.isArray(transaction.tag_ids) && transaction.tag_ids.length) {
+    const tagId = transaction.tag_ids[0];
+
+    const savedTags = JSON.parse(localStorage.getItem("tags") || "[]");
+
+    if (Array.isArray(savedTags)) {
+      const foundTag = savedTags.find(
+        (tag) =>
+          String(tag.id) === String(tagId) ||
+          String(tag.tag_id) === String(tagId),
+      );
+
+      if (foundTag) {
+        return normalizeTag(
+          foundTag.name || foundTag.title || foundTag.label || "",
+        );
+      }
+    }
+  }
+
+  // ------------------------------------------
+  // Old localStorage method
+  // ------------------------------------------
+
+  if (transaction.id) {
+    const savedTags = JSON.parse(
+      localStorage.getItem("transactionTags") || "{}",
+    );
+
+    const savedTag = savedTags[String(transaction.id)] || "";
+
+    if (savedTag) {
+      return normalizeTag(savedTag);
+    }
+  }
+
+  return "";
 }
 
 // ======================================================
@@ -482,14 +554,12 @@ async function getDashboard() {
 
   if (!walletId) {
     showToast("کیف پول انتخاب نشده است.", "error");
-
     return;
   }
 
   const currentDate = new Date();
 
   const year = currentDate.getFullYear();
-
   const month = currentDate.getMonth() + 1;
 
   const formattedMonth = `${year}-${String(month).padStart(2, "0")}`;
@@ -497,16 +567,13 @@ async function getDashboard() {
   const formData = new FormData();
 
   formData.append("wallet_id", Number(walletId));
-
   formData.append("month", formattedMonth);
-
   formData.append("months", 6);
 
   try {
     const response = await api.post("/dashboard", formData);
 
     console.log("========== DASHBOARD ==========");
-
     console.log("Dashboard response:", response.data);
 
     dashboardData = response.data?.data || null;
@@ -546,22 +613,13 @@ function renderDashboardCards() {
 
   console.log("Monthly Expense:", cards.monthly_expense);
 
-  // ==================================================
   // موجودی کل
-  // ==================================================
-
   animateNumber(totalBalance, Number(cards.total_balance) || 0);
 
-  // ==================================================
   // درآمد
-  // ==================================================
-
   animateNumber(incomeBalance, Math.abs(Number(cards.monthly_income) || 0));
 
-  // ==================================================
   // هزینه
-  // ==================================================
-
   animateNumber(expenseBalance, -Math.abs(Number(cards.monthly_expense) || 0));
 }
 
@@ -613,7 +671,6 @@ function renderExpenseChart() {
 
   if (!data.length) {
     labels = ["هزینه‌ای نیست"];
-
     data = [1];
   }
 
@@ -710,21 +767,15 @@ function renderTrendChart() {
       datasets: [
         {
           label: "درآمد",
-
           data: incomeData,
-
           borderWidth: 2,
-
           tension: 0.4,
         },
 
         {
           label: "هزینه",
-
           data: expenseData,
-
           borderWidth: 2,
-
           tension: 0.4,
         },
       ],
@@ -847,9 +898,6 @@ function renderLatestTransactions() {
     const tag = getTransactionTag(transaction);
 
     const date = getTransactionDate(transaction);
-
-    // هزینه منفی
-    // درآمد مثبت
 
     const displayAmount =
       type === "expense" ? -Math.abs(amount) : Math.abs(amount);
@@ -1042,40 +1090,354 @@ function createDashboardBudget(budget) {
     }, 100);
   }
 }
+function showNoWalletState() {
+  const page = document.querySelector(".page");
 
+  if (!page) return;
+
+  page.innerHTML = `
+    <div class="empty-wallet-state">
+      <div class="empty-wallet-icon">
+        <i class="fas fa-wallet"></i>
+      </div>
+
+      <h2>هنوز کیف پولی ایجاد نکرده‌اید</h2>
+
+      <p>
+        برای شروع مدیریت درآمد و هزینه‌ها،
+        ابتدا یک کیف پول ایجاد کنید.
+      </p>
+
+      <button class="create-wallet-btn" id="createWalletBtn">
+        <i class="fas fa-plus"></i>
+        ایجاد کیف پول
+      </button>
+    </div>
+  `;
+
+  document.getElementById("createWalletBtn")?.addEventListener("click", () => {
+    window.location.href = "./setting.html";
+  });
+}
+
+// ======================================================
+// Check & Set Wallet
+// ======================================================
+
+async function checkAndSetWallet() {
+  try {
+    const response = await api.get("/wallets");
+
+    console.log("========== WALLETS ==========");
+    console.log("Wallets response:", response.data);
+
+    const wallets =
+      response.data?.data?.wallets || response.data?.wallets || [];
+
+    // walletId قبلی را پاک می‌کنیم
+    localStorage.removeItem("walletId");
+
+    // اگر کاربر کیف پولی ندارد
+    if (!Array.isArray(wallets) || wallets.length === 0) {
+      showNoWalletState();
+      return false;
+    }
+
+    // اولین کیف پول کاربر
+    const walletId = wallets[0].id;
+
+    // ذخیره کیف پول جدید
+    localStorage.setItem("walletId", walletId);
+
+    console.log("✅ Wallet ID:", walletId);
+
+    return true;
+  } catch (error) {
+    console.error("Wallets Error:", error);
+
+    showToast(
+      error.response?.data?.message || "اطلاعات کیف پول دریافت نشد.",
+      "error",
+    );
+
+    return false;
+  }
+}
+
+// ======================================================
+// Dashboard Skeleton
+// ======================================================
+
+function showDashboardSkeleton() {
+  // ====================================================
+  // Cards
+  // ====================================================
+
+  document.querySelectorAll(".card").forEach((card) => {
+    card.classList.add("skeleton-card");
+  });
+
+  document
+    .querySelectorAll(".card-info p, .card-info h2")
+    .forEach((element) => {
+      element.classList.add("dashboard-skeleton");
+    });
+
+  // ====================================================
+  // Charts
+  // ====================================================
+
+  document
+    .querySelectorAll(".chart-container, .process-chart-container")
+    .forEach((container) => {
+      // اگر قبلاً skeleton ساخته شده، دوباره نساز
+      if (container.querySelector(".chart-skeleton-overlay")) {
+        return;
+      }
+
+      const skeleton = document.createElement("div");
+
+      skeleton.className = "dashboard-skeleton chart-skeleton-overlay";
+
+      container.style.position = "relative";
+
+      container.appendChild(skeleton);
+    });
+
+  // ====================================================
+  // Chart Text
+  // ====================================================
+
+  const chartText = document.querySelector(".chart-text");
+
+  if (chartText) {
+    chartText.dataset.originalText = chartText.textContent;
+
+    chartText.innerHTML = `
+      <span
+        class="dashboard-skeleton"
+        style="
+          display: block;
+          width: 70%;
+          height: 16px;
+          border-radius: 5px;
+        "
+      ></span>
+    `;
+  }
+
+  // ====================================================
+  // Budgets
+  // ====================================================
+
+  if (budgetList) {
+    budgetList.innerHTML = `
+      <div class="skeleton-budget">
+        <div class="skeleton-budget-info">
+          <span class="dashboard-skeleton"></span>
+          <span class="dashboard-skeleton"></span>
+        </div>
+
+        <div class="dashboard-skeleton skeleton-progress"></div>
+      </div>
+
+      <div class="skeleton-budget">
+        <div class="skeleton-budget-info">
+          <span class="dashboard-skeleton"></span>
+          <span class="dashboard-skeleton"></span>
+        </div>
+
+        <div class="dashboard-skeleton skeleton-progress"></div>
+      </div>
+
+      <div class="skeleton-budget">
+        <div class="skeleton-budget-info">
+          <span class="dashboard-skeleton"></span>
+          <span class="dashboard-skeleton"></span>
+        </div>
+
+        <div class="dashboard-skeleton skeleton-progress"></div>
+      </div>
+    `;
+  }
+
+  // ====================================================
+  // Transactions
+  // ====================================================
+
+  if (transactionBody) {
+    transactionBody.innerHTML = `
+      <tr class="skeleton-row">
+        <td>
+          <span class="dashboard-skeleton skeleton-cell short"></span>
+        </td>
+
+        <td>
+          <span class="dashboard-skeleton skeleton-cell"></span>
+        </td>
+
+        <td>
+          <span class="dashboard-skeleton skeleton-cell medium"></span>
+        </td>
+
+        <td>
+          <span class="dashboard-skeleton skeleton-cell"></span>
+        </td>
+
+        <td>
+          <span class="dashboard-skeleton skeleton-cell short"></span>
+        </td>
+
+        <td>
+          <span class="dashboard-skeleton skeleton-cell medium"></span>
+        </td>
+      </tr>
+
+      <tr class="skeleton-row">
+        <td>
+          <span class="dashboard-skeleton skeleton-cell short"></span>
+        </td>
+
+        <td>
+          <span class="dashboard-skeleton skeleton-cell"></span>
+        </td>
+
+        <td>
+          <span class="dashboard-skeleton skeleton-cell medium"></span>
+        </td>
+
+        <td>
+          <span class="dashboard-skeleton skeleton-cell"></span>
+        </td>
+
+        <td>
+          <span class="dashboard-skeleton skeleton-cell short"></span>
+        </td>
+
+        <td>
+          <span class="dashboard-skeleton skeleton-cell medium"></span>
+        </td>
+      </tr>
+
+      <tr class="skeleton-row">
+        <td>
+          <span class="dashboard-skeleton skeleton-cell short"></span>
+        </td>
+
+        <td>
+          <span class="dashboard-skeleton skeleton-cell"></span>
+        </td>
+
+        <td>
+          <span class="dashboard-skeleton skeleton-cell medium"></span>
+        </td>
+
+        <td>
+          <span class="dashboard-skeleton skeleton-cell"></span>
+        </td>
+
+        <td>
+          <span class="dashboard-skeleton skeleton-cell short"></span>
+        </td>
+
+        <td>
+          <span class="dashboard-skeleton skeleton-cell medium"></span>
+        </td>
+      </tr>
+    `;
+  }
+}
+
+// ======================================================
+// Remove Dashboard Skeleton
+// ======================================================
+
+function hideDashboardSkeleton() {
+  // ====================================================
+  // Cards
+  // ====================================================
+
+  document.querySelectorAll(".card").forEach((card) => {
+    card.classList.remove("skeleton-card");
+  });
+
+  document
+    .querySelectorAll(".card-info p, .card-info h2")
+    .forEach((element) => {
+      element.classList.remove("dashboard-skeleton");
+    });
+
+  // ====================================================
+  // Chart Skeleton
+  // ====================================================
+
+  document.querySelectorAll(".chart-skeleton-overlay").forEach((element) => {
+    element.remove();
+  });
+
+  // ====================================================
+  // Chart Text
+  // ====================================================
+
+  const chartText = document.querySelector(".chart-text");
+
+  if (chartText) {
+    const originalText = chartText.dataset.originalText;
+
+    if (originalText) {
+      chartText.textContent = originalText;
+      delete chartText.dataset.originalText;
+    }
+  }
+
+  // ====================================================
+  // Other Skeletons
+  // ====================================================
+
+  document.querySelectorAll(".dashboard-skeleton").forEach((element) => {
+    element.classList.remove("dashboard-skeleton");
+  });
+
+  document.querySelectorAll(".skeleton-panel").forEach((panel) => {
+    panel.classList.remove("skeleton-panel");
+  });
+}
 // ======================================================
 // Initial Load
 // ======================================================
 
 async function initDashboard() {
-  try {
-    // -----------------------------------------------
-    // اول ارز پایه
-    // -----------------------------------------------
+  showDashboardSkeleton();
 
+  try {
+    // دریافت کیف پول‌های کاربر
+    const hasWallet = await checkAndSetWallet();
+
+    // اگر کیف پول وجود نداشت
+    if (!hasWallet) {
+      return;
+    }
+
+    // دریافت ارز پایه
     await loadBaseCurrency();
 
     console.log("💰 Final Base Currency:", baseCurrency);
 
-    // -----------------------------------------------
-    // دسته‌بندی‌ها
-    // -----------------------------------------------
-
+    // دریافت دسته‌بندی‌ها
     await getCategories();
 
-    // -----------------------------------------------
-    // Dashboard
-    // -----------------------------------------------
-
+    // دریافت اطلاعات اصلی داشبورد
     await getDashboard();
 
-    // -----------------------------------------------
-    // Transactions + Budgets
-    // -----------------------------------------------
-
+    // دریافت تراکنش‌ها و بودجه‌ها
     await Promise.all([getTransactions(), getBudgets()]);
+
+    // همه اطلاعات دریافت شده
+    hideDashboardSkeleton();
   } catch (error) {
     console.error("INITIAL DASHBOARD ERROR:", error);
+
+    hideDashboardSkeleton();
 
     showToast(
       error?.response?.data?.message ||
@@ -1089,5 +1451,27 @@ async function initDashboard() {
 // ======================================================
 // Init
 // ======================================================
+async function setName() {
+  // e.preventDefault();
+
+  try {
+    const response = await api.get("/me");
+    console.log(response.data.data.user.name);
+    const successMessage = response.data?.data?.message;
+    const userName = response.data.data.user.name;
+
+    localStorage.setItem("userName", userName);
+  } catch (error) {
+    if (error.response) {
+      const message = error.response.data?.data?.message || "ورود انجام نشد.";
+
+      showToast(message);
+    } else {
+      showToast("ارتباط با سرور برقرار نشد.");
+    }
+  }
+}
+
 
 initDashboard();
+setName();

@@ -1,65 +1,177 @@
 import api from "./api.js";
+
 import { showToast } from "../../utils/Toast.js";
 
 // ======================================================
 // Elements
 // ======================================================
 
-const walletList = document.getElementById("walletList");
+const walletList =
+  document.getElementById(
+    "walletList",
+  );
 
-const addWalletBtn = document.getElementById("addWalletBtn");
+const addWalletBtn =
+  document.getElementById(
+    "addWalletBtn",
+  );
 
-const addInviteBtn = document.getElementById("addInviteBtn");
+const addInviteBtn =
+  document.getElementById(
+    "addInviteBtn",
+  );
 
-const walletModal = document.getElementById("walletModal");
+const walletModal =
+  document.getElementById(
+    "walletModal",
+  );
 
-const walletModalTitle = document.getElementById("walletModalTitle");
+const walletModalTitle =
+  document.getElementById(
+    "walletModalTitle",
+  );
 
-const walletForm = document.getElementById("walletForm");
+const walletForm =
+  document.getElementById(
+    "walletForm",
+  );
 
-const walletName = document.getElementById("walletName");
+const walletName =
+  document.getElementById(
+    "walletName",
+  );
 
-const walletCurrency = document.getElementById("walletCurrency");
+const walletCurrency =
+  document.getElementById(
+    "walletCurrency",
+  );
 
-const closeWalletModal = document.getElementById("closeWalletModal");
+const closeWalletModal =
+  document.getElementById(
+    "closeWalletModal",
+  );
 
-const cancelWallet = document.getElementById("cancelWallet");
+const cancelWallet =
+  document.getElementById(
+    "cancelWallet",
+  );
 
-const inviteModal = document.getElementById("inviteModal");
+const inviteModal =
+  document.getElementById(
+    "inviteModal",
+  );
 
-const inviteForm = document.getElementById("inviteForm");
+const inviteForm =
+  document.getElementById(
+    "inviteForm",
+  );
 
-const inviteEmail = document.getElementById("inviteEmail");
+const inviteEmail =
+  document.getElementById(
+    "inviteEmail",
+  );
 
-const closeInviteModal = document.getElementById("closeInviteModal");
+const closeInviteModal =
+  document.getElementById(
+    "closeInviteModal",
+  );
 
-const cancelInvite = document.getElementById("cancelInvite");
+const cancelInvite =
+  document.getElementById(
+    "cancelInvite",
+  );
 
-const invitationList = document.getElementById("invitationList");
+const invitationList =
+  document.getElementById(
+    "invitationList",
+  );
 
-const nameModalError = document.querySelector(".nameModalError");
+const nameModalError =
+  document.querySelector(
+    ".nameModalError",
+  );
 
-const emailModalError = document.querySelector(".emailModalError");
+const emailModalError =
+  document.querySelector(
+    ".emailModalError",
+  );
 
-const modalBox = document.querySelector(".modal-box");
+const modalBox =
+  document.querySelector(
+    ".modal-box",
+  );
 
-const modalInviteBox = document.querySelector(".modal-invite-box");
+const modalInviteBox =
+  document.querySelector(
+    ".modal-invite-box",
+  );
 
-const modalOverlay = document.querySelector("#walletModal .modal-overlay");
+const modalOverlay =
+  document.querySelector(
+    "#walletModal .modal-overlay",
+  );
 
-const inviteModalOverlay = document.querySelector(
-  "#inviteModal .inviteModal-overlay",
-);
+const inviteModalOverlay =
+  document.querySelector(
+    "#inviteModal .inviteModal-overlay",
+  );
 
+// ======================================================
 // Members Modal
-const membersModal = document.getElementById("membersModal");
-const membersModalTitle = document.getElementById("membersModalTitle");
-const closeMembersModal = document.getElementById("closeMembersModal");
-const membersModalOverlay = document.querySelector(
-  "#membersModal .members-modal-overlay",
-);
-const membersList = document.getElementById("membersList");
-const membersLoading = document.getElementById("membersLoading");
+// ======================================================
+
+const membersModal =
+  document.getElementById(
+    "membersModal",
+  );
+
+const membersModalTitle =
+  document.getElementById(
+    "membersModalTitle",
+  );
+
+const closeMembersModal =
+  document.getElementById(
+    "closeMembersModal",
+  );
+
+const membersModalOverlay =
+  document.querySelector(
+    "#membersModal .members-modal-overlay",
+  );
+
+const membersList =
+  document.getElementById(
+    "membersList",
+  );
+
+const membersLoading =
+  document.getElementById(
+    "membersLoading",
+  );
+
+// ======================================================
+// Skeleton Loading
+// ======================================================
+
+function showWalletSkeleton() {
+  if (!walletList) return;
+
+  walletList.innerHTML = `
+    <div class="wallet-skeleton skeleton"></div>
+    <div class="wallet-skeleton skeleton"></div>
+  `;
+}
+
+function showInvitationSkeleton() {
+  if (!invitationList) return;
+
+  invitationList.innerHTML = `
+    <div class="invitation-skeleton skeleton"></div>
+    <div class="invitation-skeleton skeleton"></div>
+    <div class="invitation-skeleton skeleton"></div>
+  `;
+}
 
 // ======================================================
 // State
@@ -77,45 +189,76 @@ let selectedMembersWalletId = null;
 // ======================================================
 
 function getWalletId(wallet) {
-  return wallet?.wallet_id ?? wallet?.id;
+  return (
+    wallet?.wallet_id ??
+    wallet?.id
+  );
 }
 
 // ======================================================
 // Load Wallet Members
 // ======================================================
 
-async function loadWalletMembers(walletId) {
+async function loadWalletMembers(
+  walletId,
+) {
   if (!membersList) return;
 
   try {
     membersList.innerHTML = "";
-    membersLoading?.classList.remove("hidden");
 
-    const response = await api.post("/wallet/members", {
-      wallet_id: Number(walletId),
-    });
+    membersLoading?.classList.remove(
+      "hidden",
+    );
 
-    console.log("WALLET MEMBERS RESPONSE:", response.data);
+    const response =
+      await api.post(
+        "/wallet/members",
+        {
+          wallet_id:
+            Number(walletId),
+        },
+      );
 
-    const responseData = response.data?.data;
+    const responseData =
+      response.data?.data;
 
     let members = [];
 
-    if (Array.isArray(responseData?.members)) {
-      members = responseData.members;
-    } else if (Array.isArray(responseData)) {
-      members = responseData;
-    } else if (Array.isArray(response.data?.members)) {
-      members = response.data.members;
+    if (
+      Array.isArray(
+        responseData?.members,
+      )
+    ) {
+      members =
+        responseData.members;
+    } else if (
+      Array.isArray(
+        responseData,
+      )
+    ) {
+      members =
+        responseData;
+    } else if (
+      Array.isArray(
+        response.data?.members,
+      )
+    ) {
+      members =
+        response.data.members;
     }
 
-    membersLoading?.classList.add("hidden");
+    membersLoading?.classList.add(
+      "hidden",
+    );
 
-    renderWalletMembers(members);
+    renderWalletMembers(
+      members,
+    );
   } catch (error) {
-    console.error("Load wallet members error:", error);
-
-    membersLoading?.classList.add("hidden");
+    membersLoading?.classList.add(
+      "hidden",
+    );
 
     membersList.innerHTML = `
       <div class="empty-state">
@@ -124,8 +267,10 @@ async function loadWalletMembers(walletId) {
     `;
 
     showToast(
-      error.response?.data?.data?.message ||
-        error.response?.data?.message ||
+      error.response?.data
+        ?.data?.message ||
+        error.response?.data
+          ?.message ||
         "خطا در دریافت اعضای کیف پول",
       "error",
     );
@@ -136,22 +281,31 @@ async function loadWalletMembers(walletId) {
 // Render Wallet Members
 // ======================================================
 
-function renderWalletMembers(members) {
+function renderWalletMembers(
+  members,
+) {
   if (!membersList) return;
 
   membersList.innerHTML = "";
 
-  if (!Array.isArray(members) || members.length === 0) {
+  if (
+    !Array.isArray(members) ||
+    members.length === 0
+  ) {
     membersList.innerHTML = `
       <div class="empty-state">
         عضوی برای این کیف پول وجود ندارد.
       </div>
     `;
+
     return;
   }
 
   members.forEach((member) => {
-    const memberId = member.member_id ?? member.user_id ?? member.id;
+    const memberId =
+      member.member_id ??
+      member.user_id ??
+      member.id;
 
     const memberName =
       member.name ??
@@ -160,13 +314,23 @@ function renderWalletMembers(members) {
       member.user?.username ??
       "کاربر";
 
-    const memberEmail = member.email ?? member.user?.email ?? "";
+    const memberEmail =
+      member.email ??
+      member.user?.email ??
+      "";
 
-    const memberRole = member.role ?? member.member_role ?? "";
+    const memberRole =
+      member.role ??
+      member.member_role ??
+      "";
 
-    const item = document.createElement("div");
+    const item =
+      document.createElement(
+        "div",
+      );
 
-    item.className = "wallet-member-item";
+    item.className =
+      "wallet-member-item";
 
     item.innerHTML = `
       <div class="wallet-member-info">
@@ -178,14 +342,20 @@ function renderWalletMembers(members) {
         <div class="wallet-member-details">
 
           <h4>
-            ${escapeHTML(String(memberName))}
+            ${escapeHTML(
+              String(memberName),
+            )}
           </h4>
 
           ${
             memberEmail
               ? `
                 <span>
-                  ${escapeHTML(String(memberEmail))}
+                  ${escapeHTML(
+                    String(
+                      memberEmail,
+                    ),
+                  )}
                 </span>
               `
               : ""
@@ -195,29 +365,34 @@ function renderWalletMembers(members) {
             memberRole
               ? `
                 <small>
-                  ${escapeHTML(String(memberRole))}
+                  ${escapeHTML(
+                    String(
+                      memberRole,
+                    ),
+                  )}
                 </small>
               `
               : ""
           }
 
         </div>
-
       </div>
 
       <button
-  class="remove-member-btn"
-  type="button"
-  data-wallet-id="${selectedMembersWalletId}"
-  data-user-id="${memberId}"
-  title="حذف عضو"
->
-  <i class="fas fa-user-minus"></i>
-  حذف
-</button>
+        class="remove-member-btn"
+        type="button"
+        data-wallet-id="${selectedMembersWalletId}"
+        data-user-id="${memberId}"
+        title="حذف عضو"
+      >
+        <i class="fas fa-user-minus"></i>
+        حذف
+      </button>
     `;
 
-    membersList.appendChild(item);
+    membersList.appendChild(
+      item,
+    );
   });
 
   setupMemberButtons();
@@ -227,27 +402,45 @@ function renderWalletMembers(members) {
 // Open Members Modal
 // ======================================================
 
-async function openMembersModal(walletId) {
-  const wallet = wallets.find(
-    (item) => Number(getWalletId(item)) === Number(walletId),
-  );
+async function openMembersModal(
+  walletId,
+) {
+  const wallet =
+    wallets.find(
+      (item) =>
+        Number(
+          getWalletId(item),
+        ) === Number(walletId),
+    );
 
   if (!wallet) {
-    showToast("کیف پول پیدا نشد", "error");
+    showToast(
+      "کیف پول پیدا نشد",
+      "error",
+    );
+
     return;
   }
 
-  selectedMembersWalletId = Number(walletId);
+  selectedMembersWalletId =
+    Number(walletId);
 
-  const walletName = wallet.name || "کیف پول";
+  const walletName =
+    wallet.name ||
+    "کیف پول";
 
   if (membersModalTitle) {
-    membersModalTitle.textContent = `اعضای ${walletName}`;
+    membersModalTitle.textContent =
+      `اعضای ${walletName}`;
   }
 
-  membersModal?.classList.remove("hidden");
+  membersModal?.classList.remove(
+    "hidden",
+  );
 
-  await loadWalletMembers(walletId);
+  await loadWalletMembers(
+    walletId,
+  );
 }
 
 // ======================================================
@@ -255,15 +448,21 @@ async function openMembersModal(walletId) {
 // ======================================================
 
 function closeMembersModalFunc() {
-  membersModal?.classList.add("hidden");
+  membersModal?.classList.add(
+    "hidden",
+  );
 
-  selectedMembersWalletId = null;
+  selectedMembersWalletId =
+    null;
 
   if (membersList) {
-    membersList.innerHTML = "";
+    membersList.innerHTML =
+      "";
   }
 
-  membersLoading?.classList.add("hidden");
+  membersLoading?.classList.add(
+    "hidden",
+  );
 }
 
 // ======================================================
@@ -273,98 +472,135 @@ function closeMembersModalFunc() {
 async function loadWallets() {
   if (!walletList) return;
 
-  try {
-    walletList.innerHTML = `
-      <div class="empty-state">
-        در حال دریافت کیف پول‌ها...
-      </div>
-    `;
+  showWalletSkeleton();
 
-    const response = await api.get("/wallets");
+  try {
+    const response =
+      await api.get("/wallets");
 
     const apiWallets =
-      response.data?.data?.wallets || response.data?.wallets || [];
+      response.data?.data
+        ?.wallets ||
+      response.data?.wallets ||
+      [];
 
-    wallets = Array.isArray(apiWallets) ? apiWallets : [];
+    wallets =
+      Array.isArray(
+        apiWallets,
+      )
+        ? apiWallets
+        : [];
 
     // ==================================================
     // دریافت تعداد اعضای هر کیف پول
     // ==================================================
 
     await Promise.all(
-      wallets.map(async (wallet) => {
-        const walletId = getWalletId(wallet);
+      wallets.map(
+        async (wallet) => {
+          const walletId =
+            getWalletId(
+              wallet,
+            );
 
-        if (!walletId) {
-          wallet.memberCount = 0;
-          return;
-        }
+          if (!walletId) {
+            wallet.memberCount =
+              0;
 
-        try {
-          const membersResponse = await api.post("/wallet/members", {
-            wallet_id: Number(walletId),
-          });
-
-          console.log(`Members response ${walletId}:`, membersResponse.data);
-
-          const responseData = membersResponse.data?.data;
-
-          let memberCount = 0;
-
-          // حالت اول:
-          // data.members = [...]
-          if (Array.isArray(responseData?.members)) {
-            memberCount = responseData.members.length;
+            return;
           }
 
-          // حالت دوم:
-          // data.count
-          else if (typeof responseData?.count === "number") {
-            memberCount = responseData.count;
+          try {
+            const membersResponse =
+              await api.post(
+                "/wallet/members",
+                {
+                  wallet_id:
+                    Number(
+                      walletId,
+                    ),
+                },
+              );
+
+            const responseData =
+              membersResponse
+                .data?.data;
+
+            let memberCount =
+              0;
+
+            if (
+              Array.isArray(
+                responseData?.members,
+              )
+            ) {
+              memberCount =
+                responseData
+                  .members
+                  .length;
+            } else if (
+              typeof responseData?.count ===
+              "number"
+            ) {
+              memberCount =
+                responseData.count;
+            } else if (
+              typeof responseData?.members_count ===
+              "number"
+            ) {
+              memberCount =
+                responseData.members_count;
+            } else if (
+              Array.isArray(
+                responseData,
+              )
+            ) {
+              memberCount =
+                responseData.length;
+            } else if (
+              typeof membersResponse
+                .data?.count ===
+              "number"
+            ) {
+              memberCount =
+                membersResponse
+                  .data.count;
+            } else if (
+              typeof membersResponse
+                .data?.members_count ===
+              "number"
+            ) {
+              memberCount =
+                membersResponse
+                  .data.members_count;
+            }
+
+            wallet.memberCount =
+              memberCount;
+          } catch (error) {
+            console.error(
+              `خطا در دریافت اعضای کیف پول ${walletId}:`,
+              error,
+            );
+
+            wallet.memberCount =
+              0;
           }
-
-          // حالت سوم:
-          // data.members_count
-          else if (typeof responseData?.members_count === "number") {
-            memberCount = responseData.members_count;
-          }
-
-          // حالت چهارم:
-          // data خودش آرایه باشد
-          else if (Array.isArray(responseData)) {
-            memberCount = responseData.length;
-          }
-
-          // حالت پنجم
-          else if (typeof membersResponse.data?.count === "number") {
-            memberCount = membersResponse.data.count;
-          }
-
-          // حالت ششم
-          else if (typeof membersResponse.data?.members_count === "number") {
-            memberCount = membersResponse.data.members_count;
-          }
-
-          wallet.memberCount = memberCount;
-        } catch (error) {
-          console.error(`خطا در دریافت اعضای کیف پول ${walletId}:`, error);
-
-          wallet.memberCount = 0;
-        }
-      }),
+        },
+      ),
     );
 
     renderWallets();
   } catch (error) {
-    console.error("Load wallets error:", error);
-
     wallets = [];
 
     renderWallets();
 
     showToast(
-      error.response?.data?.data?.message ||
-        error.response?.data?.message ||
+      error.response?.data?.data
+        ?.message ||
+        error.response?.data
+          ?.message ||
         "خطا در دریافت کیف پول‌ها",
       "error",
     );
@@ -379,28 +615,55 @@ async function loadWalletCurrencies() {
   if (!walletCurrency) return;
 
   try {
-    const response = await api.get("/currencies");
+    const response =
+      await api.get(
+        "/currencies",
+      );
 
     const currencies =
-      response.data?.data?.currencies || response.data?.currencies || [];
+      response.data?.data
+        ?.currencies ||
+      response.data?.currencies ||
+      [];
 
-    walletCurrency.innerHTML = "";
+    walletCurrency.innerHTML =
+      "";
 
-    if (!Array.isArray(currencies)) {
+    if (
+      !Array.isArray(
+        currencies,
+      )
+    ) {
       return;
     }
 
-    currencies.forEach((currency) => {
-      const option = document.createElement("option");
+    currencies.forEach(
+      (currency) => {
+        const option =
+          document.createElement(
+            "option",
+          );
 
-      option.value = currency.name ?? currency.code ?? currency.id;
+        option.value =
+          currency.name ??
+          currency.code ??
+          currency.id;
 
-      option.textContent = currency.name ?? currency.code ?? "ارز";
+        option.textContent =
+          currency.name ??
+          currency.code ??
+          "ارز";
 
-      walletCurrency.appendChild(option);
-    });
+        walletCurrency.appendChild(
+          option,
+        );
+      },
+    );
   } catch (error) {
-    console.error("Load currencies error:", error);
+    console.error(
+      "Load currencies error:",
+      error,
+    );
 
     walletCurrency.innerHTML = `
       <option value="">
@@ -420,14 +683,21 @@ function openWalletModal() {
   walletForm?.reset();
 
   if (walletModalTitle) {
-    walletModalTitle.textContent = "ساخت کیف پول";
+    walletModalTitle.textContent =
+      "ساخت کیف پول";
   }
 
-  nameModalError?.classList.add("hidden");
+  nameModalError?.classList.add(
+    "hidden",
+  );
 
-  walletModal?.classList.remove("hidden");
+  walletModal?.classList.remove(
+    "hidden",
+  );
 
-  modalBox?.classList.add("animate");
+  modalBox?.classList.add(
+    "animate",
+  );
 }
 
 // ======================================================
@@ -435,94 +705,135 @@ function openWalletModal() {
 // ======================================================
 
 function closeWalletModalFunc() {
-  walletModal?.classList.add("hidden");
+  walletModal?.classList.add(
+    "hidden",
+  );
 
   walletForm?.reset();
 
   editingWalletId = null;
 
-  nameModalError?.classList.add("hidden");
+  nameModalError?.classList.add(
+    "hidden",
+  );
 
-  modalBox?.classList.remove("animate");
+  modalBox?.classList.remove(
+    "animate",
+  );
 }
 
 // ======================================================
 // Handle Wallet Submit
 // ======================================================
 
-async function handleWalletSubmit(event) {
+async function handleWalletSubmit(
+  event,
+) {
   event.preventDefault();
 
-  const name = walletName?.value.trim();
+  const name =
+    walletName?.value.trim();
 
-  const currency = walletCurrency?.value;
+  const currency =
+    walletCurrency?.value;
 
   if (!name) {
-    nameModalError?.classList.remove("hidden");
+    nameModalError?.classList.remove(
+      "hidden",
+    );
 
     return;
   }
 
-  nameModalError?.classList.add("hidden");
+  nameModalError?.classList.add(
+    "hidden",
+  );
 
-  // ==================================================
   // Edit
-  // ==================================================
-
-  if (editingWalletId !== null) {
-    await updateWallet(editingWalletId, name);
+  if (
+    editingWalletId !== null
+  ) {
+    await updateWallet(
+      editingWalletId,
+      name,
+    );
 
     return;
   }
 
-  // ==================================================
   // Create
-  // ==================================================
-
-  await createWallet(name, currency);
+  await createWallet(
+    name,
+    currency,
+  );
 }
 
 // ======================================================
 // Create Wallet
 // ======================================================
 
-async function createWallet(name, currency) {
+async function createWallet(
+  name,
+  currency,
+) {
   try {
-    const formData = new FormData();
+    const formData =
+      new FormData();
 
-    formData.append("name", name);
+    formData.append(
+      "name",
+      name,
+    );
 
-    formData.append("currency", currency);
+    formData.append(
+      "currency",
+      currency,
+    );
 
-    const response = await api.post("/wallet/create", formData);
+    const response =
+      await api.post(
+        "/wallet/create",
+        formData,
+      );
 
     if (response.data?.success) {
-      const createdWallet = response.data?.data;
+      const createdWallet =
+        response.data?.data;
 
-      const walletId = createdWallet?.wallet_id ?? createdWallet?.id;
+      const walletId =
+        createdWallet?.wallet_id ??
+        createdWallet?.id;
 
       if (walletId) {
-        localStorage.setItem("walletId", walletId);
+        localStorage.setItem(
+          "walletId",
+          walletId,
+        );
       }
 
-      showToast("ساخت کیف پول با موفقیت انجام شد", "success");
+      showToast(
+        "ساخت کیف پول با موفقیت انجام شد",
+        "success",
+      );
 
       closeWalletModalFunc();
 
-      // دوباره از API می‌گیریم
-      // تا memberCount هم درست باشد
       await loadWallets();
 
       return;
     }
 
-    showToast(response.data?.message || "ساخت کیف پول انجام نشد", "error");
-  } catch (error) {
-    console.error("Create wallet error:", error);
-
     showToast(
-      error.response?.data?.data?.message ||
-        error.response?.data?.message ||
+      response.data?.message ||
+        "ساخت کیف پول انجام نشد",
+      "error",
+    );
+  } catch (error) {
+    showToast(
+      error.response?.data?.data
+        ?.message ||
+        error.response?.data
+          ?.message ||
         "خطایی در ساخت کیف پول رخ داد",
       "error",
     );
@@ -538,7 +849,10 @@ function renderWallets() {
 
   walletList.innerHTML = "";
 
-  if (!Array.isArray(wallets) || wallets.length === 0) {
+  if (
+    !Array.isArray(wallets) ||
+    wallets.length === 0
+  ) {
     walletList.innerHTML = `
       <div class="empty-state">
         هنوز کیف پولی ایجاد نکرده‌اید.
@@ -549,18 +863,35 @@ function renderWallets() {
   }
 
   wallets.forEach((wallet) => {
-    const walletId = getWalletId(wallet);
+    const walletId =
+      getWalletId(wallet);
 
     const currencyName =
-      wallet.currency?.name ?? wallet.currency?.code ?? wallet.currency ?? "";
+      wallet.currency?.name ??
+      wallet.currency?.code ??
+      wallet.currency ??
+      "";
 
-    const balance = Number(wallet.balance ?? 0).toLocaleString("en-US");
+    const balance =
+      Number(
+        wallet.balance ?? 0,
+      ).toLocaleString(
+        "en-US",
+      );
 
-    const memberCount = Number(wallet.memberCount ?? 0);
+    const memberCount =
+      Number(
+        wallet.memberCount ??
+          0,
+      );
 
-    const card = document.createElement("div");
+    const card =
+      document.createElement(
+        "div",
+      );
 
-    card.className = "wallet-card";
+    card.className =
+      "wallet-card";
 
     card.innerHTML = `
       <div class="wallet-header">
@@ -573,11 +904,18 @@ function renderWallets() {
 
           <div>
             <h3>
-              ${escapeHTML(wallet.name || "کیف پول")}
+              ${escapeHTML(
+                wallet.name ||
+                  "کیف پول",
+              )}
             </h3>
 
             <span>
-              ${escapeHTML(String(currencyName))}
+              ${escapeHTML(
+                String(
+                  currencyName,
+                ),
+              )}
             </span>
           </div>
 
@@ -615,7 +953,11 @@ function renderWallets() {
 
         <strong>
           ${balance}
-          ${escapeHTML(String(currencyName))}
+          ${escapeHTML(
+            String(
+              currencyName,
+            ),
+          )}
         </strong>
 
       </div>
@@ -626,7 +968,7 @@ function renderWallets() {
           class="wallet-members members-btn"
           data-id="${walletId}"
           type="button"
-          >
+        >
           <i class="fas fa-users"></i>
           ${memberCount} عضو
         </button>
@@ -643,7 +985,9 @@ function renderWallets() {
       </div>
     `;
 
-    walletList.appendChild(card);
+    walletList.appendChild(
+      card,
+    );
   });
 
   setupWalletButtons();
@@ -655,94 +999,176 @@ function renderWallets() {
 
 function setupWalletButtons() {
   // Delete
-  document.querySelectorAll(".delete-wallet").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const id = Number(button.dataset.id);
+  document
+    .querySelectorAll(
+      ".delete-wallet",
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        async () => {
+          const id =
+            Number(
+              button.dataset.id,
+            );
 
-      if (!confirm("آیا از حذف این کیف پول مطمئن هستید؟")) {
-        return;
-      }
+          if (
+            !confirm(
+              "آیا از حذف این کیف پول مطمئن هستید؟",
+            )
+          ) {
+            return;
+          }
 
-      await deleteWallet(id);
+          await deleteWallet(id);
+        },
+      );
     });
-  });
 
   // Edit
-  document.querySelectorAll(".edit-wallet").forEach((button) => {
-    button.addEventListener("click", () => {
-      const id = Number(button.dataset.id);
+  document
+    .querySelectorAll(
+      ".edit-wallet",
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        () => {
+          const id =
+            Number(
+              button.dataset.id,
+            );
 
-      const wallet = wallets.find((item) => Number(getWalletId(item)) === id);
+          const wallet =
+            wallets.find(
+              (item) =>
+                Number(
+                  getWalletId(
+                    item,
+                  ),
+                ) === id,
+            );
 
-      if (!wallet) return;
+          if (!wallet) return;
 
-      editingWalletId = id;
+          editingWalletId =
+            id;
 
-      walletName.value = wallet.name || "";
+          walletName.value =
+            wallet.name || "";
 
-      const currency =
-        wallet.currency?.name ?? wallet.currency?.code ?? wallet.currency ?? "";
+          const currency =
+            wallet.currency
+              ?.name ??
+            wallet.currency
+              ?.code ??
+            wallet.currency ??
+            "";
 
-      walletCurrency.value = currency;
+          walletCurrency.value =
+            currency;
 
-      walletModalTitle.textContent = "ویرایش کیف پول";
+          walletModalTitle.textContent =
+            "ویرایش کیف پول";
 
-      nameModalError?.classList.add("hidden");
+          nameModalError?.classList.add(
+            "hidden",
+          );
 
-      walletModal?.classList.remove("hidden");
+          walletModal?.classList.remove(
+            "hidden",
+          );
 
-      modalBox?.classList.add("animate");
+          modalBox?.classList.add(
+            "animate",
+          );
+        },
+      );
     });
-  });
 
   // Invite
-  document.querySelectorAll(".invite-member").forEach((button) => {
-    button.addEventListener("click", () => {
-      selectedWalletId = Number(button.dataset.id);
+  document
+    .querySelectorAll(
+      ".invite-member",
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        () => {
+          selectedWalletId =
+            Number(
+              button.dataset.id,
+            );
 
-      openInviteModal();
+          openInviteModal();
+        },
+      );
     });
-  });
 
   // Members
-  document.querySelectorAll(".members-btn").forEach((button) => {
-    button.addEventListener("click", () => {
-      const walletId = Number(button.dataset.id);
+  document
+    .querySelectorAll(
+      ".members-btn",
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        () => {
+          const walletId =
+            Number(
+              button.dataset.id,
+            );
 
-      if (!walletId) {
-        showToast("کیف پول معتبر نیست", "error");
-        return;
-      }
+          if (!walletId) {
+            showToast(
+              "کیف پول معتبر نیست",
+              "error",
+            );
 
-      openMembersModal(walletId);
+            return;
+          }
+
+          openMembersModal(
+            walletId,
+          );
+        },
+      );
     });
-  });
 }
 
 // ======================================================
 // Remove Member
 // ======================================================
 
-async function removeMember(walletId, userId) {
+async function removeMember(
+  walletId,
+  userId,
+) {
   try {
-    console.log("REMOVE MEMBER DATA:", {
-      wallet_id: Number(walletId),
-      user_id: Number(userId),
-    });
+    const response =
+      await api.delete(
+        "/wallet/member/remove",
+        {
+          data: {
+            wallet_id:
+              Number(walletId),
 
-    const response = await api.delete("/wallet/member/remove", {
-      data: {
-        wallet_id: Number(walletId),
-        user_id: Number(userId),
-      },
-    });
-
-    console.log("REMOVE MEMBER RESPONSE:", response.data);
+            user_id:
+              Number(userId),
+          },
+        },
+      );
 
     if (response.data?.success) {
-      showToast("عضو با موفقیت حذف شد", "success");
+      showToast(
+        "عضو با موفقیت حذف شد",
+        "success",
+      );
 
-      await loadWalletMembers(walletId);
+      await loadWalletMembers(
+        walletId,
+      );
+
       await loadWallets();
 
       return;
@@ -750,17 +1176,17 @@ async function removeMember(walletId, userId) {
 
     showToast(
       response.data?.message ||
-        response.data?.data?.message ||
+        response.data?.data
+          ?.message ||
         "حذف عضو انجام نشد",
       "error",
     );
   } catch (error) {
-    console.error("Remove member error:", error);
-    console.log("ERROR RESPONSE:", error.response?.data);
-
     showToast(
-      error.response?.data?.data?.message ||
-        error.response?.data?.message ||
+      error.response?.data?.data
+        ?.message ||
+        error.response?.data
+          ?.message ||
         "خطا در حذف عضو",
       "error",
     );
@@ -772,38 +1198,85 @@ async function removeMember(walletId, userId) {
 // ======================================================
 
 function setupMemberButtons() {
-  document.querySelectorAll(".remove-member-btn").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const walletId = Number(button.dataset.walletId);
-      const userId = Number(button.dataset.userId);
+  document
+    .querySelectorAll(
+      ".remove-member-btn",
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        async () => {
+          const walletId =
+            Number(
+              button.dataset
+                .walletId,
+            );
 
-      if (!walletId || !userId) {
-        showToast("اطلاعات عضو کامل نیست", "error");
-        return;
-      }
+          const userId =
+            Number(
+              button.dataset
+                .userId,
+            );
 
-      if (!confirm("آیا از حذف این عضو مطمئن هستید؟")) {
-        return;
-      }
+          if (
+            !walletId ||
+            !userId
+          ) {
+            showToast(
+              "اطلاعات عضو کامل نیست",
+              "error",
+            );
 
-      await removeMember(walletId, userId);
+            return;
+          }
+
+          if (
+            !confirm(
+              "آیا از حذف این عضو مطمئن هستید؟",
+            )
+          ) {
+            return;
+          }
+
+          await removeMember(
+            walletId,
+            userId,
+          );
+        },
+      );
     });
-  });
 }
 
 // ======================================================
 // Delete Wallet
 // ======================================================
 
-async function deleteWallet(walletId) {
+async function deleteWallet(
+  walletId,
+) {
   try {
-    const response = await api.delete(`/wallet/delete/${walletId}`);
+    const response =
+      await api.delete(
+        `/wallet/delete/${walletId}`,
+      );
 
     if (response.data?.success) {
-      showToast("کیف پول با موفقیت حذف شد", "success");
+      showToast(
+        "کیف پول با موفقیت حذف شد",
+        "success",
+      );
 
-      if (Number(localStorage.getItem("walletId")) === Number(walletId)) {
-        localStorage.removeItem("walletId");
+      if (
+        Number(
+          localStorage.getItem(
+            "walletId",
+          ),
+        ) ===
+        Number(walletId)
+      ) {
+        localStorage.removeItem(
+          "walletId",
+        );
       }
 
       await loadWallets();
@@ -811,13 +1284,17 @@ async function deleteWallet(walletId) {
       return;
     }
 
-    showToast(response.data?.message || "حذف کیف پول انجام نشد", "error");
-  } catch (error) {
-    console.error("Delete wallet error:", error);
-
     showToast(
-      error.response?.data?.data?.message ||
-        error.response?.data?.message ||
+      response.data?.message ||
+        "حذف کیف پول انجام نشد",
+      "error",
+    );
+  } catch (error) {
+    showToast(
+      error.response?.data?.data
+        ?.message ||
+        error.response?.data
+          ?.message ||
         "خطایی در حذف کیف پول رخ داد",
       "error",
     );
@@ -828,14 +1305,24 @@ async function deleteWallet(walletId) {
 // Update Wallet
 // ======================================================
 
-async function updateWallet(walletId, name) {
+async function updateWallet(
+  walletId,
+  name,
+) {
   try {
-    const response = await api.put(`/wallet/update/${walletId}`, {
-      name: name,
-    });
+    const response =
+      await api.put(
+        `/wallet/update/${walletId}`,
+        {
+          name: name,
+        },
+      );
 
     if (response.data?.success) {
-      showToast("کیف پول با موفقیت ویرایش شد", "success");
+      showToast(
+        "کیف پول با موفقیت ویرایش شد",
+        "success",
+      );
 
       closeWalletModalFunc();
 
@@ -844,13 +1331,17 @@ async function updateWallet(walletId, name) {
       return;
     }
 
-    showToast(response.data?.message || "ویرایش کیف پول انجام نشد", "error");
-  } catch (error) {
-    console.error("Update wallet error:", error);
-
     showToast(
-      error.response?.data?.data?.message ||
-        error.response?.data?.message ||
+      response.data?.message ||
+        "ویرایش کیف پول انجام نشد",
+      "error",
+    );
+  } catch (error) {
+    showToast(
+      error.response?.data?.data
+        ?.message ||
+        error.response?.data
+          ?.message ||
         "خطا در ویرایش کیف پول",
       "error",
     );
@@ -863,12 +1354,16 @@ async function updateWallet(walletId, name) {
 
 function handleAddInvite() {
   if (wallets.length === 0) {
-    showToast("ابتدا یک کیف پول ایجاد کنید.", "error");
+    showToast(
+      "ابتدا یک کیف پول ایجاد کنید.",
+      "error",
+    );
 
     return;
   }
 
-  selectedWalletId = getWalletId(wallets[0]);
+  selectedWalletId =
+    getWalletId(wallets[0]);
 
   openInviteModal();
 }
@@ -876,63 +1371,94 @@ function handleAddInvite() {
 function openInviteModal() {
   inviteForm?.reset();
 
-  emailModalError?.classList.add("hidden");
+  emailModalError?.classList.add(
+    "hidden",
+  );
 
-  inviteModal?.classList.remove("hidden");
+  inviteModal?.classList.remove(
+    "hidden",
+  );
 
-  modalInviteBox?.classList.add("animate");
+  modalInviteBox?.classList.add(
+    "animate",
+  );
 }
 
 function closeInviteModalFunc() {
-  inviteModal?.classList.add("hidden");
+  inviteModal?.classList.add(
+    "hidden",
+  );
 
   inviteForm?.reset();
 
-  emailModalError?.classList.add("hidden");
+  emailModalError?.classList.add(
+    "hidden",
+  );
 
   selectedWalletId = null;
 
-  modalInviteBox?.classList.remove("animate");
+  modalInviteBox?.classList.remove(
+    "animate",
+  );
 }
 
 // ======================================================
 // Invite Submit
 // ======================================================
 
-async function handleInviteSubmit(event) {
+async function handleInviteSubmit(
+  event,
+) {
   event.preventDefault();
 
-  const user = inviteEmail?.value.trim();
+  const user =
+    inviteEmail?.value.trim();
 
   if (!user) {
-    emailModalError?.classList.remove("hidden");
+    emailModalError?.classList.remove(
+      "hidden",
+    );
 
     return;
   }
 
-  emailModalError?.classList.add("hidden");
+  emailModalError?.classList.add(
+    "hidden",
+  );
 
   if (!selectedWalletId) {
-    showToast("کیف پول انتخاب نشده است", "error");
+    showToast(
+      "کیف پول انتخاب نشده است",
+      "error",
+    );
 
     return;
   }
 
   try {
-    const response = await api.post("/invitation/create", {
-      wallet_id: Number(selectedWalletId),
-      email: user,
-    });
+    const response =
+      await api.post(
+        "/invitation/create",
+        {
+          wallet_id:
+            Number(
+              selectedWalletId,
+            ),
+
+          email: user,
+        },
+      );
 
     if (response.data?.success) {
-      showToast("دعوت‌نامه با موفقیت ارسال شد", "success");
+      showToast(
+        "دعوت‌نامه با موفقیت ارسال شد",
+        "success",
+      );
 
       closeInviteModalFunc();
 
       await loadInvitations();
 
-      // چون ممکن است تعداد اعضا
-      // بعد از دعوت تغییر کند
       await loadWallets();
 
       return;
@@ -940,16 +1466,17 @@ async function handleInviteSubmit(event) {
 
     showToast(
       response.data?.message ||
-        response.data?.data?.message ||
+        response.data?.data
+          ?.message ||
         "ارسال دعوت‌نامه انجام نشد",
       "error",
     );
   } catch (error) {
-    console.error("Create invitation error:", error);
-
     showToast(
-      error.response?.data?.data?.message ||
-        error.response?.data?.message ||
+      error.response?.data?.data
+        ?.message ||
+        error.response?.data
+          ?.message ||
         "خطا در ارسال دعوت‌نامه",
       "error",
     );
@@ -963,42 +1490,57 @@ async function handleInviteSubmit(event) {
 async function loadInvitations() {
   if (!invitationList) return;
 
+  showInvitationSkeleton();
+
   try {
-    const response = await api.get("/invitations");
+    const response =
+      await api.get(
+        "/invitations",
+      );
 
-    console.log("INVITATIONS RESPONSE:", response.data);
+    const receivedInvitations =
+      response.data?.data
+        ?.received || [];
 
-    const receivedInvitations = response.data?.data?.received || [];
+    const sentInvitations =
+      response.data?.data?.sent ||
+      [];
 
-    const sentInvitations = response.data?.data?.sent || [];
-
-    console.log("RECEIVED INVITATIONS:", receivedInvitations);
-    console.log("SENT INVITATIONS:", sentInvitations);
-
-    // هر دو نوع دعوت‌نامه را نگه می‌داریم
     invitations = [
-      ...(Array.isArray(receivedInvitations)
-        ? receivedInvitations.map((invitation) => ({
-            ...invitation,
-            invitationType: "received",
-          }))
+      ...(Array.isArray(
+        receivedInvitations,
+      )
+        ? receivedInvitations.map(
+            (invitation) => ({
+              ...invitation,
+              invitationType:
+                "received",
+            }),
+          )
         : []),
 
-      ...(Array.isArray(sentInvitations)
-        ? sentInvitations.map((invitation) => ({
-            ...invitation,
-            invitationType: "sent",
-          }))
+      ...(Array.isArray(
+        sentInvitations,
+      )
+        ? sentInvitations.map(
+            (invitation) => ({
+              ...invitation,
+              invitationType:
+                "sent",
+            }),
+          )
         : []),
     ];
 
-    console.log("DISPLAY INVITATIONS:", invitations);
-
     renderInvitations();
   } catch (error) {
-    console.error("Load invitations error:", error);
+    console.error(
+      "Load invitations error:",
+      error,
+    );
 
     invitations = [];
+
     renderInvitations();
   }
 }
@@ -1010,157 +1552,219 @@ async function loadInvitations() {
 function renderInvitations() {
   if (!invitationList) return;
 
-  invitationList.innerHTML = "";
+  invitationList.innerHTML =
+    "";
 
-  if (!Array.isArray(invitations) || invitations.length === 0) {
+  if (
+    !Array.isArray(
+      invitations,
+    ) ||
+    invitations.length === 0
+  ) {
     invitationList.innerHTML = `
       <div class="empty-state">
         دعوت‌نامه‌ای وجود ندارد.
       </div>
     `;
+
     return;
   }
 
-  invitations.forEach((invitation) => {
-    const item = document.createElement("div");
+  invitations.forEach(
+    (invitation) => {
+      const item =
+        document.createElement(
+          "div",
+        );
 
-    item.className = "invitation";
+      item.className =
+        "invitation";
 
-    const invitationId = invitation.id ?? invitation.invitation_id;
+      const invitationId =
+        invitation.id ??
+        invitation.invitation_id;
 
-    const status = invitation.status || "pending";
+      const status =
+        invitation.status ||
+        "pending";
 
-    const walletName =
-      invitation.wallet?.name ||
-      invitation.wallet_name ||
-      invitation.walletName ||
-      "کیف پول";
+      const walletName =
+        invitation.wallet?.name ||
+        invitation.wallet_name ||
+        invitation.walletName ||
+        "کیف پول";
 
-    // ==================================================
-    // Received Invitation
-    // ==================================================
+      // ==================================================
+      // Received Invitation
+      // ==================================================
 
-    if (invitation.invitationType === "received") {
-      const sender =
-        invitation.sender?.name ||
-        invitation.sender?.username ||
-        invitation.sender?.email ||
-        invitation.sender_name ||
-        "کاربر";
+      if (
+        invitation.invitationType ===
+        "received"
+      ) {
+        const sender =
+          invitation.sender?.name ||
+          invitation.sender
+            ?.username ||
+          invitation.sender?.email ||
+          invitation.sender_name ||
+          "کاربر";
 
-      let actionHTML = "";
+        let actionHTML = "";
 
-      // فقط دعوت در انتظار، دکمه قبول و رد دارد
-      if (status === "pending") {
-        actionHTML = `
-          <div class="invitation-actions">
+        if (
+          status === "pending"
+        ) {
+          actionHTML = `
+            <div class="invitation-actions">
 
-            <button
-              class="accept-btn"
-              data-id="${invitationId}"
-              type="button"
+              <button
+                class="accept-btn"
+                data-id="${invitationId}"
+                type="button"
+              >
+                قبول
+              </button>
+
+              <button
+                class="reject-btn"
+                data-id="${invitationId}"
+                type="button"
+              >
+                رد
+              </button>
+
+            </div>
+          `;
+        } else {
+          actionHTML = `
+            <span
+              class="status ${escapeHTML(
+                String(status),
+              )}"
             >
-              قبول
-            </button>
+              ${getStatusText(
+                status,
+              )}
+            </span>
+          `;
+        }
 
-            <button
-              class="reject-btn"
-              data-id="${invitationId}"
-              type="button"
-            >
-              رد
-            </button>
+        item.innerHTML = `
+          <div class="invitation-info">
+
+            <div class="invitation-icon">
+              <i class="fas fa-envelope"></i>
+            </div>
+
+            <div>
+
+              <h4>
+                دعوت به
+                ${escapeHTML(
+                  String(
+                    walletName,
+                  ),
+                )}
+              </h4>
+
+              <p>
+                ارسال شده توسط
+                ${escapeHTML(
+                  String(
+                    sender,
+                  ),
+                )}
+              </p>
+
+            </div>
 
           </div>
+
+          ${actionHTML}
         `;
-      } else {
-        actionHTML = `
-          <span class="status ${escapeHTML(String(status))}">
-            ${getStatusText(status)}
+      }
+
+      // ==================================================
+      // Sent Invitation
+      // ==================================================
+
+      else {
+        const inviteeName =
+          invitation.invitee
+            ?.name ||
+          invitation.invitee
+            ?.username ||
+          invitation.invitee
+            ?.email ||
+          "کاربر";
+
+        const inviteeEmail =
+          invitation.invitee
+            ?.email || "";
+
+        item.innerHTML = `
+          <div class="invitation-info">
+
+            <div class="invitation-icon">
+              <i class="fas fa-paper-plane"></i>
+            </div>
+
+            <div>
+
+              <h4>
+                دعوت به
+                ${escapeHTML(
+                  String(
+                    walletName,
+                  ),
+                )}
+              </h4>
+
+              <p>
+                ارسال شده برای
+                ${escapeHTML(
+                  String(
+                    inviteeName,
+                  ),
+                )}
+              </p>
+
+              ${
+                inviteeEmail
+                  ? `
+                    <small>
+                      ${escapeHTML(
+                        String(
+                          inviteeEmail,
+                        ),
+                      )}
+                    </small>
+                  `
+                  : ""
+              }
+
+            </div>
+
+          </div>
+
+          <span
+            class="status ${escapeHTML(
+              String(status),
+            )}"
+          >
+            ${getStatusText(
+              status,
+            )}
           </span>
         `;
       }
 
-      item.innerHTML = `
-        <div class="invitation-info">
-
-          <div class="invitation-icon">
-            <i class="fas fa-envelope"></i>
-          </div>
-
-          <div>
-
-            <h4>
-              دعوت به
-              ${escapeHTML(String(walletName))}
-            </h4>
-
-            <p>
-              ارسال شده توسط
-              ${escapeHTML(String(sender))}
-            </p>
-
-          </div>
-
-        </div>
-
-        ${actionHTML}
-      `;
-    }
-
-    // ==================================================
-    // Sent Invitation
-    // ==================================================
-    else {
-      const inviteeName =
-        invitation.invitee?.name ||
-        invitation.invitee?.username ||
-        invitation.invitee?.email ||
-        "کاربر";
-
-      const inviteeEmail = invitation.invitee?.email || "";
-
-      item.innerHTML = `
-        <div class="invitation-info">
-
-          <div class="invitation-icon">
-            <i class="fas fa-paper-plane"></i>
-          </div>
-
-          <div>
-
-            <h4>
-              دعوت به
-              ${escapeHTML(String(walletName))}
-            </h4>
-
-            <p>
-              ارسال شده برای
-              ${escapeHTML(String(inviteeName))}
-            </p>
-
-            ${
-              inviteeEmail
-                ? `
-                  <small>
-                    ${escapeHTML(String(inviteeEmail))}
-                  </small>
-                `
-                : ""
-            }
-
-          </div>
-
-        </div>
-
-        <span class="status ${escapeHTML(String(status))}">
-          ${getStatusText(status)}
-        </span>
-      `;
-    }
-
-    invitationList.appendChild(item);
-  });
+      invitationList.appendChild(
+        item,
+      );
+    },
+  );
 
   setupInvitationButtons();
 }
@@ -1170,34 +1774,67 @@ function renderInvitations() {
 // ======================================================
 
 function setupInvitationButtons() {
-  document.querySelectorAll(".accept-btn").forEach((button) => {
-    button.addEventListener("click", () =>
-      respondInvitation(button.dataset.id, true),
-    );
-  });
+  document
+    .querySelectorAll(
+      ".accept-btn",
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        () =>
+          respondInvitation(
+            button.dataset.id,
+            true,
+          ),
+      );
+    });
 
-  document.querySelectorAll(".reject-btn").forEach((button) => {
-    button.addEventListener("click", () =>
-      respondInvitation(button.dataset.id, false),
-    );
-  });
+  document
+    .querySelectorAll(
+      ".reject-btn",
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        () =>
+          respondInvitation(
+            button.dataset.id,
+            false,
+          ),
+      );
+    });
 }
 
 // ======================================================
 // Respond Invitation
 // ======================================================
 
-async function respondInvitation(invitationId, accepted) {
+async function respondInvitation(
+  invitationId,
+  accepted,
+) {
   try {
-    const response = await api.put("/invitation/respond", {
-      invitation_id: Number(invitationId),
+    const response =
+      await api.put(
+        "/invitation/respond",
+        {
+          invitation_id:
+            Number(
+              invitationId,
+            ),
 
-      status: accepted ? "accepted" : "rejected",
-    });
+          status:
+            accepted
+              ? "accepted"
+              : "rejected",
+        },
+      );
 
     if (response.data?.success) {
       showToast(
-        accepted ? "دعوت‌نامه پذیرفته شد" : "دعوت‌نامه رد شد",
+        accepted
+          ? "دعوت‌نامه پذیرفته شد"
+          : "دعوت‌نامه رد شد",
         "success",
       );
 
@@ -1212,16 +1849,17 @@ async function respondInvitation(invitationId, accepted) {
 
     showToast(
       response.data?.message ||
-        response.data?.data?.message ||
+        response.data?.data
+          ?.message ||
         "پاسخ به دعوت‌نامه انجام نشد",
       "error",
     );
   } catch (error) {
-    console.error("Respond invitation error:", error);
-
     showToast(
-      error.response?.data?.data?.message ||
-        error.response?.data?.message ||
+      error.response?.data?.data
+        ?.message ||
+        error.response?.data
+          ?.message ||
         "خطا در پاسخ به دعوت‌نامه",
       "error",
     );
@@ -1253,9 +1891,13 @@ function getStatusText(status) {
 // ======================================================
 
 function escapeHTML(value) {
-  const div = document.createElement("div");
+  const div =
+    document.createElement(
+      "div",
+    );
 
-  div.textContent = value ?? "";
+  div.textContent =
+    value ?? "";
 
   return div.innerHTML;
 }
@@ -1265,51 +1907,87 @@ function escapeHTML(value) {
 // ======================================================
 
 if (addWalletBtn) {
-  addWalletBtn.addEventListener("click", openWalletModal);
+  addWalletBtn.addEventListener(
+    "click",
+    openWalletModal,
+  );
 }
 
 if (closeWalletModal) {
-  closeWalletModal.addEventListener("click", closeWalletModalFunc);
+  closeWalletModal.addEventListener(
+    "click",
+    closeWalletModalFunc,
+  );
 }
 
 if (cancelWallet) {
-  cancelWallet.addEventListener("click", closeWalletModalFunc);
+  cancelWallet.addEventListener(
+    "click",
+    closeWalletModalFunc,
+  );
 }
 
 if (walletForm) {
-  walletForm.addEventListener("submit", handleWalletSubmit);
+  walletForm.addEventListener(
+    "submit",
+    handleWalletSubmit,
+  );
 }
 
 if (addInviteBtn) {
-  addInviteBtn.addEventListener("click", handleAddInvite);
+  addInviteBtn.addEventListener(
+    "click",
+    handleAddInvite,
+  );
 }
 
 if (closeInviteModal) {
-  closeInviteModal.addEventListener("click", closeInviteModalFunc);
+  closeInviteModal.addEventListener(
+    "click",
+    closeInviteModalFunc,
+  );
 }
 
 if (cancelInvite) {
-  cancelInvite.addEventListener("click", closeInviteModalFunc);
+  cancelInvite.addEventListener(
+    "click",
+    closeInviteModalFunc,
+  );
 }
 
 if (inviteForm) {
-  inviteForm.addEventListener("submit", handleInviteSubmit);
+  inviteForm.addEventListener(
+    "submit",
+    handleInviteSubmit,
+  );
 }
 
 if (modalOverlay) {
-  modalOverlay.addEventListener("click", closeWalletModalFunc);
+  modalOverlay.addEventListener(
+    "click",
+    closeWalletModalFunc,
+  );
 }
 
 if (inviteModalOverlay) {
-  inviteModalOverlay.addEventListener("click", closeInviteModalFunc);
+  inviteModalOverlay.addEventListener(
+    "click",
+    closeInviteModalFunc,
+  );
 }
 
 if (closeMembersModal) {
-  closeMembersModal.addEventListener("click", closeMembersModalFunc);
+  closeMembersModal.addEventListener(
+    "click",
+    closeMembersModalFunc,
+  );
 }
 
 if (membersModalOverlay) {
-  membersModalOverlay.addEventListener("click", closeMembersModalFunc);
+  membersModalOverlay.addEventListener(
+    "click",
+    closeMembersModalFunc,
+  );
 }
 
 // ======================================================
@@ -1317,7 +1995,11 @@ if (membersModalOverlay) {
 // ======================================================
 
 async function initWallet() {
-  await Promise.all([loadWalletCurrencies(), loadWallets(), loadInvitations()]);
+  await Promise.all([
+    loadWalletCurrencies(),
+    loadWallets(),
+    loadInvitations(),
+  ]);
 }
 
 initWallet();

@@ -22,9 +22,25 @@
         </h1>
         <p>خلاصه وضعیت مالی شما</p>
       </div>
-      <button class="notification-btn">
-        <i class="fas fa-bell"></i>
-      </button>
+
+      <div class="notification-wrapper">
+        <button class="notification-btn" id="notificationBtn">
+          <i class="fas fa-bell"></i>
+          <span class="notification-badge hidden" id="notificationBadge"
+            >0</span
+          >
+        </button>
+
+        <div class="notification-dropdown hidden" id="notificationDropdown">
+          <div class="notification-header">
+            <h3>اعلان‌ها</h3>
+          </div>
+
+          <div class="notification-list" id="notificationList">
+            <div class="notification-empty">اعلانی وجود ندارد</div>
+          </div>
+        </div>
+      </div>
     </header>
 
     <!-- Main -->
@@ -88,6 +104,30 @@
               <h2 class="expense-balance">$ 0</h2>
             </div>
           </div>
+          <div class="card prediction-card">
+            <!-- <div class="card-icon">
+              <i class="fas fa-chart-line"></i>
+            </div> -->
+
+            <div class="card-info prediction-info">
+              <p>
+                پیش‌بینی ماه آینده
+                <span class="prediction-month"></span>
+              </p>
+
+              <div class="prediction-values">
+                <div class="prediction-item income-prediction">
+                  <span>درآمد</span>
+                  <strong class="predicted-income">۰ ریال</strong>
+                </div>
+
+                <div class="prediction-item expense-prediction">
+                  <span>هزینه</span>
+                  <strong class="predicted-expense">۰ ریال</strong>
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
 
         <!-- Charts & Budgets -->
@@ -98,7 +138,7 @@
             <div class="chart-container">
               <canvas class="incomeChart"></canvas>
             </div>
-            <p class="chart-text">بیشترین هزینه مربوط به غذا بوده است.</p>
+            <!-- <p class="chart-text">بیشترین هزینه مربوط به غذا بوده است.</p> -->
           </div>
           <!-- status -->
           <div class="panel" data-aos="fade-up">
@@ -454,7 +494,6 @@
           </form>
         </div>
       </div>
-      
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -464,6 +503,5 @@
     </script>
     <script type="module" src="./src/assets/js/dashboard.js"></script>
     <script type="module" src="./src/assets/js/quickTransaction.js"></script>
-
   </body>
 </html>

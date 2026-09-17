@@ -19,11 +19,27 @@
           سلام
           <span id="headerUsername"></span>
         </h1>
-        <p>پروفایل و تنظیمات حساب</p>
+        <p>خلاصه وضعیت مالی شما</p>
       </div>
-      <button class="notification-btn" type="button">
-        <i class="fas fa-bell"></i>
-      </button>
+
+      <div class="notification-wrapper">
+        <button class="notification-btn" id="notificationBtn">
+          <i class="fas fa-bell"></i>
+          <span class="notification-badge hidden" id="notificationBadge"
+            >0</span
+          >
+        </button>
+
+        <div class="notification-dropdown hidden" id="notificationDropdown">
+          <div class="notification-header">
+            <h3>اعلان‌ها</h3>
+          </div>
+
+          <div class="notification-list" id="notificationList">
+            <div class="notification-empty">اعلانی وجود ندارد</div>
+          </div>
+        </div>
+      </div>
     </header>
 
     <main class="main">
@@ -505,6 +521,75 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- Tags Management -->
+        <div class="settings-card tags-card" data-aos="fade-up">
+          <div class="section-heading">
+            <div>
+              <h2>مدیریت برچسب‌ها</h2>
+              <p>برچسب‌های تراکنش‌های خود را ایجاد و مدیریت کنید.</p>
+            </div>
+
+            <button class="add-btn" id="addTagBtn" type="button">
+              <i class="fas fa-plus"></i>
+              افزودن برچسب
+            </button>
+          </div>
+
+          <!-- Tag List -->
+          <div class="tag-management-list" id="tagManagementList">
+            <!-- Tags created by JS -->
+          </div>
+        </div>
+
+        <!-- Tag Modal -->
+        <div class="custom-modal hidden" id="tagModal">
+          <div class="tagModal-overlay"></div>
+
+          <div class="tag-modal-box">
+            <!-- Modal Header -->
+            <div class="modal-header">
+              <div>
+                <h2 id="tagModalTitle">افزودن برچسب</h2>
+                <p>نام برچسب را وارد کنید.</p>
+              </div>
+
+              <button class="close-modal" id="closeTagModal" type="button">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+
+            <!-- Tag Form -->
+            <form id="tagForm">
+              <div class="form-group">
+                <label for="tagName">نام برچسب</label>
+
+                <input
+                  type="text"
+                  id="tagName"
+                  placeholder="مثلاً ضروری"
+                  autocomplete="off"
+                />
+
+                <p class="tag-name-error hidden">
+                  لطفاً نام برچسب را وارد کنید.
+                </p>
+              </div>
+
+              <!-- Modal Actions -->
+              <div class="modal-actions">
+                <button class="cancel-btn" type="button" id="cancelTag">
+                  انصراف
+                </button>
+
+                <button class="save-btn" type="submit">
+                  <i class="fas fa-save"></i>
+                  ذخیره
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </section>

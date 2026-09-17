@@ -87,13 +87,17 @@
                   رمز عبور
                 </label>
 
-                <input
-                  type="password"
-                  name="password"
-                  id="password"
-                  maxlength="8"
-                  placeholder="********"
-                />
+                <div class="password-wrapper">
+                  <input
+                    type="password"
+                    name="password"
+                    id="password"
+                    maxlength="8"
+                    placeholder="********"
+                  />
+
+                  <i class="fas fa-eye password-toggle" id="passwordToggle"></i>
+                </div>
 
                 <p class="passwordError hidden">رمز وارد شده صحیح نمی باشد</p>
               </div>

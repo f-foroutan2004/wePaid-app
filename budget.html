@@ -25,11 +25,27 @@
           سلام
           <span id="headerUsername"></span>
         </h1>
-        <p>مدیریت و کنترل بودجه‌های شما</p>
+        <p>خلاصه وضعیت مالی شما</p>
       </div>
-      <button class="notification-btn" type="button">
-        <i class="fas fa-bell"></i>
-      </button>
+
+      <div class="notification-wrapper">
+        <button class="notification-btn" id="notificationBtn">
+          <i class="fas fa-bell"></i>
+          <span class="notification-badge hidden" id="notificationBadge"
+            >0</span
+          >
+        </button>
+
+        <div class="notification-dropdown hidden" id="notificationDropdown">
+          <div class="notification-header">
+            <h3>اعلان‌ها</h3>
+          </div>
+
+          <div class="notification-list" id="notificationList">
+            <div class="notification-empty">اعلانی وجود ندارد</div>
+          </div>
+        </div>
+      </div>
     </header>
 
     <main class="main">
@@ -154,11 +170,7 @@
               <label for="budgetCategory"> دسته‌بندی </label>
 
               <select id="budgetCategory">
-                <option value="food">غذا</option>
-                <option value="transport">حمل و نقل</option>
-                <option value="shopping">خرید</option>
-
-                <option value="entertainment">تفریح</option>
+                <!-- create by js -->
               </select>
             </div>
 
@@ -167,10 +179,10 @@
               <label for="budgetAmount"> مبلغ بودجه </label>
 
               <input
-                type="number"
+                type="text"
                 id="budgetAmount"
                 min="1"
-                placeholder="مثلاً 5000000"
+                placeholder="مثلاً 5,000,000"
               />
 
               <p class="amountError hidden">لطفاً مبلغ معتبر وارد کنید.</p>

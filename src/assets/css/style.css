@@ -68,7 +68,30 @@ select {
   font-family: "VazirMatn", sans-serif;
 }
 
+/* password eye */
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  padding-left: 45px;
+}
+
+.password-toggle {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #999;
+  z-index: 2;
+}
+
+.password-toggle:hover {
+  color: #6c4ab6;
+}
 /* =========================Login Form========================= */
+
 .container {
   width: 100%;
   height: 100vh;
@@ -472,24 +495,6 @@ label i {
 
 .hidden {
   display: none;
-}
-
-/* Dropdown */
-.notification-dropdown {
-  position: absolute;
-  top: calc(100% + 12px);
-  right: 0;
-
-  width: 340px;
-  max-height: 400px;
-
-  background: white;
-  border-radius: 12px;
-
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-
-  overflow: hidden;
-  z-index: 1000;
 }
 
 /* Header dropdown */
@@ -956,6 +961,8 @@ label i {
 .transactions td:nth-child(4) {
   font-weight: 600;
 }
+
+
 
 .transactions .negative {
   color: var(--very-pink);
@@ -3162,6 +3169,975 @@ tbody tr.slide-out {
   font-size: 13px;
 }
 
+/* ======================================================
+   Tags Management
+====================================================== */
+
+.tags-card {
+  margin-top: 24px;
+}
+
+/* Tags List */
+
+.tag-management-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+/* Empty State */
+
+.tag-management-list .empty-state {
+  padding: 30px 20px;
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+}
+
+/* Tag Item */
+
+.tag-management-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+
+  padding: 14px 16px;
+
+  background: #fafafa;
+  border: 1px solid #eeeeee;
+  border-radius: 12px;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.tag-management-item:hover {
+  transform: translateY(-2px);
+  border-color: #d8c5e8;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* Tag Main */
+
+.tag-management-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Tag Icon */
+
+.tag-management-icon {
+  width: 40px;
+  height: 40px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  background: #f3e8ff;
+  color: #8e44ad;
+
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* Tag Info */
+
+.tag-management-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tag-management-info h3 {
+  margin: 0;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  color: #333;
+}
+
+.tag-management-info span {
+  font-size: 12px;
+  color: #999;
+}
+
+/* Tag Actions */
+
+.tag-management-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* Action Buttons */
+
+.tag-action-btn {
+  width: 34px;
+  height: 34px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 9px;
+
+  background: #f5f5f5;
+  color: #777;
+
+  cursor: pointer;
+
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.tag-action-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Edit */
+
+.tag-action-btn.edit-tag-btn:hover {
+  background: #eee5ff;
+  color: #7b3fa1;
+}
+
+/* Delete */
+
+.tag-action-btn.delete-tag-btn:hover {
+  background: #ffe8ec;
+  color: #e85d75;
+}
+
+/* ======================================================
+   Tag Modal
+====================================================== */
+
+#tagModal {
+  position: fixed;
+  inset: 0;
+
+  z-index: 9999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+}
+
+#tagModal.hidden {
+  display: none;
+}
+
+/* Overlay */
+
+.tagModal-overlay {
+  position: absolute;
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.45);
+
+  backdrop-filter: blur(3px);
+}
+
+/* Modal Box */
+
+.tag-modal-box {
+  position: relative;
+  z-index: 2;
+
+  width: 100%;
+  max-width: 480px;
+
+  background: #ffffff;
+
+  border-radius: 18px;
+
+  padding: 24px;
+
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+
+  animation: tagModalShow 0.25s ease;
+}
+
+/* Modal Animation */
+
+@keyframes tagModalShow {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ======================================================
+   Tag Modal Form
+====================================================== */
+
+#tagForm {
+  margin-top: 22px;
+}
+
+#tagForm .form-group {
+  margin-bottom: 20px;
+}
+
+#tagForm label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  color: #333;
+}
+
+#tagName {
+  width: 100%;
+  box-sizing: border-box;
+
+  height: 46px;
+
+  padding: 0 14px;
+
+  border: 1px solid #dddddd;
+  border-radius: 10px;
+
+  background: #fff;
+
+  font-family: inherit;
+  font-size: 14px;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+#tagName:focus {
+  border-color: #9b59b6;
+
+  box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.1);
+}
+
+#tagName::placeholder {
+  color: #aaa;
+}
+
+/* ======================================================
+   Tag Validation Error
+====================================================== */
+
+.tag-name-error {
+  margin: 7px 0 0;
+
+  color: #e85d75;
+
+  font-size: 12px;
+}
+.tag-name-error.hidden {
+  display: none;
+}
+
+/* ======================================================
+   Modal Actions
+====================================================== */
+
+#tagModal .modal-actions {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  margin-top: 10px;
+}
+
+#tagModal .modal-actions button {
+  flex: 1;
+}
+
+.empty-wallet-state {
+  min-height: 65vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.empty-wallet-icon {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: rgba(109, 40, 217, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 25px;
+}
+
+.empty-wallet-icon i {
+  font-size: 40px;
+  color: #6d28d9;
+}
+
+.empty-wallet-state h2 {
+  margin-bottom: 12px;
+  font-size: 24px;
+}
+
+.empty-wallet-state p {
+  color: #777;
+  line-height: 2;
+  margin-bottom: 25px;
+}
+
+.create-wallet-btn {
+  border: none;
+  background: #6d28d9;
+  color: white;
+  padding: 13px 25px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.create-wallet-btn:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+
+.create-wallet-btn i {
+  margin-left: 7px;
+}
+
+/* ================================
+   Notifications
+================================ */
+
+.notification-wrapper {
+  position: relative;
+}
+
+.notification-btn {
+  position: relative;
+}
+
+.notification-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #e85d75;
+  color: #fff;
+
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+
+  border: 2px solid #fff;
+}
+
+.notification-badge.hidden {
+  display: none;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+
+  width: 350px;
+  max-width: calc(100vw - 30px);
+
+  background: #fff;
+  border-radius: 14px;
+
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.12);
+
+  z-index: 1000;
+
+  overflow: hidden;
+}
+
+.notification-dropdown.hidden {
+  display: none;
+}
+
+.notification-header {
+  padding: 16px 18px;
+  border-bottom: 1px solid #eee;
+}
+
+.notification-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.notification-list {
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  padding: 15px 18px;
+  border-bottom: 1px solid #f1f1f1;
+  transition: background 0.2s ease;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.notification-item:hover {
+  background: #fafafa;
+}
+
+.notification-item-title {
+  margin-bottom: 6px;
+
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.notification-item-message {
+  margin-bottom: 8px;
+
+  color: #666;
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.notification-item-wallet {
+  color: #999;
+  font-size: 11px;
+}
+
+.notification-empty {
+  padding: 35px 20px;
+
+  text-align: center;
+  color: #999;
+
+  font-size: 13px;
+}
+
+/* ======================================================
+   Dashboard Skeleton Loading
+====================================================== */
+
+.dashboard-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #eeeaf5 !important;
+  color: transparent !important;
+  border-radius: 8px;
+}
+
+.dashboard-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.65),
+    transparent
+  );
+  animation: dashboardSkeletonLoading 1.4s infinite;
+}
+
+@keyframes dashboardSkeletonLoading {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Cards */
+
+.card.skeleton-card {
+  pointer-events: none;
+}
+
+.card.skeleton-card .card-icon {
+  color: transparent !important;
+  background: #eeeaf5 !important;
+}
+
+.card.skeleton-card .card-info p,
+.card.skeleton-card .card-info h2 {
+  color: transparent !important;
+  background: #eeeaf5;
+  border-radius: 6px;
+  width: 120px;
+  height: 18px;
+}
+
+.card.skeleton-card .card-info h2 {
+  width: 160px;
+  height: 28px;
+  margin-top: 10px;
+}
+
+/* Chart panels */
+
+.panel.skeleton-panel {
+  pointer-events: none;
+}
+
+.skeleton-chart {
+  width: 100%;
+  height: 230px;
+  border-radius: 12px;
+}
+
+/* Budgets */
+
+.skeleton-budget {
+  margin-bottom: 18px;
+}
+
+.skeleton-budget-info {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  margin-bottom: 8px;
+}
+
+.skeleton-budget-info span {
+  display: block;
+  width: 80px;
+  height: 16px;
+  border-radius: 5px;
+}
+
+.skeleton-budget-info span:last-child {
+  width: 45px;
+}
+
+.skeleton-progress {
+  width: 100%;
+  height: 8px;
+  border-radius: 10px;
+}
+
+/* Transactions */
+
+.skeleton-row td {
+  padding: 15px 10px;
+}
+
+.skeleton-cell {
+  display: block;
+  width: 75%;
+  height: 15px;
+  border-radius: 5px;
+}
+
+.skeleton-cell.short {
+  width: 40%;
+}
+
+.skeleton-cell.medium {
+  width: 60%;
+}
+
+/* Hide skeleton */
+
+.dashboard-content-loaded {
+  animation: dashboardFadeIn 0.3s ease;
+}
+
+@keyframes dashboardFadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+/* ======================================================
+   Chart Skeleton Overlay
+====================================================== */
+
+.chart-skeleton-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  border-radius: 12px;
+  min-height: 200px;
+}
+/* ======================================================
+   Transaction Skeleton
+====================================================== */
+
+.skeleton-row td {
+  padding: 16px 12px;
+}
+
+.skeleton {
+  display: block;
+  height: 14px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #eeeeee 25%, #f7f7f7 50%, #eeeeee 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.4s infinite;
+}
+
+.skeleton-short {
+  width: 45px;
+}
+
+.skeleton-medium {
+  width: 90px;
+}
+
+.skeleton-long {
+  width: 140px;
+}
+
+.skeleton-number {
+  width: 70px;
+}
+
+.skeleton-actions {
+  width: 65px;
+  height: 30px;
+  border-radius: 8px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+/* =====================================================
+   SETTING SKELETON
+===================================================== */
+
+.setting-skeleton {
+  display: block;
+  background: #eeeeee;
+  border-radius: 8px;
+}
+
+/* =========================
+   Profile
+========================= */
+
+.skeleton-profile-input {
+  width: 100%;
+  height: 44px;
+  border-radius: 8px;
+}
+
+.skeleton-profile-button {
+  width: 110px;
+  height: 42px;
+  border-radius: 8px;
+}
+
+/* =========================
+   Wallet
+========================= */
+
+.skeleton-wallet-card {
+  width: 100%;
+  min-height: 120px;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.skeleton-wallet-title {
+  width: 130px;
+  height: 18px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+.skeleton-wallet-text {
+  width: 90px;
+  height: 14px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.skeleton-wallet-number {
+  width: 110px;
+  height: 16px;
+  border-radius: 6px;
+}
+
+/* =========================
+   Invitation
+========================= */
+
+.skeleton-invitation {
+  width: 100%;
+  min-height: 80px;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.skeleton-invitation-title {
+  width: 120px;
+  height: 16px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.skeleton-invitation-text {
+  width: 180px;
+  height: 13px;
+  border-radius: 6px;
+}
+
+/* =========================
+   Category
+========================= */
+
+.skeleton-category {
+  width: 100%;
+  min-height: 58px;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.skeleton-category-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.skeleton-category-name {
+  width: 110px;
+  height: 15px;
+  border-radius: 6px;
+}
+
+.skeleton-category-actions {
+  width: 60px;
+  height: 30px;
+  border-radius: 8px;
+}
+
+/* =========================
+   Tags
+========================= */
+
+.skeleton-tag {
+  width: 100%;
+  min-height: 48px;
+  border-radius: 10px;
+  padding: 12px 16px;
+}
+
+.skeleton-tag-name {
+  width: 90px;
+  height: 15px;
+  border-radius: 6px;
+}
+
+.skeleton-tag-actions {
+  width: 55px;
+  height: 28px;
+  border-radius: 8px;
+}
+
+.transaction-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.export-wrapper {
+  position: relative;
+}
+
+.export-btn {
+  height: 42px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 10px;
+  background: #f5f1ff;
+  color: #7b4dcc;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  transition: 0.2s ease;
+}
+
+.export-btn:hover {
+  background: #ebe2ff;
+}
+
+.export-arrow {
+  font-size: 11px;
+  margin-right: 3px;
+  transition: transform 0.2s ease;
+}
+
+.export-wrapper.active .export-arrow {
+  transform: rotate(180deg);
+}
+
+.export-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+
+  width: 170px;
+  padding: 6px;
+
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+
+  display: none;
+  z-index: 100;
+}
+
+.export-wrapper.active .export-menu {
+  display: block;
+}
+
+.export-option {
+  width: 100%;
+  height: 40px;
+
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+
+  padding: 0 12px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  font-family: inherit;
+  font-size: 13px;
+  color: #444;
+
+  cursor: pointer;
+  text-align: right;
+
+  transition: 0.2s ease;
+}
+
+.export-option:hover {
+  background: #f7f5fb;
+  color: #7b4dcc;
+}
+
+.export-option i {
+  width: 18px;
+  text-align: center;
+}
+.prediction-card {
+  grid-column: 1 / -1;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.prediction-info {
+  flex: 1;
+}
+
+.prediction-info > p {
+  margin-bottom: 12px;
+}
+
+.prediction-month {
+  font-size: 12px;
+  margin-right: 5px;
+  opacity: 0.6;
+}
+
+.prediction-values {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.prediction-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.prediction-item span {
+  font-size: 12px;
+  opacity: 0.65;
+}
+
+.prediction-item strong {
+  font-size: 14px;
+}
+
+.income-prediction strong {
+  color: #4caf50;
+}
+
+.expense-prediction strong {
+  color: #e85d75;
+}
+
+.expense-amount {
+  color: #e85d75 !important;
+  font-weight: 600 !important;
+}
+
+.income-amount {
+  color: #28a745 !important;
+  font-weight: 600 !important;
+}
 .overlay.hidden {
   display: none;
 }
@@ -3180,7 +4156,34 @@ tbody tr.slide-out {
 }
 
 @media (max-width: 768px) {
-  
+  .tags-card {
+    margin-top: 18px;
+  }
+
+  .tag-management-item {
+    padding: 12px;
+  }
+
+  .tag-management-icon {
+    width: 36px;
+    height: 36px;
+  }
+
+  .tag-management-info h3 {
+    font-size: 14px;
+  }
+
+  .tag-action-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .tag-modal-box {
+    max-width: 100%;
+    padding: 20px;
+
+    border-radius: 16px;
+  }
   .members-modal-box {
     width: calc(100% - 20px);
     max-height: 85vh;
@@ -3404,6 +4407,28 @@ tbody tr.slide-out {
 }
 
 @media (max-width: 480px) {
+  .panel-header {
+    gap: 10px;
+  }
+
+  .transaction-actions {
+    width: 100%;
+  }
+
+  .export-wrapper,
+  .export-btn,
+  .add-btn {
+    flex: 1;
+  }
+
+  .export-btn,
+  .add-btn {
+    justify-content: center;
+  }
+  .notification-dropdown {
+    left: -10px;
+    width: 320px;
+  }
   .category-item {
     min-height: 62px;
   }
@@ -3448,5 +4473,44 @@ tbody tr.slide-out {
 
   .category-modal-box {
     padding: 18px;
+  }
+
+  .tag-management-item {
+    gap: 10px;
+  }
+
+  .tag-management-main {
+    gap: 9px;
+    min-width: 0;
+  }
+
+  .tag-management-info h3 {
+    max-width: 150px;
+
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tag-management-actions {
+    flex-shrink: 0;
+  }
+
+  .tag-action-btn {
+    width: 30px;
+    height: 30px;
+
+    font-size: 12px;
+  }
+
+  #tagModal .modal-actions {
+    flex-direction: column;
+  }
+
+  #tagModal .modal-actions button {
+    width: 100%;
+  }
+  #transactionBody tr td {
+    padding: 0.2rem;
   }
 }

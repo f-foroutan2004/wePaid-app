@@ -11,6 +11,7 @@ const loginButton = document.querySelector(".signIn-btn");
 const loginText = document.querySelector(".login-text");
 const loginIcon = document.querySelector(".login-icon");
 const localLoader = document.querySelector(".local-loader");
+const passwordToggle = document.querySelector("#passwordToggle");
 
 // Global Loader Functions
 function showGlobalLoader() {
@@ -89,6 +90,7 @@ async function getToken(e) {
     const token = response.data?.data?.token;
 
     localStorage.setItem("token", token);
+    // localStorage.setItem("userName", userName);
 
     if (response) {
       showToast(successMessage, "success");
@@ -99,7 +101,6 @@ async function getToken(e) {
       }, 1000);
     }
   } catch (error) {
-
     if (error.response) {
       const message = error.response.data?.data?.message || "ورود انجام نشد.";
 
@@ -114,3 +115,17 @@ async function getToken(e) {
 
 // Event
 form.addEventListener("submit", getToken);
+
+passwordToggle.addEventListener("click", () => {
+  if (passwordInput.type === "password") {
+    passwordInput.type = "text";
+
+    passwordToggle.classList.remove("fa-eye");
+    passwordToggle.classList.add("fa-eye-slash");
+  } else {
+    passwordInput.type = "password";
+
+    passwordToggle.classList.remove("fa-eye-slash");
+    passwordToggle.classList.add("fa-eye");
+  }
+});
