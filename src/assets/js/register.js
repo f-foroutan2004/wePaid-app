@@ -130,8 +130,6 @@ async function validateStepOne() {
     step1.classList.add("hidden");
     step2.classList.remove("hidden");
   } catch (error) {
-    console.error("Currency error:", error);
-
     showToast("دریافت لیست ارزها با مشکل مواجه شد.");
   } finally {
     hideGlobalLoader();
@@ -189,6 +187,8 @@ async function registerUser(e) {
 nextBtn.addEventListener("click", validateStepOne);
 prevBtn.addEventListener("click", validateStepTwo);
 form.addEventListener("submit", registerUser);
+
+//just allow numbers in phone input
 phoneNumberInput.addEventListener("keydown", function (e) {
   switch (e.key) {
     case "0":
@@ -201,6 +201,7 @@ phoneNumberInput.addEventListener("keydown", function (e) {
     case "7":
     case "8":
     case "9":
+    case "Backspace":
       break;
 
     default:
@@ -209,6 +210,7 @@ phoneNumberInput.addEventListener("keydown", function (e) {
   }
 });
 
+//password eye
 passwordToggle.addEventListener("click", () => {
   if (passwordInput.type === "password") {
     passwordInput.type = "text";

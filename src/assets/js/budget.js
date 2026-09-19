@@ -66,18 +66,8 @@ function hideBudgetLoader() {
 async function loadBaseCurrency() {
   try {
     const response = await api.get("/profile");
-
-    const profile =
-      response.data?.data?.profile ||
-      response.data?.data ||
-      response.data?.profile ||
-      response.data;
-
-    const currencyId =
-      profile?.currency_id ??
-      profile?.currencyId ??
-      profile?.currency?.id ??
-      profile?.currency?.currency_id;
+    const profile = response.data?.data?.profile;
+    const currencyId = profile?.currency?.id;
 
     if (currencyId !== null && currencyId !== undefined && currencyId !== "") {
       await loadCurrencyById(currencyId);
@@ -85,15 +75,10 @@ async function loadBaseCurrency() {
     }
 
     if (profile?.currency && typeof profile.currency === "object") {
-      const currencyName =
-        profile.currency.name ||
-        profile.currency.code ||
-        profile.currency.symbol;
+      const currencyName = profile.currency.name;
 
       if (currencyName) {
         baseCurrency = currencyName;
-
-        console.log("Base Currency From Profile Object:", baseCurrency);
 
         return;
       }
@@ -102,130 +87,49 @@ async function loadBaseCurrency() {
     if (typeof profile?.currency === "string" && profile.currency.trim()) {
       baseCurrency = profile.currency.trim();
 
-      console.log("Base Currency From Profile String:", baseCurrency);
-
       return;
     }
 
-    // -----------------------------------------------
-    // currency_name
-    // -----------------------------------------------
-
-    if (profile?.currency_name) {
-      baseCurrency = profile.currency_name;
-
-      console.log("Base Currency From currency_name:", baseCurrency);
-
-      return;
-    }
-
-    // -----------------------------------------------
-    // currency_code
-    // -----------------------------------------------
-
-    if (profile?.currency_code) {
-      baseCurrency = profile.currency_code;
-
-      console.log("Base Currency From currency_code:", baseCurrency);
-
-      return;
-    }
-
-    // -----------------------------------------------
     // currency_symbol
-    // -----------------------------------------------
-
-    if (profile?.currency_symbol) {
-      baseCurrency = profile.currency_symbol;
-
-      console.log("Base Currency From currency_symbol:", baseCurrency);
+    if (profile?.currency.symbol) {
+      baseCurrency = profile.currency.symbol;
 
       return;
     }
-
-    console.warn("⚠️ هیچ ارز پایه‌ای در پروفایل پیدا نشد.");
   } catch (error) {
-    console.error("❌ خطا در دریافت ارز پایه:", error);
-
-    // اینجا عمداً تومان را تغییر نمی‌دهیم
-    // تا خطای API باعث نمایش اشتباه تومان نشود.
+    showToast("خطا در دریافت ارز پایه:");
   }
 }
 
-// ======================================================
 // Load Currency By ID
-// ======================================================
-
 async function loadCurrencyById(currencyId) {
   try {
-    console.log("در حال دریافت ارز با ID:", currencyId);
-
     const response = await api.get("/currencies");
+    const currencies = response.data?.data?.currencies || [];
 
-    console.log("Currencies response:", response.data);
-
-    const currencies =
-      response.data?.data?.currencies ||
-      response.data?.data ||
-      response.data?.currencies ||
-      [];
-
-    if (!Array.isArray(currencies)) {
-      console.error("لیست ارزها معتبر نیست:", currencies);
-      return;
-    }
+    if (!Array.isArray(currencies)) return;
 
     const currency = currencies.find(
-      (item) =>
-        Number(item.id) === Number(currencyId) ||
-        Number(item.currency_id) === Number(currencyId),
+      (item) => +item.id === +currencyId || +item.currency_id === +currencyId,
     );
 
-    console.log("Selected currency:", currency);
+    if (!currency) return;
 
-    if (!currency) {
-      console.error("ارز پایه پیدا نشد:", currencyId);
-      return;
-    }
-
-    // فقط سمبل ارز
-    baseCurrency =
-      currency.symbol ||
-      currency.currency_symbol ||
-      currency.code ||
-      currency.name ||
-      "";
-
-    console.log("✅ Base Currency Symbol:", baseCurrency);
+    baseCurrency = currency.symbol || "";
   } catch (error) {
-    console.error("خطا در دریافت ارزها:", error);
+    showToast("خطا در دریافت ارزها:");
   }
 }
 
-// ======================================================
-// Format Number
-// ======================================================
-
-function formatNumber(number) {
-  return Number(number || 0).toLocaleString("en-US");
-}
-
-// ======================================================
 // Format Money
-// ======================================================
-
 function formatMoney(number) {
-  return `${formatNumber(number)} ${baseCurrency}`;
+  return `${(+number).toLocaleString("en-US")} ${baseCurrency}`;
 }
 
-// ======================================================
 // Load Categories
-// ======================================================
-
 async function loadCategories() {
   try {
     const response = await api.get("/categories");
-
     categories = response.data?.data?.categories || [];
 
     renderCategoryOptions();
@@ -237,10 +141,7 @@ async function loadCategories() {
   }
 }
 
-// ======================================================
 // Render Category Options
-// ======================================================
-
 function renderCategoryOptions() {
   if (!budgetCategory) {
     return;
@@ -256,19 +157,14 @@ function renderCategoryOptions() {
 
   expenseCategories.forEach((category) => {
     const option = document.createElement("option");
-
     option.value = category.id;
-
     option.textContent = category.name;
 
     budgetCategory.appendChild(option);
   });
 }
 
-// ======================================================
 // Load Budgets
-// ======================================================
-
 async function loadBudgets({ local = false } = {}) {
   try {
     const walletId = localStorage.getItem("walletId");
@@ -284,9 +180,7 @@ async function loadBudgets({ local = false } = {}) {
     }
 
     const currentDate = new Date();
-
     const year = currentDate.getFullYear();
-
     const month = currentDate.getMonth() + 1;
 
     const response = await api.get(`/budgets?wallet_id=${walletId}`, {
@@ -300,8 +194,6 @@ async function loadBudgets({ local = false } = {}) {
 
     renderBudgets(budgets);
   } catch (error) {
-    console.error("Load budgets error:", error);
-
     showToast(
       error.response?.data?.message || "خطا در دریافت بودجه‌ها",
       "error",
@@ -313,10 +205,7 @@ async function loadBudgets({ local = false } = {}) {
   }
 }
 
-// ======================================================
 // Render Budgets
-// ======================================================
-
 function renderBudgets(budgets) {
   const oldCards = budgetList.querySelectorAll(".budget-card");
 
@@ -330,15 +219,10 @@ function renderBudgets(budgets) {
     oldEmpty.remove();
   }
 
-  // ==================================================
   // Empty State
-  // ==================================================
-
   if (!Array.isArray(budgets) || budgets.length === 0) {
     const emptyElement = document.createElement("div");
-
     emptyElement.className = "empty-budget";
-
     emptyElement.innerHTML = `
       <p>
         برای این ماه بودجه‌ای ثبت نشده است.
@@ -353,37 +237,22 @@ function renderBudgets(budgets) {
 
     return;
   }
-
-  // ==================================================
   // Create Cards
-  // ==================================================
-
   budgets.forEach((budget) => {
     createBudgetCard(budget);
   });
 }
 
-// ======================================================
 // Create Budget Card
-// ======================================================
-
 function createBudgetCard(budget) {
   const budgetId = budget.id;
-
   const card = document.createElement("div");
-
   card.className = "budget-card";
-
   card.dataset.id = budgetId;
-
   const categoryId = budget.category?.id || budget.category_id;
-
   card.dataset.category = categoryId || "";
 
-  // ==================================================
   // Category
-  // ==================================================
-
   let categoryName = "دسته‌بندی";
 
   if (budget.category?.name) {
@@ -391,8 +260,7 @@ function createBudgetCard(budget) {
   } else if (categoryId) {
     const foundCategory = categories.find(
       (category) =>
-        Number(category.id) === Number(categoryId) ||
-        Number(category.category_id) === Number(categoryId),
+        +category.id === +categoryId || +category.category_id === +categoryId,
     );
 
     if (foundCategory) {
@@ -400,54 +268,33 @@ function createBudgetCard(budget) {
     }
   }
 
-  // ==================================================
   // Amounts
-  // ==================================================
+  const total = +budget.budget_amount || 0;
+  const spent = +budget.spent_amount || 0;
 
-  const total = Number(budget.budget_amount) || 0;
-
-  const spent = Number(budget.spent_amount) || 0;
-
-  // ==================================================
   // Remaining
-  // ==================================================
-
   const remaining = Math.max(total - spent, 0);
 
-  // ==================================================
   // Debt
-  // ==================================================
-
   const debt = total - spent;
-
   const hasDebt = debt < 0;
 
-  // ==================================================
   // Percentage
-  // ==================================================
-
   let percentage = total > 0 ? (spent / total) * 100 : 0;
 
   if (percentage > 100) {
     percentage = 100;
   }
 
-  // ==================================================
   // Warning
-  // ==================================================
-
   let warningClass = "";
 
   if (percentage >= 80) {
     warningClass = "warning";
   }
 
-  // ==================================================
   // Icon
-  // ==================================================
-
   let icon = "fa-wallet";
-
   const name = categoryName.toLowerCase();
 
   if (
@@ -487,33 +334,23 @@ function createBudgetCard(budget) {
     icon = "fa-graduation-cap";
   }
 
-  // ==================================================
   // Card HTML
-  // ==================================================
-
   card.innerHTML = `
     <div class="budget-card-header">
-
       <div class="budget-title">
-
         <div class="budget-icon">
           <i class="fas ${icon}"></i>
         </div>
-
         <div>
           <h3>
             ${categoryName}
           </h3>
-
           <span>
             بودجه ماهانه
           </span>
         </div>
-
       </div>
-
       <div class="budget-actions">
-
         <button
           class="edit-budget"
           data-id="${budgetId}"
@@ -521,7 +358,6 @@ function createBudgetCard(budget) {
         >
           <i class="fas fa-pen"></i>
         </button>
-
         <button
           class="delete-budget"
           data-id="${budgetId}"
@@ -529,45 +365,30 @@ function createBudgetCard(budget) {
         >
           <i class="fas fa-trash"></i>
         </button>
-
       </div>
-
     </div>
-
     <div class="budget-amounts">
-
       <div class="spent-amount">
-
         <span>
           مصرف شده
         </span>
-
         <strong>
           ${formatMoney(spent)}
         </strong>
-
       </div>
-
       <div class="total-amount">
-
         <span>
           بودجه
         </span>
-
         <strong>
           ${formatMoney(total)}
         </strong>
-
       </div>
-
     </div>
-
     <div class="progress-info">
-
       <span class="percentage">
         ${Math.round(percentage)}٪ مصرف شده
       </span>
-
       ${
         hasDebt
           ? `
@@ -581,50 +402,33 @@ function createBudgetCard(budget) {
             </span>
           `
       }
-
     </div>
-
     <div class="progress-bar">
-
       <div
         class="progress-fill ${warningClass}"
         style="width: ${percentage}%"
       ></div>
-
     </div>
   `;
 
-  // ==================================================
   // Edit
-  // ==================================================
-
   const editButton = card.querySelector(".edit-budget");
-
   if (editButton) {
     editButton.addEventListener("click", () => {
       editingCard = card;
 
-      const budgetCategoryId =
-        budget.category?.id || budget.category_id || categoryId;
-
+      const budgetCategoryId = budget.category?.id || categoryId;
       budgetCategory.value = budgetCategoryId || "";
-
       budgetAmount.value = total.toLocaleString("en-US");
-
       modalTitle.textContent = "ویرایش بودجه";
-
       budgetModal.classList.add("active");
-
       budgetModal.classList.remove("hidden");
 
       document.body.classList.add("modal-open");
     });
   }
 
-  // ==================================================
   // Delete
-  // ==================================================
-
   const deleteButton = card.querySelector(".delete-budget");
 
   if (deleteButton) {
@@ -639,15 +443,11 @@ function createBudgetCard(budget) {
 
       try {
         showGlobalLoader();
-
         await api.delete(`/budget/delete/${budgetId}`);
-
         showToast("بودجه با موفقیت حذف شد.", "success");
 
         await loadBudgets();
       } catch (error) {
-        console.error("Delete budget error:", error);
-
         showToast(
           error.response?.data?.message || "حذف بودجه انجام نشد.",
           "error",
@@ -658,10 +458,7 @@ function createBudgetCard(budget) {
     });
   }
 
-  // ==================================================
   // Add Card
-  // ==================================================
-
   if (budgetLoader) {
     budgetList.insertBefore(card, budgetLoader);
   } else {
@@ -669,52 +466,32 @@ function createBudgetCard(budget) {
   }
 }
 
-// ======================================================
 // Open Modal
-// ======================================================
-
 function openModal() {
   editingCard = null;
-
   modalTitle.textContent = "افزودن بودجه";
-
   budgetForm.reset();
-
   amountError.classList.add("hidden");
-
   budgetModal.classList.remove("hidden");
-
   budgetModal.classList.add("active");
-
   modalContent.classList.add("animate");
 
   document.body.classList.add("modal-open");
 }
 
-// ======================================================
 // Close Modal
-// ======================================================
-
 function closeModal() {
   editingCard = null;
-
   budgetModal.classList.add("hidden");
-
   budgetModal.classList.remove("active");
-
   modalContent.classList.remove("animate");
-
   budgetForm.reset();
-
   amountError.classList.add("hidden");
 
   document.body.classList.remove("modal-open");
 }
 
-// ======================================================
 // Modal Events
-// ======================================================
-
 if (addBudgetBtn) {
   addBudgetBtn.addEventListener("click", openModal);
 }
@@ -731,24 +508,15 @@ if (modalOverlay) {
   modalOverlay.addEventListener("click", closeModal);
 }
 
-// ======================================================
 // Submit Budget
-// ======================================================
-
 if (budgetForm) {
   budgetForm.addEventListener("submit", async function (event) {
     event.preventDefault();
 
     const categoryId = budgetCategory.value;
+    const amount = +budgetAmount.value.replace(/,/g, "");
 
-    // مقدار نمایشی: 5,000,000
-    // مقدار واقعی: 5000000
-    const amount = Number(budgetAmount.value.replace(/,/g, ""));
-
-    // ==================================================
     // Amount Validation
-    // ==================================================
-
     if (!amount || amount <= 0) {
       amountError.classList.remove("hidden");
       return;
@@ -756,36 +524,24 @@ if (budgetForm) {
 
     amountError.classList.add("hidden");
 
-    // ==================================================
     // Category Validation
-    // ==================================================
-
     if (!categoryId) {
-      showToast("لطفاً یک دسته‌بندی انتخاب کنید", "error");
+      showToast("لطفاً یک دسته‌بندی انتخاب کنید");
       return;
     }
 
-    // ==================================================
     // Edit
-    // ==================================================
-
     if (editingCard) {
       await updateBudget(editingCard, categoryId, amount);
       return;
     }
 
-    // ==================================================
     // Create
-    // ==================================================
-
     await createBudget(categoryId, amount);
   });
 }
 
-// ======================================================
 // Create Budget
-// ======================================================
-
 async function createBudget(categoryId, amount) {
   try {
     const walletId = localStorage.getItem("walletId");
@@ -797,23 +553,14 @@ async function createBudget(categoryId, amount) {
     }
 
     const currentDate = new Date();
-
     const year = currentDate.getFullYear();
-
     const month = currentDate.getMonth() + 1;
-
     const formData = new FormData();
-
     formData.append("wallet_id", walletId);
-
     formData.append("category_id", categoryId);
-
     formData.append("amount", amount);
-
     formData.append("year", year);
-
     formData.append("month", month);
-
     const response = await api.post("/budget/create", formData);
 
     showToast(response.data?.message || "بودجه با موفقیت ایجاد شد", "success");
@@ -824,18 +571,13 @@ async function createBudget(categoryId, amount) {
       local: true,
     });
   } catch (error) {
-    console.error("Create budget error:", error);
-
     const message = error.response?.data?.message || "خطا در ایجاد بودجه";
 
     showToast(message, "error");
   }
 }
 
-// ======================================================
 // Update Budget
-// ======================================================
-
 async function updateBudget(card, categoryId, amount) {
   try {
     const walletId = localStorage.getItem("walletId");
@@ -847,51 +589,37 @@ async function updateBudget(card, categoryId, amount) {
     }
 
     const budgetId = card.dataset.id;
-
     if (!budgetId) {
-      showToast("شناسه بودجه پیدا نشد", "error");
+      showToast("شناسه بودجه پیدا نشد");
 
       return;
     }
 
     const currentDate = new Date();
-
     const year = currentDate.getFullYear();
-
     const month = currentDate.getMonth() + 1;
-
     const budgetData = {
-      wallet_id: Number(walletId),
-
-      category_id: Number(categoryId),
-
-      amount: Number(amount),
-
-      year: Number(year),
-
-      month: Number(month),
+      wallet_id: +walletId,
+      category_id: +categoryId,
+      amount: +amount,
+      year: +year,
+      month: +month,
     };
 
     const response = await api.put(`/budget/update/${budgetId}`, budgetData);
 
     showToast(response.data?.message || "بودجه با موفقیت ویرایش شد", "success");
-
     closeModal();
 
     await loadBudgets({
       local: true,
     });
   } catch (error) {
-    console.error("Update budget error:", error);
-
     showToast(error.response?.data?.message || "خطا در ویرایش بودجه", "error");
   }
 }
 
-// ======================================================
 // Progress
-// ======================================================
-
 function updateProgress(card, spent, total) {
   let percentage = total > 0 ? (spent / total) * 100 : 0;
 
@@ -900,13 +628,9 @@ function updateProgress(card, spent, total) {
   }
 
   const remaining = Math.max(total - spent, 0);
-
   const percentageElement = card.querySelector(".percentage");
-
   const remainingElement = card.querySelector(".remaining");
-
   const progressFill = card.querySelector(".progress-fill");
-
   if (percentageElement) {
     percentageElement.textContent = `${Math.round(percentage)}٪ مصرف شده`;
   }
@@ -926,34 +650,24 @@ function updateProgress(card, spent, total) {
   }
 }
 
-// ======================================================
 // Initial Load
-// ======================================================
-
 async function init() {
   showGlobalLoader();
 
   try {
-    // اول ارز پایه پروفایل
     await loadBaseCurrency();
-
-    // بعد دسته‌بندی‌ها
     await loadCategories();
-
-    // بعد بودجه‌ها
     await loadBudgets();
   } catch (error) {
-    console.error("INITIAL LOAD ERROR:", error);
+    showToast("INITIAL LOAD ERROR:");
   } finally {
     hideGlobalLoader();
   }
 }
 
 budgetAmount.addEventListener("input", function () {
-  // حذف همه چیز به جز عدد
   let value = this.value.replace(/\D/g, "");
 
-  // جدا کردن اعداد سه‌تا سه‌تا
   if (value) {
     this.value = Number(value).toLocaleString("en-US");
   } else {
@@ -961,8 +675,5 @@ budgetAmount.addEventListener("input", function () {
   }
 });
 
-// ======================================================
 // Init
-// ======================================================
-
 init();

@@ -1,109 +1,72 @@
 import api from "./api.js";
-
 import { showToast } from "../../utils/Toast.js";
-
 import "../../utils/notification.js";
 
-// ======================================================
 // Elements
-// ======================================================
-
 const usernameElement = document.querySelector("#headerUsername");
-
 const searchInput = document.getElementById("search");
 const monthFilter = document.getElementById("monthFilter");
 const categoryFilter = document.getElementById("categoryFilter");
 const tagFilter = document.getElementById("tagFilter");
 const paymentFilter = document.getElementById("paymentFilter");
 const sortFilter = document.getElementById("sortFilter");
-
 const transactionBody = document.getElementById("transactionBody");
-
 const addTransactionBtn = document.querySelector(".add-btn");
 const closeModalBtn = document.querySelector(".close-modal");
 const transactionModal = document.querySelector(".transaction-modal");
 const cancelBtn = document.querySelector(".cancel-btn");
 const saveBtn = document.querySelector(".save-btn");
-
 const transactionModalTitle = document.getElementById("transactionTitle");
 const transactionModalAmount = document.getElementById("transactionAmount");
-
 const categoryOptionsContainer = document.querySelector(".category-options");
-
 const categoryError = document.querySelector(".categoryError");
-
 const receiptInput = document.getElementById("receiptInput");
 const receiptPreview = document.getElementById("receiptPreview");
 const receiptCanvas = document.getElementById("receiptCanvas");
 const cropReceiptBtn = document.getElementById("cropReceiptBtn");
 const removeReceiptBtn = document.getElementById("removeReceiptBtn");
-
 const recurringTransaction = document.getElementById("recurringTransaction");
-
 const recurringFields = document.getElementById("recurringFields");
-
 const modalContent = document.querySelector(".modal-content");
 const modalOverlay = document.querySelector(".modal-overlay");
-
 const uploadProgress = document.querySelector(".upload-progress");
 const uploadPercent = document.querySelector("#uploadPercent");
 const uploadProgressFill = document.querySelector(".upload-progress-fill");
-
 const tagOptionsContainer = document.querySelector(".tag-options");
 const paymentOptionsContainer = document.querySelector(".payment-options");
 
-// ======================================================
 // State
-// ======================================================
-
 let selectedCategory = "";
 let selectedCategoryId = "";
 let selectedParentCategoryId = null;
-
 let categories = [];
 let transactions = [];
 let tags = [];
 let paymentMethods = [];
-
 let editingTransaction = null;
-
 let isLoadingMore = false;
 let hasMoreTransactions = true;
 let currentTransactionCount = 0;
-
 let baseCurrency = "";
 let displayCurrency = null;
-
 let receiptImage = null;
 let croppedReceipt = null;
 
-// ======================================================
 // Username
-// ======================================================
-
 const username = localStorage.getItem("userName");
 
 if (usernameElement) {
   usernameElement.textContent = username || "کاربر";
 }
 
-// ======================================================
 // Format Money
-// ======================================================
-
 function formatMoney(number) {
-  const numericNumber = Number(number) || 0;
-
+  const numericNumber = +number || 0;
   const formatted = numericNumber.toLocaleString("en-US", {
     maximumFractionDigits: 2,
   });
 
-  const currency =
-    displayCurrency?.symbol ||
-    displayCurrency?.currency_symbol ||
-    displayCurrency?.currencySymbol ||
-    baseCurrency ||
-    "";
+  const currency = displayCurrency?.symbol || baseCurrency || "";
 
   if (!currency) {
     return formatted;
@@ -112,14 +75,10 @@ function formatMoney(number) {
   return `${formatted} ${currency}`;
 }
 
-// ======================================================
 // Load Base Currency
-// ======================================================
-
 async function loadBaseCurrency() {
   try {
     const response = await api.get("/profile");
-
     const profile = response.data?.data?.profile;
 
     if (!profile) {
@@ -130,19 +89,14 @@ async function loadBaseCurrency() {
     const profileCurrency = profile.currency;
 
     if (profileCurrency && typeof profileCurrency === "object") {
-      baseCurrency =
-        profileCurrency.symbol ||
-        profileCurrency.currency_symbol ||
-        profileCurrency.currencySymbol ||
-        "";
+      baseCurrency = profileCurrency.symbol || "";
 
       if (baseCurrency) {
         return;
       }
     }
 
-    const currencyId =
-      profileCurrency?.id ?? profile.currency_id ?? profile.currencyId ?? null;
+    const currencyId = profileCurrency?.id ?? null;
 
     if (currencyId === null || currencyId === undefined || currencyId === "") {
       baseCurrency = "";
@@ -156,14 +110,10 @@ async function loadBaseCurrency() {
   }
 }
 
-// ======================================================
 // Load Currency By ID
-// ======================================================
-
 async function loadCurrencyById(currencyId) {
   try {
     const response = await api.get("/currencies");
-
     const currencies = response.data?.data?.currencies || [];
 
     if (!Array.isArray(currencies)) {
@@ -171,9 +121,7 @@ async function loadCurrencyById(currencyId) {
       return;
     }
 
-    const currency = currencies.find(
-      (item) => +item.id === +currencyId || +item.currency_id === +currencyId,
-    );
+    const currency = currencies.find((item) => +item.id === +currencyId);
 
     if (!currency) {
       console.error("ارز پایه پیدا نشد:", currencyId);
@@ -181,21 +129,14 @@ async function loadCurrencyById(currencyId) {
       return;
     }
 
-    baseCurrency =
-      currency.symbol ||
-      currency.currency_symbol ||
-      currency.currencySymbol ||
-      "";
+    baseCurrency = currency.symbol || "";
   } catch (error) {
     console.error("Currencies Error:", error);
     baseCurrency = "";
   }
 }
 
-// ======================================================
 // Save Button Loading
-// ======================================================
-
 function showSaveLoader() {
   if (!saveBtn) {
     return;
@@ -203,7 +144,6 @@ function showSaveLoader() {
 
   saveBtn.disabled = true;
   saveBtn.classList.add("loading");
-
   const text = saveBtn.querySelector("span");
 
   if (text) {
@@ -220,7 +160,6 @@ function hideSaveLoader() {
 
   saveBtn.disabled = false;
   saveBtn.classList.remove("loading");
-
   const text = saveBtn.querySelector("span");
 
   if (text) {
@@ -228,10 +167,7 @@ function hideSaveLoader() {
   }
 }
 
-// ======================================================
 // Skeleton Loader
-// ======================================================
-
 function showTransactionSkeleton(count = 6) {
   if (!transactionBody) {
     return;
@@ -241,34 +177,26 @@ function showTransactionSkeleton(count = 6) {
 
   for (let i = 0; i < count; i++) {
     const row = document.createElement("tr");
-
     row.className = "skeleton-row";
-
     row.innerHTML = `
       <td>
         <span class="skeleton skeleton-short"></span>
       </td>
-
       <td>
         <span class="skeleton skeleton-long"></span>
       </td>
-
       <td>
         <span class="skeleton skeleton-medium"></span>
       </td>
-
       <td>
         <span class="skeleton skeleton-number"></span>
       </td>
-
       <td>
         <span class="skeleton skeleton-medium"></span>
       </td>
-
       <td>
         <span class="skeleton skeleton-medium"></span>
       </td>
-
       <td>
         <span class="skeleton skeleton-actions"></span>
       </td>
@@ -278,10 +206,7 @@ function showTransactionSkeleton(count = 6) {
   }
 }
 
-// ======================================================
 // Parent ID
-// ======================================================
-
 function getParentId(category) {
   if (!category) {
     return null;
@@ -306,10 +231,7 @@ function getParentId(category) {
   return null;
 }
 
-// ======================================================
 // Get Children
-// ======================================================
-
 function getCategoryChildren(category) {
   if (!category) {
     return [];
@@ -332,10 +254,7 @@ function getCategoryChildren(category) {
   });
 }
 
-// ======================================================
 // Find Category By ID
-// ======================================================
-
 function findCategoryById(categoryId) {
   if (categoryId === null || categoryId === undefined || categoryId === "") {
     return null;
@@ -349,7 +268,6 @@ function findCategoryById(categoryId) {
     }
 
     const children = getCategoryChildren(category);
-
     const child = children.find((item) => String(item.id) === id);
 
     if (child) {
@@ -360,10 +278,7 @@ function findCategoryById(categoryId) {
   return null;
 }
 
-// ======================================================
 // Find Parent Category
-// ======================================================
-
 function findParentCategory(categoryId) {
   if (categoryId === null || categoryId === undefined || categoryId === "") {
     return null;
@@ -398,17 +313,13 @@ function findParentCategory(categoryId) {
   return null;
 }
 
-// ======================================================
 // Get Parent Category ID
-// ======================================================
-
 function getParentCategoryId(categoryId) {
   if (categoryId === null || categoryId === undefined || categoryId === "") {
     return "";
   }
 
   const id = String(categoryId);
-
   const parentCategory = findParentCategory(id);
 
   if (parentCategory) {
@@ -416,13 +327,11 @@ function getParentCategoryId(categoryId) {
   }
 
   const category = findCategoryById(id);
-
   if (!category) {
     return id;
   }
 
   const parentId = getParentId(category);
-
   if (parentId === null || parentId === undefined || parentId === "") {
     return String(category.id);
   }
@@ -430,10 +339,7 @@ function getParentCategoryId(categoryId) {
   return String(parentId);
 }
 
-// ======================================================
 // Category Click
-// ======================================================
-
 if (categoryOptionsContainer) {
   categoryOptionsContainer.addEventListener("click", (event) => {
     const categoryButton = event.target.closest(".category-option");
@@ -443,7 +349,6 @@ if (categoryOptionsContainer) {
     }
 
     const categoryId = String(categoryButton.dataset.categoryId);
-
     const categoryName =
       categoryButton.querySelector("span")?.textContent.trim() || "";
 
@@ -454,7 +359,6 @@ if (categoryOptionsContainer) {
       });
 
     categoryButton.classList.add("active");
-
     const currentCategory = findCategoryById(categoryId);
 
     if (!currentCategory) {
@@ -492,10 +396,7 @@ if (categoryOptionsContainer) {
   });
 }
 
-// ======================================================
 // Show Subcategories
-// ======================================================
-
 function showSubcategories(children, parentButton) {
   const oldDropdown = parentButton.parentElement.querySelector(
     ".subcategory-dropdown",
@@ -517,7 +418,6 @@ function showSubcategories(children, parentButton) {
 
   children.forEach((child) => {
     const option = document.createElement("option");
-
     option.value = child.id;
     option.textContent = child.name;
 
@@ -555,34 +455,7 @@ function showSubcategories(children, parentButton) {
   parentButton.parentElement.appendChild(dropdown);
 }
 
-// ======================================================
 // Transaction Helpers
-// ======================================================
-
-function getTransactionTitle(transaction) {
-  return (
-    transaction.title ||
-    transaction.description ||
-    transaction.name ||
-    transaction.note ||
-    ""
-  );
-}
-
-// مبلغ اصلی تراکنش
-function getTransactionAmount(transaction) {
-  return Number(transaction.amount) || 0;
-}
-
-// مبلغ تبدیل‌شده برای نمایش
-function getTransactionDisplayAmount(transaction) {
-  return Number(transaction.display_amount) || 0;
-}
-
-function getTransactionType(transaction) {
-  return transaction.type || "expense";
-}
-
 function getTransactionCategoryId(transaction) {
   return (
     transaction.category_id ||
@@ -592,15 +465,8 @@ function getTransactionCategoryId(transaction) {
   );
 }
 
-// ======================================================
 // Transaction Category Name
-// ======================================================
-
 function getTransactionCategoryName(transaction) {
-  if (transaction.category?.name) {
-    return transaction.category.name;
-  }
-
   if (transaction.category_name) {
     return transaction.category_name;
   }
@@ -609,7 +475,7 @@ function getTransactionCategoryName(transaction) {
     return transaction.category;
   }
 
-  const categoryId = getTransactionCategoryId(transaction);
+  const categoryId = transaction.category?.id || "";
 
   if (!categoryId) {
     return "بدون دسته";
@@ -620,24 +486,14 @@ function getTransactionCategoryName(transaction) {
   if (category) {
     return category.name;
   }
-
   return "بدون دسته";
 }
 
-// ======================================================
 // Payment
-// ======================================================
-
 function getTransactionPayment(transaction) {
-  if (!transaction) {
-    return "";
-  }
+  if (!transaction) return "";
 
-  const payment =
-    transaction.payment_method ??
-    transaction.paymentMethod ??
-    transaction.payment ??
-    "";
+  const payment = transaction.payment_method ?? "";
 
   if (!payment) {
     return "";
@@ -646,11 +502,8 @@ function getTransactionPayment(transaction) {
   if (typeof payment === "object" && payment !== null) {
     return (
       payment.name ||
-      payment.title ||
-      payment.label ||
       payment.method ||
       payment.payment_method ||
-      payment.code ||
       payment.id ||
       ""
     );
@@ -659,17 +512,14 @@ function getTransactionPayment(transaction) {
   return String(payment).trim();
 }
 
-// ======================================================
 // Tags
-// ======================================================
-
 function getTagId(tag) {
   if (!tag) {
     return "";
   }
 
   if (typeof tag === "object") {
-    return tag.id ?? tag.tag_id ?? tag.tagId ?? "";
+    return tag.id ?? "";
   }
 
   return tag;
@@ -684,7 +534,7 @@ function getTagName(tag) {
     return tag;
   }
 
-  return tag.name || tag.title || tag.label || "";
+  return tag.name || "";
 }
 
 function findTagById(tagId) {
@@ -696,9 +546,7 @@ function findTagById(tagId) {
 }
 
 function getTransactionTagId(transaction) {
-  if (!transaction) {
-    return "";
-  }
+  if (!transaction) return "";
 
   if (
     transaction.tag_id !== undefined &&
@@ -747,14 +595,10 @@ function getTransactionTag(transaction) {
   }
 
   const tag = findTagById(tagId);
-
   return getTagName(tag);
 }
 
-// ======================================================
 // Get Tags From API
-// ======================================================
-
 async function getTags() {
   const token = localStorage.getItem("token");
 
@@ -766,12 +610,7 @@ async function getTags() {
 
   try {
     const response = await api.get("/tags");
-
-    tags =
-      response.data?.data?.tags ||
-      response.data?.data ||
-      response.data?.tags ||
-      [];
+    tags = response.data?.data?.tags || [];
 
     if (!Array.isArray(tags)) {
       tags = [];
@@ -793,7 +632,6 @@ async function getTags() {
         }
 
         const option = document.createElement("option");
-
         option.value = tagId;
         option.textContent = tagName;
 
@@ -841,10 +679,7 @@ async function getTags() {
   }
 }
 
-// ======================================================
 // Tag Selection
-// ======================================================
-
 if (tagOptionsContainer) {
   tagOptionsContainer.addEventListener("change", (event) => {
     const input = event.target.closest('.tag-option input[type="checkbox"]');
@@ -865,10 +700,7 @@ if (tagOptionsContainer) {
   });
 }
 
-// ======================================================
 // Get Payment Methods
-// ======================================================
-
 async function getPaymentMethods() {
   const token = localStorage.getItem("token");
 
@@ -880,13 +712,7 @@ async function getPaymentMethods() {
 
   try {
     const response = await api.get("/payment-methods");
-
-    paymentMethods =
-      response.data?.data?.payment_methods ||
-      response.data?.data?.paymentMethods ||
-      response.data?.payment_methods ||
-      response.data?.paymentMethods ||
-      [];
+    paymentMethods = response.data?.data?.payment_methods || [];
 
     if (!Array.isArray(paymentMethods)) {
       paymentMethods = [];
@@ -913,22 +739,14 @@ async function getPaymentMethods() {
             : method;
 
         const methodName =
-          typeof method === "string"
-            ? method
-            : method.name ||
-              method.title ||
-              method.label ||
-              method.method ||
-              "";
+          typeof method === "string" ? method : method.name || "";
 
         if (!methodName) {
           return;
         }
 
         const option = document.createElement("option");
-
         option.value = methodId || methodName;
-
         option.textContent = methodName;
         option.dataset.name = methodName;
 
@@ -938,7 +756,6 @@ async function getPaymentMethods() {
 
     if (paymentOptionsContainer) {
       paymentOptionsContainer.innerHTML = "";
-
       paymentMethods.forEach((method) => {
         if (!method) {
           return;
@@ -953,22 +770,14 @@ async function getPaymentMethods() {
             : method;
 
         const methodName =
-          typeof method === "string"
-            ? method
-            : method.name ||
-              method.title ||
-              method.label ||
-              method.method ||
-              "";
+          typeof method === "string" ? method : method.name || "";
 
         if (!methodName) {
           return;
         }
 
         const label = document.createElement("label");
-
         label.className = "payment-option";
-
         label.innerHTML = `
           <input
             type="radio"
@@ -976,7 +785,6 @@ async function getPaymentMethods() {
             value="${methodName}"
             data-payment-id="${methodId || ""}"
           />
-
           <span>
             ${methodName}
           </span>
@@ -986,33 +794,21 @@ async function getPaymentMethods() {
       });
     }
   } catch (error) {
-    console.error("Payment Methods Error:", error);
-
-    showToast(
-      error.response?.data?.message || "روش‌های پرداخت دریافت نشدند.",
-      "error",
-    );
+    showToast(error.response?.data?.message || "روش‌های پرداخت دریافت نشدند.");
   }
 }
 
-// ======================================================
 // Date Helper
-// ======================================================
-
 function getTransactionDate(transaction) {
   const date = transaction.created_at || "";
 
   if (!date) {
     return "";
   }
-
   return String(date).split(" ")[0].split("T")[0];
 }
 
-// ======================================================
 // Recurring Helpers
-// ======================================================
-
 function getFrequencyValue() {
   const frequencyInput =
     document.querySelector('input[name="frequency"]:checked') ||
@@ -1057,7 +853,6 @@ function resetRecurringFields() {
   }
 
   const frequencyInputs = document.querySelectorAll('input[name="frequency"]');
-
   frequencyInputs.forEach((input) => {
     input.checked = false;
   });
@@ -1091,17 +886,13 @@ function resetRecurringFields() {
   }
 }
 
-// ======================================================
 // Show Transactions
-// ======================================================
-
 function showTransactions(transactionList) {
   if (!transactionBody) {
     return;
   }
 
   transactionBody.innerHTML = "";
-
   if (transactionList.length === 0) {
     transactionBody.innerHTML = `
       <tr>
@@ -1114,35 +905,21 @@ function showTransactions(transactionList) {
         </td>
       </tr>
     `;
-
     return;
   }
 
   transactionList.forEach((transaction, index) => {
     const row = document.createElement("tr");
-
-    const title = getTransactionTitle(transaction);
-
-    const displayAmountValue = getTransactionDisplayAmount(transaction);
-
-    const type = getTransactionType(transaction);
-
+    const title = transaction.title;
+    const displayAmountValue = +transaction.display_amount || 0;
+    const type = transaction.type || "expense";
     const categoryName = getTransactionCategoryName(transaction);
-
     const categoryId = getTransactionCategoryId(transaction);
-
     const payment = getTransactionPayment(transaction);
-
     const tag = getTransactionTag(transaction);
-
     const tagId = getTransactionTagId(transaction);
-
     const date = getTransactionDate(transaction);
 
-    /*
-     * income = مثبت
-     * expense = منفی
-     */
     const displayAmount =
       type === "expense"
         ? Math.abs(displayAmountValue)
@@ -1162,50 +939,32 @@ function showTransactions(transactionList) {
     }
 
     row.dataset.id = transaction.id || "";
-
     row.dataset.month = month;
-
     row.dataset.categoryId = categoryId;
-
     row.dataset.category = categoryName;
-
     row.dataset.tag = tag;
-
     row.dataset.tagId = tagId;
-
     row.dataset.payment = payment;
-
-    /*
-     * برای نمایش و مرتب‌سازی UI
-     * مبلغ تبدیل‌شده را نگه می‌داریم
-     */
     row.dataset.amount = displayAmount;
-
     row.innerHTML = `
         <td class="listId">
           ${index + 1}
         </td>
-
         <td>
           ${title}
         </td>
-
         <td>
           ${categoryName}
         </td>
-
         <td class="${amountClass}">
           ${formattedAmount}
         </td>
-
         <td>
           ${tag || "-"}
         </td>
-
         <td>
           ${date}
         </td>
-
         <td>
           <button
             class="delete-btn"
@@ -1213,7 +972,6 @@ function showTransactions(transactionList) {
           >
             <i class="fas fa-trash"></i>
           </button>
-
           <button
             class="edit-btn"
             data-id="${transaction.id || ""}"
@@ -1227,23 +985,14 @@ function showTransactions(transactionList) {
   });
 }
 
-// ======================================================
 // Filter + Sort
-// ======================================================
-
 function filterTransactions() {
   const searchValue = searchInput?.value.trim().toLowerCase() || "";
-
   const selectedMonth = monthFilter?.value || "all";
-
   const selectedCategoryFilter = categoryFilter?.value || "all";
-
   const selectedTag = tagFilter?.value || "all";
-
   const selectedPayment = paymentFilter?.value || "all";
-
   const selectedSort = sortFilter?.value || "";
-
   const paymentNameMap = {
     cash: "نقدی",
     card: "کارت",
@@ -1252,19 +1001,11 @@ function filterTransactions() {
   };
 
   let filteredTransactions = transactions.filter((transaction) => {
-    const title = getTransactionTitle(transaction);
-
+    const title = transaction.title;
     const date = getTransactionDate(transaction);
-
     const categoryId = getTransactionCategoryId(transaction);
-
     const transactionTagId = getTransactionTagId(transaction);
-
-    const paymentValue =
-      transaction.payment_method ??
-      transaction.paymentMethod ??
-      transaction.payment ??
-      "";
+    const paymentValue = transaction.payment_method ?? "";
 
     const payment = getTransactionPayment(transaction);
 
@@ -1319,14 +1060,10 @@ function filterTransactions() {
     );
   });
 
-  // ====================================================
   // Sort
-  // ====================================================
-
   filteredTransactions.sort((a, b) => {
-    const amountA = Math.abs(getTransactionDisplayAmount(a));
-
-    const amountB = Math.abs(getTransactionDisplayAmount(b));
+    const amountA = Math.abs(+a.display_amount || 0);
+    const amountB = Math.abs(+b.display_amount || 0);
 
     if (selectedSort === "highest") {
       return amountB - amountA;
@@ -1342,30 +1079,19 @@ function filterTransactions() {
   showTransactions(filteredTransactions);
 }
 
-// ======================================================
 // Open Modal
-// ======================================================
-
 function openModal() {
   transactionModal?.classList.remove("hidden");
-
   modalContent?.classList.add("animate");
 }
 
-// ======================================================
 // Close Modal
-// ======================================================
-
 function closeModal() {
   transactionModal?.classList.add("hidden");
-
   modalContent?.classList.remove("animate");
 }
 
-// ======================================================
 // Reset Category
-// ======================================================
-
 function resetCategorySelection() {
   selectedCategory = "";
   selectedCategoryId = "";
@@ -1390,10 +1116,7 @@ function resetCategorySelection() {
   categoryError?.classList.add("hidden");
 }
 
-// ======================================================
 // Reset Tags
-// ======================================================
-
 function resetTagSelection() {
   if (!tagOptionsContainer) {
     return;
@@ -1406,10 +1129,7 @@ function resetTagSelection() {
     });
 }
 
-// ======================================================
 // Reset Payment
-// ======================================================
-
 function resetPaymentSelection() {
   if (!paymentOptionsContainer) {
     return;
@@ -1422,25 +1142,18 @@ function resetPaymentSelection() {
     });
 }
 
-// ======================================================
 // Create New Transaction
-// ======================================================
-
 async function createNewTransaction(e) {
   e.preventDefault();
-
   const title = document.getElementById("transactionTitle")?.value.trim();
-
-  const amount = Number(transactionAmount.value.replace(/,/g, ""));
+  const amount = +transactionAmount.value.replace(/,/g, "");
 
   const selectedPayment = document.querySelector(
     'input[name="payment"]:checked',
   );
 
   const paymentMethod = selectedPayment?.value || "";
-
   const token = localStorage.getItem("token");
-
   const walletId = localStorage.getItem("walletId");
 
   if (!title) {
@@ -1485,19 +1198,12 @@ async function createNewTransaction(e) {
     );
 
     const selectedTagId = selectedTagInput?.value || "";
-
     const transactionData = new FormData();
-
     transactionData.append("wallet_id", walletId);
-
     transactionData.append("category_id", selectedCategoryId);
-
     transactionData.append("title", title);
-
     transactionData.append("payment_method", paymentMethod);
-
     transactionData.append("type", type);
-
     transactionData.append("amount", amount);
 
     if (selectedTagId) {
@@ -1519,19 +1225,13 @@ async function createNewTransaction(e) {
         document.getElementById("recurringFrequency")?.value || "";
 
       const repeatCount = document.getElementById("repeatCount")?.value || "";
-
       const endDate = document.getElementById("recurringEndDate")?.value || "";
-
       transactionData.append("frequency", frequency);
-
       transactionData.append("repeat_count", repeatCount);
-
       transactionData.append("end_date", endDate);
     } else {
       transactionData.append("frequency", "");
-
       transactionData.append("repeat_count", "");
-
       transactionData.append("end_date", "");
     }
 
@@ -1562,7 +1262,6 @@ async function createNewTransaction(e) {
         showSaveLoader();
 
         transactionData.append("confirm_over_budget", "true");
-
         response = await api.post("/transaction/create", transactionData);
       } else {
         throw error;
@@ -1570,12 +1269,7 @@ async function createNewTransaction(e) {
     }
 
     if (response?.data?.success !== false) {
-      /*
-       * دوباره transactions را می‌گیریم
-       * تا display_amount جدید هم از API بیاید.
-       */
       await getTransactions();
-
       showToast(
         response?.data?.message || "تراکنش با موفقیت ثبت شد.",
         "success",
@@ -1590,27 +1284,16 @@ async function createNewTransaction(e) {
       croppedReceipt = null;
     }
   } catch (error) {
-    console.error("Create transaction error:", error);
-
-    showToast(
-      error.response?.data?.data?.message ||
-        error.response?.data?.message ||
-        "ثبت تراکنش انجام نشد.",
-      "error",
-    );
+    showToast(error.response?.data?.data?.message || "ثبت تراکنش انجام نشد.");
   } finally {
     hideSaveLoader();
   }
 }
 
-// ======================================================
 // Delete + Edit
-// ======================================================
-
 if (transactionBody) {
   transactionBody.addEventListener("click", async (event) => {
     // Delete
-
     const deleteBtn = event.target.closest(".delete-btn");
 
     if (deleteBtn) {
@@ -1621,32 +1304,25 @@ if (transactionBody) {
       }
 
       const transactionId = row.dataset.id;
-
       if (!transactionId) {
-        showToast("شناسه تراکنش پیدا نشد.", "error");
-
+        showToast("شناسه تراکنش پیدا نشد.");
         return;
       }
 
       const token = localStorage.getItem("token");
-
       if (!token) {
-        showToast("توکن ورود پیدا نشد. دوباره وارد شوید.", "error");
-
+        showToast("توکن ورود پیدا نشد. دوباره وارد شوید.");
         return;
       }
 
       try {
         deleteBtn.disabled = true;
-
         deleteBtn.innerHTML = `
             <i class="fas fa-spinner fa-spin"></i>
           `;
 
         await api.delete(`/transaction/delete/${transactionId}`);
-
         showToast("تراکنش با موفقیت حذف شد.", "success");
-
         row.classList.add("slide-out");
 
         setTimeout(() => {
@@ -1659,12 +1335,7 @@ if (transactionBody) {
           filterTransactions();
         }, 400);
       } catch (error) {
-        console.error("Delete transaction error:", error);
-
-        showToast(
-          error.response?.data?.message || "حذف تراکنش انجام نشد.",
-          "error",
-        );
+        showToast(error.response?.data?.message || "حذف تراکنش انجام نشد.");
 
         deleteBtn.disabled = false;
 
@@ -1677,7 +1348,6 @@ if (transactionBody) {
     }
 
     // Edit
-
     const editBtn = event.target.closest(".edit-btn");
 
     if (editBtn) {
@@ -1692,10 +1362,7 @@ if (transactionBody) {
   });
 }
 
-// ======================================================
 // Edit Modal
-// ======================================================
-
 function openEditModal(row) {
   const transactionId = row.dataset.id;
 
@@ -1712,23 +1379,18 @@ function openEditModal(row) {
   editingTransaction = transaction;
 
   // Title
-
-  transactionModalTitle.value = getTransactionTitle(transaction);
+  transactionModalTitle.value = transaction.title;
 
   // Amount
-
   transactionModalAmount.value = Math.abs(
-    getTransactionAmount(transaction),
+    +transaction.amount || 0,
   ).toLocaleString("en-US");
 
   // Category
-
   resetCategorySelection();
 
   const categoryId = getTransactionCategoryId(transaction);
-
   const categoryName = getTransactionCategoryName(transaction);
-
   const parentCategory = findParentCategory(categoryId);
 
   if (categoryOptionsContainer) {
@@ -1745,17 +1407,14 @@ function openEditModal(row) {
           categoryButton.classList.add("active");
 
           const currentCategory = findCategoryById(buttonCategoryId);
-
           const children = currentCategory
             ? getCategoryChildren(currentCategory)
             : [];
 
           if (children.length > 0) {
             selectedParentCategoryId = String(buttonCategoryId);
-
             selectedCategory = "";
             selectedCategoryId = "";
-
             categoryError?.classList.remove("hidden");
 
             showSubcategories(children, categoryButton);
@@ -1770,20 +1429,14 @@ function openEditModal(row) {
 
             if (dropdown && child) {
               dropdown.value = child.id;
-
               selectedCategory = child.name;
-
               selectedCategoryId = String(child.id);
-
               categoryError?.classList.add("hidden");
             }
           } else {
             selectedCategory = categoryName;
-
             selectedCategoryId = String(categoryId);
-
             selectedParentCategoryId = null;
-
             categoryError?.classList.add("hidden");
           }
         }
@@ -1791,9 +1444,7 @@ function openEditModal(row) {
   }
 
   // Transaction Type
-
-  const transactionType = getTransactionType(transaction);
-
+  const transactionType = transaction.type || "expense";
   const typeRadio = document.querySelector(
     `input[name="transactionType"][value="${transactionType}"]`,
   );
@@ -1803,7 +1454,6 @@ function openEditModal(row) {
   }
 
   // Payment
-
   const payment = getTransactionPayment(transaction);
 
   if (paymentOptionsContainer) {
@@ -1815,7 +1465,6 @@ function openEditModal(row) {
   }
 
   // Tag
-
   const transactionTagId = getTransactionTagId(transaction);
 
   if (tagOptionsContainer) {
@@ -1827,7 +1476,6 @@ function openEditModal(row) {
   }
 
   // Recurring
-
   const isPeriodic =
     transaction.is_periodic === true ||
     transaction.is_periodic === 1 ||
@@ -1843,9 +1491,7 @@ function openEditModal(row) {
   }
 
   // Frequency
-
   const transactionFrequency = transaction.frequency || "";
-
   const frequencyRadio = document.querySelector(
     `input[name="frequency"][value="${transactionFrequency}"]`,
   );
@@ -1863,7 +1509,6 @@ function openEditModal(row) {
   }
 
   // Repeat Count
-
   const repeatCountInput =
     document.getElementById("repeatCount") ||
     document.getElementById("repeat_count") ||
@@ -1875,7 +1520,6 @@ function openEditModal(row) {
   }
 
   // End Date
-
   const endDateInput =
     document.getElementById("endDate") ||
     document.getElementById("end_date") ||
@@ -1894,14 +1538,10 @@ function openEditModal(row) {
   };
 }
 
-// ======================================================
 // Update Transaction
-// ======================================================
-
 async function updateTransaction(row) {
   const newTitle = transactionModalTitle.value.trim();
-
-  const amount = Number(transactionAmount.value.replace(/,/g, ""));
+  const amount = +transactionAmount.value.replace(/,/g, "");
 
   if (!newTitle || !amount || !selectedCategoryId) {
     showToast("لطفاً اطلاعات تراکنش را کامل کنید.", "error");
@@ -1924,7 +1564,6 @@ async function updateTransaction(row) {
   );
 
   const payment = selectedPayment?.value || "";
-
   if (!payment) {
     showToast("لطفاً روش پرداخت را انتخاب کنید.", "error");
 
@@ -1932,9 +1571,7 @@ async function updateTransaction(row) {
   }
 
   const finalAmount = Math.abs(amount);
-
   const transactionId = editingTransaction?.id;
-
   if (!transactionId) {
     showToast("شناسه تراکنش پیدا نشد.", "error");
 
@@ -1942,7 +1579,6 @@ async function updateTransaction(row) {
   }
 
   const token = localStorage.getItem("token");
-
   if (!token) {
     showToast("توکن ورود پیدا نشد. دوباره وارد شوید.", "error");
 
@@ -1958,20 +1594,15 @@ async function updateTransaction(row) {
   );
 
   const tagId = selectedTag?.value || null;
-
   const isPeriodic = recurringTransaction?.checked || false;
-
   let frequency = "";
   let repeatCount = "";
   let endDate = "";
 
   if (isPeriodic) {
     frequency = getFrequencyValue();
-
     repeatCount = getRepeatCountValue();
-
     endDate = getEndDateValue();
-
     if (!frequency) {
       showToast("لطفاً دوره تکرار تراکنش را انتخاب کنید.", "error");
 
@@ -1979,14 +1610,12 @@ async function updateTransaction(row) {
     }
 
     if (!repeatCount || +repeatCount <= 0) {
-      showToast("لطفاً تعداد تکرار را وارد کنید.", "error");
-
+      showToast("لطفاً تعداد تکرار را وارد کنید.");
       return;
     }
 
     if (!endDate) {
-      showToast("لطفاً تاریخ پایان را انتخاب کنید.", "error");
-
+      showToast("لطفاً تاریخ پایان را انتخاب کنید.");
       return;
     }
   }
@@ -2009,13 +1638,7 @@ async function updateTransaction(row) {
     showSaveLoader();
 
     await api.put(`/transaction/update/${transactionId}`, transactionData);
-
-    /*
-     * دوباره اطلاعات را می‌گیریم
-     * تا display_amount جدید از API دریافت شود.
-     */
     await getTransactions();
-
     showToast("تراکنش با موفقیت ویرایش شد.", "success");
 
     transactionModalTitle.value = "";
@@ -2027,26 +1650,17 @@ async function updateTransaction(row) {
     resetRecurringFields();
 
     editingTransaction = null;
-
     saveBtn.onclick = createNewTransaction;
 
     closeModal();
   } catch (error) {
-    console.error("Update transaction error:", error);
-
-    showToast(
-      error.response?.data?.message || "ویرایش تراکنش انجام نشد.",
-      "error",
-    );
+    showToast(error.response?.data?.message || "ویرایش تراکنش انجام نشد.");
   } finally {
     hideSaveLoader();
   }
 }
 
-// ======================================================
 // Events
-// ======================================================
-
 if (searchInput) {
   searchInput.addEventListener("input", filterTransactions);
 }
@@ -2071,10 +1685,7 @@ if (sortFilter) {
   sortFilter.addEventListener("change", filterTransactions);
 }
 
-// ======================================================
-// Add Transaction
-// ======================================================
-
+// Add Transaction=
 if (addTransactionBtn) {
   addTransactionBtn.addEventListener("click", () => {
     editingTransaction = null;
@@ -2092,10 +1703,7 @@ if (addTransactionBtn) {
   });
 }
 
-// ======================================================
 // Close Buttons
-// ======================================================
-
 if (closeModalBtn) {
   closeModalBtn.addEventListener("click", closeModal);
 }
@@ -2108,10 +1716,7 @@ if (modalOverlay) {
   modalOverlay.addEventListener("click", closeModal);
 }
 
-// ======================================================
 // Recurring Transaction
-// ======================================================
-
 if (recurringTransaction) {
   recurringTransaction.addEventListener("change", () => {
     if (recurringTransaction.checked) {
@@ -2122,16 +1727,9 @@ if (recurringTransaction) {
   });
 }
 
-// ======================================================
 // Receipt Upload
-// ======================================================
-
 const ctx = receiptCanvas?.getContext("2d");
-
-// ======================================================
 // File Selected
-// ======================================================
-
 if (receiptInput) {
   receiptInput.addEventListener("change", (event) => {
     const file = event.target.files[0];
@@ -2168,12 +1766,9 @@ if (receiptInput) {
 
     reader.addEventListener("load", (e) => {
       const img = new Image();
-
       img.addEventListener("load", () => {
         receiptImage = img;
-
         drawReceipt(img);
-
         receiptPreview?.classList.remove("hidden");
 
         if (uploadProgressFill) {
@@ -2196,10 +1791,7 @@ if (receiptInput) {
   });
 }
 
-// ======================================================
 // Draw Receipt
-// ======================================================
-
 function drawReceipt(img) {
   if (!receiptCanvas || !ctx) {
     return;
@@ -2227,14 +1819,10 @@ function drawReceipt(img) {
   receiptCanvas.height = height;
 
   ctx.clearRect(0, 0, receiptCanvas.width, receiptCanvas.height);
-
   ctx.drawImage(img, 0, 0, width, height);
 }
 
-// ======================================================
 // Crop Receipt
-// ======================================================
-
 if (cropReceiptBtn) {
   cropReceiptBtn.addEventListener("click", () => {
     if (!receiptImage || !receiptCanvas || !ctx) {
@@ -2242,21 +1830,13 @@ if (cropReceiptBtn) {
     }
 
     const cropWidth = receiptCanvas.width * 0.8;
-
     const cropHeight = receiptCanvas.height * 0.8;
-
     const startX = (receiptCanvas.width - cropWidth) / 2;
-
     const startY = (receiptCanvas.height - cropHeight) / 2;
-
     const croppedCanvas = document.createElement("canvas");
-
     croppedCanvas.width = cropWidth;
-
     croppedCanvas.height = cropHeight;
-
     const croppedCtx = croppedCanvas.getContext("2d");
-
     croppedCtx.drawImage(
       receiptCanvas,
       startX,
@@ -2270,21 +1850,14 @@ if (cropReceiptBtn) {
     );
 
     receiptCanvas.width = cropWidth;
-
     receiptCanvas.height = cropHeight;
-
     ctx.clearRect(0, 0, receiptCanvas.width, receiptCanvas.height);
-
     ctx.drawImage(croppedCanvas, 0, 0);
-
     croppedReceipt = croppedCanvas.toDataURL("image/jpeg", 0.9);
   });
 }
 
-// ======================================================
 // Remove Receipt
-// ======================================================
-
 if (removeReceiptBtn) {
   removeReceiptBtn.addEventListener("click", () => {
     if (receiptInput) {
@@ -2302,22 +1875,17 @@ if (removeReceiptBtn) {
   });
 }
 
-// ======================================================
 // Get Categories From API
-// ======================================================
-
 async function getCategories() {
   const token = localStorage.getItem("token");
 
   if (!token) {
-    showToast("توکن ورود پیدا نشد. دوباره وارد شوید.", "error");
-
+    showToast("توکن ورود پیدا نشد. دوباره وارد شوید.");
     return;
   }
 
   try {
     const response = await api.get("/categories");
-
     categories = response.data?.data?.categories || [];
 
     if (!Array.isArray(categories)) {
@@ -2339,10 +1907,8 @@ async function getCategories() {
         }
 
         const option = document.createElement("option");
-
         option.value = category.id;
         option.textContent = category.name;
-
         categoryFilter.appendChild(option);
       });
     }
@@ -2352,13 +1918,9 @@ async function getCategories() {
 
       categories.forEach((category) => {
         const categoryBtn = document.createElement("button");
-
         categoryBtn.type = "button";
-
         categoryBtn.className = "category-option";
-
         categoryBtn.dataset.categoryId = category.id;
-
         categoryBtn.innerHTML = `
             <span>
               ${category.name}
@@ -2369,63 +1931,32 @@ async function getCategories() {
       });
     }
   } catch (error) {
-    console.error("Categories Error:", error);
-
-    showToast(
-      error.response?.data?.message || "دسته‌بندی‌ها دریافت نشدند.",
-      "error",
-    );
+    showToast(error.response?.data?.message || "دسته‌بندی‌ها دریافت نشدند.");
   }
 }
 
-// ======================================================
 // Get Transactions From API
-// ======================================================
-
 async function getTransactions() {
   const token = localStorage.getItem("token");
 
   if (!token) {
     showToast("توکن ورود پیدا نشد. دوباره وارد شوید.", "error");
-
     return;
   }
-
-  // Skeleton ON
 
   showTransactionSkeleton();
 
   try {
     const response = await api.get("/transactions");
-
     const data = response.data?.data;
-
-    /*
-     * لیست تراکنش‌ها
-     */
     transactions = data?.transactions || [];
 
     if (!Array.isArray(transactions)) {
       transactions = [];
     }
 
-    /*
-     * ارز فعلی برای نمایش
-     *
-     * مثال:
-     * {
-     *   id: 2,
-     *   name: "دلار آمریکا",
-     *   ISO: "USD",
-     *   symbol: "$"
-     * }
-     */
     displayCurrency = data?.display_currency || null;
 
-    /*
-     * اگر display_currency موجود بود،
-     * baseCurrency را هم با آن هماهنگ می‌کنیم.
-     */
     if (displayCurrency) {
       baseCurrency =
         displayCurrency.symbol ||
@@ -2436,17 +1967,9 @@ async function getTransactions() {
     }
 
     currentTransactionCount = transactions.length;
-
     hasMoreTransactions = true;
-
-    /*
-     * دوباره render می‌کنیم
-     * تا display_amount جدید نمایش داده شود.
-     */
     filterTransactions();
   } catch (error) {
-    console.error("Transactions Error:", error);
-
     transactionBody.innerHTML = `
       <tr>
         <td
@@ -2465,31 +1988,18 @@ async function getTransactions() {
   }
 }
 
-// ======================================================
 // Infinite Scroll
-// ======================================================
-
 async function loadMoreTransactions() {
   if (isLoadingMore || !hasMoreTransactions) {
     return;
   }
-
-  // فعلاً API pagination نداریم.
-  // بعداً اگر API صفحه‌بندی شد،
-  // این قسمت اضافه می‌شود.
 }
 
-// ======================================================
 // Infinite Scroll Listener
-// ======================================================
-
 window.addEventListener("scroll", () => {
   const scrollTop = window.scrollY;
-
   const windowHeight = window.innerHeight;
-
   const documentHeight = document.documentElement.scrollHeight;
-
   const distanceFromBottom = documentHeight - (scrollTop + windowHeight);
 
   if (distanceFromBottom <= 300) {
@@ -2497,71 +2007,46 @@ window.addEventListener("scroll", () => {
   }
 });
 
-// ======================================================
 // Initial Load
-// ======================================================
-
 async function initTransactionsPage() {
   showTransactionSkeleton();
-
   await loadBaseCurrency();
-
   await getCategories();
-
   await getTags();
-
   await getPaymentMethods();
-
   await getTransactions();
 }
 
-// ======================================================
+
 // Export Transactions
-// ======================================================
-
 const exportWrapper = document.querySelector(".export-wrapper");
-
 const exportBtn = document.getElementById("exportBtn");
-
 const exportMenu = document.getElementById("exportMenu");
-
 const exportOptions = document.querySelectorAll(".export-option");
-
 const exportUrls = {
   pdf: "https://wepaid.ir/reports/transactions/pdf-link",
-
   csv: "https://wepaid.ir/reports/transactions/csv-link",
 };
 
-// ======================================================
 // Open / Close Export Menu
-// ======================================================
-
 exportBtn?.addEventListener("click", (e) => {
   e.stopPropagation();
-
   exportWrapper.classList.toggle("active");
 });
 
-// ======================================================
-// Download Selected Format
-// ======================================================
 
+// Download Selected Format
 exportOptions.forEach((option) => {
   option.addEventListener("click", async () => {
     const format = option.dataset.format;
-
     const url = exportUrls[format];
-
     if (!url) {
       return;
     }
 
     try {
       option.disabled = true;
-
       const originalHTML = option.innerHTML;
-
       option.innerHTML = `
             <i class="fas fa-spinner fa-spin"></i>
             در حال آماده‌سازی...
@@ -2580,31 +2065,19 @@ exportOptions.forEach((option) => {
       }
 
       const link = document.createElement("a");
-
       link.href = downloadUrl;
-
       link.target = "_blank";
-
       link.rel = "noopener";
-
       document.body.appendChild(link);
-
       link.click();
-
       link.remove();
-
       showToast(`فایل ${format.toUpperCase()} با موفقیت آماده شد`, "success");
 
       exportWrapper.classList.remove("active");
-
       option.innerHTML = originalHTML;
-
       option.disabled = false;
     } catch (error) {
-      console.error("Export error:", error);
-
       showToast("دریافت خروجی با خطا مواجه شد", "error");
-
       option.disabled = false;
 
       if (format === "pdf") {
@@ -2622,10 +2095,7 @@ exportOptions.forEach((option) => {
   });
 });
 
-// ======================================================
 // Close Export Menu
-// ======================================================
-
 document.addEventListener("click", (e) => {
   if (exportWrapper && !exportWrapper.contains(e.target)) {
     exportWrapper.classList.remove("active");
@@ -2633,10 +2103,7 @@ document.addEventListener("click", (e) => {
 });
 
 transactionModalAmount.addEventListener("input", function () {
-  // فقط عدد
   let value = this.value.replace(/\D/g, "");
-
-  // جدا کردن سه‌تایی
   if (value) {
     this.value = Number(value).toLocaleString("en-US");
   } else {
@@ -2644,8 +2111,5 @@ transactionModalAmount.addEventListener("input", function () {
   }
 });
 
-// ======================================================
 // Init
-// ======================================================
-
 initTransactionsPage();

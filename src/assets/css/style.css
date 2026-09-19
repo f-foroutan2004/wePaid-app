@@ -962,8 +962,6 @@ label i {
   font-weight: 600;
 }
 
-
-
 .transactions .negative {
   color: var(--very-pink);
 }
@@ -3117,6 +3115,9 @@ tbody tr.slide-out {
   white-space: nowrap;
 }
 
+#inviteEmail {
+  direction: ltr;
+}
 /* Member Role */
 
 .wallet-member-role {
@@ -3860,47 +3861,33 @@ tbody tr.slide-out {
    Profile
 ========================= */
 
-.skeleton-profile-input {
-  width: 100%;
-  height: 44px;
-  border-radius: 8px;
+#profileForm {
+  position: relative;
 }
 
-.skeleton-profile-button {
-  width: 110px;
-  height: 42px;
-  border-radius: 8px;
+#profileForm.loading {
+  opacity: 0.65;
+  pointer-events: none;
 }
 
-/* =========================
-   Wallet
-========================= */
-
-.skeleton-wallet-card {
-  width: 100%;
-  min-height: 120px;
-  border-radius: 12px;
-  padding: 20px;
+#profileForm.loading::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
+  border: 3px solid #ddd;
+  border-top-color: #8e44ad;
+  border-radius: 50%;
+  animation: profileLoaderSpin 0.7s linear infinite;
 }
 
-.skeleton-wallet-title {
-  width: 130px;
-  height: 18px;
-  border-radius: 6px;
-  margin-bottom: 15px;
-}
-
-.skeleton-wallet-text {
-  width: 90px;
-  height: 14px;
-  border-radius: 6px;
-  margin-bottom: 10px;
-}
-
-.skeleton-wallet-number {
-  width: 110px;
-  height: 16px;
-  border-radius: 6px;
+@keyframes profileLoaderSpin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* =========================
@@ -4137,6 +4124,40 @@ tbody tr.slide-out {
 .income-amount {
   color: #28a745 !important;
   font-weight: 600 !important;
+}
+/* لرزش زنگوله هنگام دریافت نوتیفیکیشن */
+.notification-btn.shake i {
+  animation: bellShake 0.6s ease-in-out;
+}
+
+@keyframes bellShake {
+  0% {
+    transform: rotate(0);
+  }
+
+  15% {
+    transform: rotate(15deg);
+  }
+
+  30% {
+    transform: rotate(-15deg);
+  }
+
+  45% {
+    transform: rotate(12deg);
+  }
+
+  60% {
+    transform: rotate(-10deg);
+  }
+
+  75% {
+    transform: rotate(6deg);
+  }
+
+  100% {
+    transform: rotate(0);
+  }
 }
 .overlay.hidden {
   display: none;

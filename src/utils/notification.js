@@ -1,9 +1,6 @@
 import api from "../../src/assets/js/api.js";
 
-// ======================================================
-// Notifications
-// ======================================================
-
+// Elements
 const notificationBtn = document.getElementById("notificationBtn");
 const notificationBadge = document.getElementById("notificationBadge");
 const notificationDropdown = document.getElementById("notificationDropdown");
@@ -11,21 +8,25 @@ const notificationList = document.getElementById("notificationList");
 
 let notifications = [];
 
-// ======================================================
-// Load Notifications
-// ======================================================
+function shakeNotificationBell() {
+  const notificationBtn = document.getElementById("notificationBtn");
 
+  if (!notificationBtn) return;
+
+  notificationBtn.classList.remove("shake");
+  void notificationBtn.offsetWidth;
+  notificationBtn.classList.add("shake");
+}
+
+
+// Load Notifications
 async function loadNotifications() {
   try {
     const token = localStorage.getItem("token");
-
     if (!token) return;
 
-    const response = await api.get("/notifications", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await api.get("/notifications");
+    shakeNotificationBell();
 
     if (!response.data?.success) return;
 
@@ -38,10 +39,7 @@ async function loadNotifications() {
   }
 }
 
-// ======================================================
 // Badge
-// ======================================================
-
 function updateNotificationBadge() {
   const count = notifications.length;
 
@@ -53,10 +51,7 @@ function updateNotificationBadge() {
   }
 }
 
-// ======================================================
 // Render Notifications
-// ======================================================
-
 function renderNotifications() {
   if (!notifications.length) {
     notificationList.innerHTML = `
@@ -97,20 +92,13 @@ function renderNotifications() {
     .join("");
 }
 
-// ======================================================
 // Open / Close Dropdown
-// ======================================================
-
 notificationBtn?.addEventListener("click", (event) => {
   event.stopPropagation();
-
   notificationDropdown.classList.toggle("hidden");
 });
 
-// ======================================================
 // Close when clicking outside
-// ======================================================
-
 document.addEventListener("click", (event) => {
   if (
     notificationDropdown &&
@@ -121,12 +109,8 @@ document.addEventListener("click", (event) => {
   }
 });
 
-// ======================================================
 // Polling - Every 20 Seconds
-// ======================================================
-
 loadNotifications();
-
 setInterval(() => {
   loadNotifications();
 }, 20000);

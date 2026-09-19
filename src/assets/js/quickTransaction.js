@@ -1,63 +1,33 @@
 import api from "./api.js";
-
 import { showToast } from "../../utils/Toast.js";
 
-// ======================================================
 // Elements
-// ======================================================
-
 const quickAddBtn = document.getElementById("quickAddBtn");
-
 const transactionModal = document.querySelector(".transaction-modal");
-
 const transactionForm = document.querySelector(".transaction-form");
-
 const transactionTitle = document.getElementById("transactionTitle");
-
 const transactionAmount = document.getElementById("transactionAmount");
-
 const categoryOptions = document.querySelector(".category-options");
-
 const categoryError = document.querySelector(".categoryError");
-
 const tagOptions = document.querySelector(".tag-options");
-
 const paymentOptions = document.querySelector(".payment-options");
-
 const receiptInput = document.getElementById("receiptInput");
-
 const recurringTransaction = document.getElementById("recurringTransaction");
-
 const recurringFields = document.getElementById("recurringFields");
-
 const recurringFrequency = document.getElementById("recurringFrequency");
-
 const repeatCount = document.getElementById("repeatCount");
-
 const recurringEndDate = document.getElementById("recurringEndDate");
-
 const closeModalBtn = document.querySelector("#closeModal");
-
 const cancelBtn = document.querySelector(".cancel-btn");
-
 const modalOverlay = document.querySelector(".modal-overlay");
 
-// ======================================================
 // State
-// ======================================================
-
 let categories = [];
-
 let selectedCategoryId = null;
-
 let selectedParentCategoryId = null;
-
 let selectedReceiptFile = null;
 
-// ======================================================
 // Open Modal
-// ======================================================
-
 function openModal() {
   if (!transactionModal) {
     console.error("Transaction modal not found");
@@ -65,19 +35,14 @@ function openModal() {
   }
 
   transactionModal.classList.remove("hidden");
-
   loadCategories();
   loadTags();
   loadPaymentMethods();
 }
 
-// ======================================================
 // Close Modal
-// ======================================================
-
 function closeModal() {
   transactionModal?.classList.add("hidden");
-
   selectedCategoryId = null;
   selectedParentCategoryId = null;
   selectedReceiptFile = null;
@@ -85,30 +50,18 @@ function closeModal() {
   categoryError?.classList.add("hidden");
 }
 
-// ======================================================
 // Quick Add Button
-// ======================================================
-
 quickAddBtn?.addEventListener("click", (event) => {
   event.preventDefault();
-
   openModal();
 });
 
-// ======================================================
 // Close Modal
-// ======================================================
-
 closeModalBtn?.addEventListener("click", closeModal);
-
 cancelBtn?.addEventListener("click", closeModal);
-
 modalOverlay?.addEventListener("click", closeModal);
 
-// ======================================================
 // Recurring
-// ======================================================
-
 recurringTransaction?.addEventListener("change", () => {
   if (recurringTransaction.checked) {
     recurringFields?.classList.remove("hidden");
@@ -125,10 +78,7 @@ recurringTransaction?.addEventListener("change", () => {
   }
 });
 
-// ======================================================
 // Category Helpers
-// ======================================================
-
 function getParentId(category) {
   if (!category) return null;
 
@@ -167,15 +117,9 @@ function getCategoryChildren(category) {
   });
 }
 
-// ======================================================
 // Load Categories
-// ======================================================
-
 async function loadCategories() {
-  if (!categoryOptions) {
-    console.error(".category-options not found");
-    return;
-  }
+  if (!categoryOptions) return;
 
   try {
     const token = localStorage.getItem("token");
@@ -185,12 +129,7 @@ async function loadCategories() {
       return;
     }
 
-    const response = await api.get("/categories", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
+    const response = await api.get("/categories");
     categories = response.data?.data?.categories || [];
 
     if (!Array.isArray(categories)) {
@@ -198,23 +137,17 @@ async function loadCategories() {
     }
 
     categoryOptions.innerHTML = "";
-
     categories.forEach((category) => {
       const parentId = getParentId(category);
 
-      // فقط parent ها
       if (parentId !== null && parentId !== undefined && parentId !== "") {
         return;
       }
 
       const button = document.createElement("button");
-
       button.type = "button";
-
       button.className = "category-option";
-
       button.dataset.categoryId = category.id;
-
       button.innerHTML = `
         <span>${category.name}</span>
       `;
@@ -222,59 +155,37 @@ async function loadCategories() {
       categoryOptions.appendChild(button);
     });
   } catch (error) {
-    console.error("خطا در دریافت دسته‌بندی‌ها:", error.response?.data || error);
-
     showToast(
       error.response?.data?.message || "دریافت دسته‌بندی‌ها با خطا مواجه شد",
-      "error",
     );
   }
 }
 
-// ======================================================
 // Category Selection
-// ======================================================
-
 categoryOptions?.addEventListener("click", (event) => {
   const categoryButton = event.target.closest(".category-option");
-
   if (!categoryButton) return;
-
   const categoryId = String(categoryButton.dataset.categoryId);
-
   const category = categories.find((item) => String(item.id) === categoryId);
-
   if (!category) return;
 
-  // حذف dropdown قبلی
   categoryOptions
     .querySelectorAll(".subcategory-dropdown")
     .forEach((item) => item.remove());
 
-  // حذف active
   categoryOptions
     .querySelectorAll(".category-option")
     .forEach((item) => item.classList.remove("active"));
 
   categoryButton.classList.add("active");
-
   const children = getCategoryChildren(category);
-
-  // ==================================================
-  // Parent دارای Child
-  // ==================================================
 
   if (children.length > 0) {
     selectedCategoryId = null;
-
     selectedParentCategoryId = categoryId;
-
     categoryError?.classList.remove("hidden");
-
     const dropdown = document.createElement("select");
-
     dropdown.className = "subcategory-dropdown";
-
     dropdown.innerHTML = `
         <option value="">
           انتخاب زیردسته
@@ -283,11 +194,8 @@ categoryOptions?.addEventListener("click", (event) => {
 
     children.forEach((child) => {
       const option = document.createElement("option");
-
       option.value = child.id;
-
       option.textContent = child.name;
-
       dropdown.appendChild(option);
     });
 
@@ -298,12 +206,10 @@ categoryOptions?.addEventListener("click", (event) => {
         selectedCategoryId = null;
 
         categoryError?.classList.remove("hidden");
-
         return;
       }
 
       selectedCategoryId = String(selectedId);
-
       selectedParentCategoryId = categoryId;
 
       categoryError?.classList.add("hidden");
@@ -314,33 +220,18 @@ categoryOptions?.addEventListener("click", (event) => {
     return;
   }
 
-  // ==================================================
-  // Parent بدون Child
-  // ==================================================
-
   selectedCategoryId = categoryId;
-
   selectedParentCategoryId = null;
-
   categoryError?.classList.add("hidden");
 });
 
-// ======================================================
 // Load Tags
-// ======================================================
-
 async function loadTags() {
   if (!tagOptions) return;
 
   try {
     const token = localStorage.getItem("token");
-
-    const response = await api.get("/tags", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
+    const response = await api.get("/tags");
     const tags = response.data?.data?.tags || [];
 
     tagOptions.innerHTML = "";
@@ -349,13 +240,11 @@ async function loadTags() {
       const label = document.createElement("label");
 
       label.className = "tag-option";
-
       label.innerHTML = `
         <input
           type="checkbox"
           value="${tag.id}"
         />
-
         <span>
           ${tag.name}
         </span>
@@ -364,28 +253,17 @@ async function loadTags() {
       tagOptions.appendChild(label);
     });
   } catch (error) {
-    console.error("خطا در دریافت تگ‌ها:", error.response?.data || error);
-
     showToast("دریافت تگ‌ها با خطا مواجه شد", "error");
   }
 }
 
-// ======================================================
 // Load Payment Methods
-// ======================================================
-
 async function loadPaymentMethods() {
   if (!paymentOptions) return;
 
   try {
     const token = localStorage.getItem("token");
-
-    const response = await api.get("/payment-methods", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
+    const response = await api.get("/payment-methods");
     const paymentMethods = response.data?.data?.payment_methods || [];
 
     paymentOptions.innerHTML = "";
@@ -394,14 +272,12 @@ async function loadPaymentMethods() {
       const label = document.createElement("label");
 
       label.className = "payment-option";
-
       label.innerHTML = `
         <input
           type="radio"
           name="payment"
           value="${payment.name}"
         />
-
         <span>
           ${payment.name}
         </span>
@@ -410,19 +286,11 @@ async function loadPaymentMethods() {
       paymentOptions.appendChild(label);
     });
   } catch (error) {
-    console.error(
-      "خطا در دریافت روش‌های پرداخت:",
-      error.response?.data || error,
-    );
-
-    showToast("دریافت روش‌های پرداخت با خطا مواجه شد", "error");
+    showToast("دریافت روش‌های پرداخت با خطا مواجه شد");
   }
 }
 
-// ======================================================
 // Receipt Upload
-// ======================================================
-
 receiptInput?.addEventListener("change", (event) => {
   const file = event.target.files[0];
 
@@ -432,15 +300,10 @@ receiptInput?.addEventListener("change", (event) => {
   }
 
   selectedReceiptFile = file;
-
   const receiptPreview = document.getElementById("receiptPreview");
-
   const canvas = document.getElementById("receiptCanvas");
-
   if (!canvas) return;
-
   const context = canvas.getContext("2d");
-
   const image = new Image();
 
   image.onload = () => {
@@ -466,7 +329,6 @@ receiptInput?.addEventListener("change", (event) => {
     canvas.height = height;
 
     context.clearRect(0, 0, width, height);
-
     context.drawImage(image, 0, 0, width, height);
 
     receiptPreview?.classList.remove("hidden");
@@ -491,9 +353,7 @@ removeReceiptBtn?.addEventListener("click", () => {
   }
 
   const receiptPreview = document.getElementById("receiptPreview");
-
   receiptPreview?.classList.add("hidden");
-
   const canvas = document.getElementById("receiptCanvas");
 
   if (canvas) {
@@ -503,17 +363,12 @@ removeReceiptBtn?.addEventListener("click", () => {
   }
 });
 
-// ======================================================
 // Create Transaction
-// ======================================================
-
 transactionForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const title = transactionTitle?.value.trim();
-
   const amount = transactionAmount?.value;
-
   const type = document.querySelector(
     'input[name="transactionType"]:checked',
   )?.value;
@@ -523,10 +378,7 @@ transactionForm?.addEventListener("submit", async (event) => {
 
   const walletId = localStorage.getItem("walletId");
 
-  // ==================================================
   // Validation
-  // ==================================================
-
   if (!title) {
     document
       .querySelector(".transactionTitleError")
@@ -561,25 +413,16 @@ transactionForm?.addEventListener("submit", async (event) => {
     return;
   }
 
-  // ==================================================
   // Tags
-  // ==================================================
-
   const selectedTags = [
     ...document.querySelectorAll('.tag-options input[type="checkbox"]:checked'),
   ].map((checkbox) => checkbox.value);
 
-  // ==================================================
   // Recurring
-  // ==================================================
-
   const isPeriodic = recurringTransaction?.checked || false;
-
   const frequency = isPeriodic ? recurringFrequency?.value || "" : "";
-
   const repeatCountValue =
     isPeriodic && repeatCount?.value ? repeatCount.value : "";
-
   const endDate =
     isPeriodic && recurringEndDate?.value ? recurringEndDate.value : "";
 
@@ -590,72 +433,36 @@ transactionForm?.addEventListener("submit", async (event) => {
   const formData = new FormData();
 
   formData.append("wallet_id", walletId);
-
   formData.append("category_id", selectedCategoryId);
-
   formData.append("title", title);
-
   formData.append("payment_method", paymentMethod);
-
   formData.append("type", type || "expense");
-
   formData.append("amount", Number(amount));
 
-  // ==================================================
   // Receipt
-  // ==================================================
-
   if (selectedReceiptFile) {
     formData.append("receipt_image", selectedReceiptFile);
   }
 
-  // ==================================================
   // Recurring
-  // ==================================================
-
   formData.append("frequency", frequency);
-
   formData.append("repeat_count", repeatCountValue);
-
   formData.append("is_periodic", isPeriodic ? "1" : "0");
-
   formData.append("end_date", endDate);
 
-  // ==================================================
   // Tags
-  // ==================================================
-
   selectedTags.forEach((tagId) => {
     formData.append("tag_ids[]", tagId);
   });
 
-  // ==================================================
-  // API
-  // ==================================================
-
   try {
     const token = localStorage.getItem("token");
-
-    const response = await api.post("/transaction/create", formData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    console.log("Transaction created:", response.data);
+    const response = await api.post("/transaction/create", formData);
 
     showToast("تراکنش با موفقیت ثبت شد", "success");
-
-    // ==================================================
-    // Close
-    // ==================================================
-
     closeModal();
 
-    // ==================================================
     // Reset
-    // ==================================================
-
     transactionForm.reset();
 
     selectedCategoryId = null;
@@ -663,28 +470,13 @@ transactionForm?.addEventListener("submit", async (event) => {
     selectedReceiptFile = null;
 
     categoryOptions.innerHTML = "";
-
     categoryError?.classList.add("hidden");
-
     recurringFields?.classList.add("hidden");
-
     const receiptPreview = document.getElementById("receiptPreview");
-
     receiptPreview?.classList.add("hidden");
 
-    // ==================================================
-    // Reload Transactions
-    // ==================================================
-
-    if (typeof window.loadTransactions === "function") {
-      window.loadTransactions();
-    }
+    loadTransactions();
   } catch (error) {
-    console.error("خطا در ایجاد تراکنش:", error.response?.data || error);
-
-    showToast(
-      error.response?.data?.message || "ثبت تراکنش با خطا مواجه شد",
-      "error",
-    );
+    showToast(error.response?.data?.message || "ثبت تراکنش با خطا مواجه شد");
   }
 });

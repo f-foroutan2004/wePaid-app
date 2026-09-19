@@ -2,225 +2,96 @@ import api from "./api.js";
 import { showToast } from "../../utils/Toast.js";
 import "../../utils/notification.js";
 
-// ======================================================
 // Elements
-// ======================================================
-
 const usernameElement = document.querySelector("#headerUsername");
 const ctxCircle = document.querySelector(".incomeChart");
 const ctxLine = document.querySelector(".processChart");
-
 const totalBalance = document.querySelector(".total-balance");
 const incomeBalance = document.querySelector(".income-balance");
 const expenseBalance = document.querySelector(".expense-balance");
-
 const transactionBody = document.getElementById("transactionBody");
 const budgetList = document.getElementById("budgetList");
 
-// ======================================================
 // Username
-// ======================================================
-
 const username = localStorage.getItem("userName");
-
 if (usernameElement) {
   usernameElement.textContent = username || "کاربر";
 }
 
-// ======================================================
 // Token
-// ======================================================
-
 const token = localStorage.getItem("token");
-
 if (!token) {
   showToast("توکن ورود پیدا نشد. دوباره وارد شوید.", "error");
 }
 
-// ======================================================
-// Data
-// ======================================================
-
 let categories = [];
 let transactions = [];
 let budgets = [];
-
 let dashboardData = null;
-
 let circleChart = null;
 let lineChart = null;
-
-// ======================================================
-// Base Currency
-// ======================================================
-
 let baseCurrency = "";
 
-// ======================================================
 // Load Base Currency
-// ======================================================
-
 async function loadBaseCurrency() {
   try {
     const response = await api.get("/profile");
+    const profile = response.data.data.profile;
 
-    console.log("========== PROFILE ==========");
-    console.log("Profile response:", response.data);
-
-    const profile =
-      response.data?.data?.profile ||
-      response.data?.data ||
-      response.data?.profile ||
-      response.data;
-
-    console.log("Profile object:", profile);
-
-    // ==================================================
     // Find currency_id
-    // ==================================================
-
-    const currencyId =
-      profile?.currency_id ??
-      profile?.currencyId ??
-      profile?.currency?.id ??
-      profile?.currency?.currency_id;
-
-    console.log("Profile currency_id:", currencyId);
-
-    // ==================================================
-    // If currency_id exists
-    // ==================================================
+    const currencyId = profile?.currency?.id;
 
     if (currencyId !== null && currencyId !== undefined && currencyId !== "") {
       await loadCurrencyById(currencyId);
       return;
     }
 
-    // ==================================================
-    // If currency is object
-    // ==================================================
-
     if (profile?.currency && typeof profile.currency === "object") {
-      baseCurrency =
-        profile.currency.symbol ||
-        profile.currency.currency_symbol ||
-        profile.currency.currencySymbol ||
-        profile.currency.code ||
-        "";
+      baseCurrency = profile.currency.symbol || "";
 
-      if (baseCurrency) {
-        console.log("✅ Base Currency Symbol From Profile:", baseCurrency);
-        return;
-      }
+      if (baseCurrency) return;
     }
 
-    // ==================================================
     // If currency is string
-    // ==================================================
-
     if (typeof profile?.currency === "string" && profile.currency.trim()) {
       baseCurrency = profile.currency.trim();
-
-      console.log("Base Currency From Profile String:", baseCurrency);
-
       return;
     }
 
-    // ==================================================
     // currency_symbol
-    // ==================================================
-
     if (profile?.currency_symbol) {
       baseCurrency = profile.currency_symbol;
-
-      console.log("Base Currency From currency_symbol:", baseCurrency);
-
       return;
     }
-
-    // ==================================================
-    // currency_code
-    // ==================================================
-
-    if (profile?.currency_code) {
-      baseCurrency = profile.currency_code;
-
-      console.log("Base Currency From currency_code:", baseCurrency);
-
-      return;
-    }
-
-    console.warn("⚠️ سمبل ارز پایه در پروفایل پیدا نشد.");
   } catch (error) {
-    console.error("خطا در دریافت ارز پایه:", error);
+    showToast("خطا در دریافت ارز پایه:");
   }
 }
 
-// ======================================================
 // Load Currency By ID
-// ======================================================
-
 async function loadCurrencyById(currencyId) {
   try {
-    console.log("در حال دریافت ارز با ID:", currencyId);
-
     const response = await api.get("/currencies");
+    const currencies = response.data?.data?.currencies || [];
 
-    console.log("Currencies response:", response.data);
-
-    const currencies =
-      response.data?.data?.currencies ||
-      response.data?.data ||
-      response.data?.currencies ||
-      [];
-
-    if (!Array.isArray(currencies)) {
-      console.error("لیست ارزها معتبر نیست:", currencies);
-      return;
-    }
+    if (!Array.isArray(currencies)) return;
 
     const currency = currencies.find(
-      (item) =>
-        Number(item.id) === Number(currencyId) ||
-        Number(item.currency_id) === Number(currencyId),
+      (item) => +item.id === +currencyId || +item.currency_id === +currencyId,
     );
 
-    console.log("Selected currency:", currency);
+    if (!currency) return;
 
-    if (!currency) {
-      console.error("ارز پایه پیدا نشد:", currencyId);
-      return;
-    }
-
-    baseCurrency =
-      currency.symbol ||
-      currency.currency_symbol ||
-      currency.currencySymbol ||
-      "";
-
-    console.log("✅ Base Currency Symbol:", baseCurrency);
+    baseCurrency = currency.symbol || "";
   } catch (error) {
-    console.error("خطا در دریافت ارزها:", error);
+    showToast("خطا در دریافت ارزها:");
   }
 }
 
-// ======================================================
-// Format Number
-// ======================================================
-
-function formatNumber(number) {
-  const value = Number(number) || 0;
-
-  return Math.abs(value).toLocaleString("en-US");
-}
-
-// ======================================================
 // Format Money
-// ======================================================
-
 function formatMoney(number) {
-  const value = Number(number) || 0;
-  const formatted = formatNumber(value);
+  const value = +number || 0;
+  const formatted = Math.abs(value).toLocaleString("en-US");
 
   if (!baseCurrency) {
     return value < 0 ? `-${formatted}` : formatted;
@@ -233,21 +104,17 @@ function formatMoney(number) {
   return `${formatted} ${baseCurrency}`;
 }
 
-// ======================================================
 // Animate Numbers
-// ======================================================
-
 function animateNumber(element, target, duration = 1500) {
   if (!element) {
     return;
   }
 
-  const numericTarget = Number(target) || 0;
+  const numericTarget = +target || 0;
   const startTime = performance.now();
 
   function update(currentTime) {
     const progress = Math.min((currentTime - startTime) / duration, 1);
-
     const currentValue = numericTarget * progress;
 
     element.textContent = formatMoney(currentValue);
@@ -260,10 +127,7 @@ function animateNumber(element, target, duration = 1500) {
   requestAnimationFrame(update);
 }
 
-// ======================================================
 // Category Helpers
-// ======================================================
-
 function getParentId(category) {
   if (!category) {
     return null;
@@ -288,10 +152,7 @@ function getParentId(category) {
   return null;
 }
 
-// ======================================================
 // Find Category By ID
-// ======================================================
-
 function findCategoryById(categoryId) {
   if (categoryId === null || categoryId === undefined || categoryId === "") {
     return null;
@@ -316,54 +177,13 @@ function findCategoryById(categoryId) {
   return null;
 }
 
-// ======================================================
-// Transaction Helpers
-// ======================================================
-
-function getTransactionTitle(transaction) {
-  return (
-    transaction.title ||
-    transaction.description ||
-    transaction.name ||
-    "بدون عنوان"
-  );
-}
-
-function getTransactionAmount(transaction) {
-  return Number(transaction.display_amount) || 0;
-}
-
-function getTransactionType(transaction) {
-  return transaction.type || "expense";
-}
-
-function getTransactionCategoryId(transaction) {
-  return (
-    transaction.category_id ||
-    transaction.categoryId ||
-    transaction.category?.id ||
-    ""
-  );
-}
-
-// ======================================================
 // Transaction Category Name
-// ======================================================
-
 function getTransactionCategoryName(transaction) {
   if (transaction.category?.name) {
     return transaction.category.name;
   }
 
-  if (transaction.category_name) {
-    return transaction.category_name;
-  }
-
-  if (typeof transaction.category === "string") {
-    return transaction.category;
-  }
-
-  const categoryId = getTransactionCategoryId(transaction);
+  const categoryId = transaction.category?.id || "";
 
   if (!categoryId) {
     return "بدون دسته";
@@ -378,139 +198,44 @@ function getTransactionCategoryName(transaction) {
   return "بدون دسته";
 }
 
-// ======================================================
-// Tags
-// ======================================================
-
-function normalizeTag(tag) {
-  if (tag === null || tag === undefined || tag === "") {
-    return "";
-  }
-
-  const value = String(tag).trim().toLowerCase();
-
-  const tagMap = {
-    daily: "روزانه",
-    روزانه: "روزانه",
-
-    necessary: "ضروری",
-    essential: "ضروری",
-    important: "ضروری",
-    ضروری: "ضروری",
-
-    work: "کار",
-    job: "کار",
-    کار: "کار",
-  };
-
-  return tagMap[value] || String(tag).trim();
-}
-
-// ======================================================
 // Transaction Tag
-// ======================================================
-
 function getTransactionTag(transaction) {
   if (!transaction) {
     return "";
   }
 
-  // ------------------------------------------
-  // API: tags
-  // ------------------------------------------
-
   if (Array.isArray(transaction.tags) && transaction.tags.length) {
     const tag = transaction.tags[0];
 
     if (typeof tag === "object") {
-      return normalizeTag(tag.name || tag.title || tag.label || "");
+      return tag.name || "";
     }
 
-    return normalizeTag(tag);
+    return tag;
   }
-
-  // ------------------------------------------
-  // API: tag
-  // ------------------------------------------
 
   if (transaction.tag) {
     if (typeof transaction.tag === "object") {
-      return normalizeTag(
-        transaction.tag.name ||
-          transaction.tag.title ||
-          transaction.tag.label ||
-          "",
-      );
+      return transaction.tag.name || "";
     }
 
-    return normalizeTag(transaction.tag);
+    return transaction.tag;
   }
-
-  // ------------------------------------------
-  // API: tag_name
-  // ------------------------------------------
 
   if (transaction.tag_name) {
-    return normalizeTag(transaction.tag_name);
+    return transaction.tag_name;
   }
-
-  // ------------------------------------------
-  // API: tag_names
-  // ------------------------------------------
 
   if (Array.isArray(transaction.tag_names) && transaction.tag_names.length) {
-    return normalizeTag(transaction.tag_names[0]);
-  }
-
-  // ------------------------------------------
-  // API: tag_ids
-  // ------------------------------------------
-
-  if (Array.isArray(transaction.tag_ids) && transaction.tag_ids.length) {
-    const tagId = transaction.tag_ids[0];
-
-    const savedTags = JSON.parse(localStorage.getItem("tags") || "[]");
-
-    if (Array.isArray(savedTags)) {
-      const foundTag = savedTags.find(
-        (tag) =>
-          String(tag.id) === String(tagId) ||
-          String(tag.tag_id) === String(tagId),
-      );
-
-      if (foundTag) {
-        return normalizeTag(
-          foundTag.name || foundTag.title || foundTag.label || "",
-        );
-      }
-    }
-  }
-
-  // ------------------------------------------
-  // Old localStorage method
-  // ------------------------------------------
-
-  if (transaction.id) {
-    const savedTags = JSON.parse(
-      localStorage.getItem("transactionTags") || "{}",
-    );
-
-    const savedTag = savedTags[String(transaction.id)] || "";
-
-    if (savedTag) {
-      return normalizeTag(savedTag);
-    }
+    return transaction.tag_names[0];
   }
 
   return "";
 }
 
-// ======================================================
 // Transaction Date
-// ======================================================
-
 function getTransactionDate(transaction) {
-  const date = transaction.created_at || transaction.transaction_date || "";
+  const date = transaction.created_at || "";
 
   if (!date) {
     return "";
@@ -519,36 +244,22 @@ function getTransactionDate(transaction) {
   return String(date).split(" ")[0].split("T")[0];
 }
 
-// ======================================================
 // GET Categories
-// ======================================================
-
 async function getCategories() {
   try {
     const response = await api.get("/categories");
 
-    categories =
-      response.data?.data?.categories || response.data?.categories || [];
+    categories = response.data?.data?.categories || [];
 
     if (!Array.isArray(categories)) {
       categories = [];
     }
-
-    console.log("Categories:", categories);
   } catch (error) {
-    console.error("Categories Error:", error);
-
-    showToast(
-      error.response?.data?.message || "دسته‌بندی‌ها دریافت نشدند.",
-      "error",
-    );
+    showToast(error.response?.data?.message || "دسته‌بندی‌ها دریافت نشدند.");
   }
 }
 
-// ======================================================
 // POST Dashboard
-// ======================================================
-
 async function getDashboard() {
   const walletId = localStorage.getItem("walletId");
 
@@ -572,10 +283,6 @@ async function getDashboard() {
 
   try {
     const response = await api.post("/dashboard", formData);
-
-    console.log("========== DASHBOARD ==========");
-    console.log("Dashboard response:", response.data);
-
     dashboardData = response.data?.data || null;
 
     renderDashboardCards();
@@ -583,8 +290,6 @@ async function getDashboard() {
     renderTrendChart();
     renderTopExpenseText();
   } catch (error) {
-    console.error("Dashboard error:", error);
-
     showToast(
       error.response?.data?.message || "اطلاعات داشبورد دریافت نشد.",
       "error",
@@ -592,41 +297,22 @@ async function getDashboard() {
   }
 }
 
-// ======================================================
 // Dashboard Cards
-// ======================================================
-
 function renderDashboardCards() {
   const cards = dashboardData?.cards;
 
-  if (!cards) {
-    console.warn("Cards در پاسخ داشبورد وجود ندارد.");
-
-    return;
-  }
-
-  console.log("========== DASHBOARD CARDS ==========");
-
-  console.log("Total Balance:", cards.total_balance);
-
-  console.log("Monthly Income:", cards.monthly_income);
-
-  console.log("Monthly Expense:", cards.monthly_expense);
-
-  // موجودی کل
+  if (!cards) return;
+  // total balance
   animateNumber(totalBalance, Number(cards.total_balance) || 0);
 
-  // درآمد
+  // income
   animateNumber(incomeBalance, Math.abs(Number(cards.monthly_income) || 0));
 
-  // هزینه
+  // expense
   animateNumber(expenseBalance, -Math.abs(Number(cards.monthly_expense) || 0));
 }
 
-// ======================================================
 // Top Expense Text
-// ======================================================
-
 function renderTopExpenseText() {
   const chartText = document.querySelector(".chart-text");
 
@@ -645,10 +331,7 @@ function renderTopExpenseText() {
   chartText.textContent = `بیشترین هزینه مربوط به ${top.category_name} بوده است.`;
 }
 
-// ======================================================
 // Expense Doughnut Chart
-// ======================================================
-
 function renderExpenseChart() {
   if (!ctxCircle) {
     return;
@@ -689,9 +372,7 @@ function renderExpenseChart() {
 
     options: {
       responsive: true,
-
       maintainAspectRatio: true,
-
       plugins: {
         legend: {
           labels: {
@@ -706,17 +387,13 @@ function renderExpenseChart() {
   });
 }
 
-// ======================================================
 // Convert Month
-// ======================================================
-
 function getPersianMonth(dateString) {
   if (!dateString) {
     return "";
   }
 
   const month = Number(String(dateString).split("-")[1]);
-
   const months = {
     1: "فروردین",
     2: "اردیبهشت",
@@ -735,10 +412,7 @@ function getPersianMonth(dateString) {
   return months[month] || dateString;
 }
 
-// ======================================================
 // Trend Chart
-// ======================================================
-
 function renderTrendChart() {
   if (!ctxLine) {
     return;
@@ -752,10 +426,10 @@ function renderTrendChart() {
 
   const labels = trend.map((item) => getPersianMonth(item.month));
 
-  // درآمد همیشه مثبت
+  // positive income
   const incomeData = trend.map((item) => Math.abs(Number(item.income) || 0));
 
-  // هزینه برای نمودار مثبت
+  // positive expense
   const expenseData = trend.map((item) => Math.abs(Number(item.expense) || 0));
 
   lineChart = new Chart(ctxLine, {
@@ -771,7 +445,6 @@ function renderTrendChart() {
           borderWidth: 2,
           tension: 0.4,
         },
-
         {
           label: "هزینه",
           data: expenseData,
@@ -783,9 +456,7 @@ function renderTrendChart() {
 
     options: {
       responsive: true,
-
       maintainAspectRatio: false,
-
       plugins: {
         legend: {
           labels: {
@@ -796,7 +467,6 @@ function renderTrendChart() {
           },
         },
       },
-
       scales: {
         x: {
           ticks: {
@@ -815,52 +485,34 @@ function renderTrendChart() {
   });
 }
 
-// ======================================================
 // GET Transactions
-// ======================================================
-
 async function getTransactions() {
   try {
     const response = await api.get("/transactions");
 
-    transactions =
-      response.data?.data?.transactions || response.data?.transactions || [];
+    transactions = response.data?.data?.transactions || [];
 
     if (!Array.isArray(transactions)) {
       transactions = [];
     }
 
-    console.log("Transactions:", transactions);
-
     renderLatestTransactions();
   } catch (error) {
-    console.error("Transactions Error:", error);
-
-    showToast(
-      error.response?.data?.message || "تراکنش‌ها دریافت نشدند.",
-      "error",
-    );
+    showToast(error.response?.data?.message || "تراکنش‌ها دریافت نشدند.");
   }
 }
 
-// ======================================================
 // Sort Latest Transactions
-// ======================================================
-
 function sortLatestTransactions(transactionList) {
   return [...transactionList].sort((a, b) => {
     const dateA = new Date(getTransactionDate(a));
-
     const dateB = new Date(getTransactionDate(b));
 
     return dateB - dateA;
   });
 }
 
-// ======================================================
 // Render Latest Transactions
-// ======================================================
-
 function renderLatestTransactions() {
   if (!transactionBody) {
     return;
@@ -887,16 +539,11 @@ function renderLatestTransactions() {
   const latestTransactions = sortLatestTransactions(transactions).slice(0, 3);
 
   latestTransactions.forEach((transaction, index) => {
-    const title = getTransactionTitle(transaction);
-
-    const amount = getTransactionAmount(transaction);
-
-    const type = getTransactionType(transaction);
-
+    const title = transaction.title || "بدون عنوان";
+    const amount = +transaction.display_amount || 0;
+    const type = transaction.type || "expense";
     const categoryName = getTransactionCategoryName(transaction);
-
     const tag = getTransactionTag(transaction);
-
     const date = getTransactionDate(transaction);
 
     const displayAmount =
@@ -908,23 +555,18 @@ function renderLatestTransactions() {
         <td class="listId">
           ${index + 1}
         </td>
-
         <td>
           ${title}
         </td>
-
         <td>
           ${categoryName}
         </td>
-
         <td>
           ${formatMoney(displayAmount)}
         </td>
-
         <td>
           ${tag || "—"}
         </td>
-
         <td>
           ${date || "—"}
         </td>
@@ -934,10 +576,7 @@ function renderLatestTransactions() {
   });
 }
 
-// ======================================================
 // GET Budgets
-// ======================================================
-
 async function getBudgets() {
   try {
     const walletId = localStorage.getItem("walletId");
@@ -949,9 +588,7 @@ async function getBudgets() {
     }
 
     const currentDate = new Date();
-
     const year = currentDate.getFullYear();
-
     const month = currentDate.getMonth() + 1;
 
     const response = await api.get(`/budgets?wallet_id=${walletId}`, {
@@ -969,8 +606,6 @@ async function getBudgets() {
 
     renderDashboardBudgets();
   } catch (error) {
-    console.error("Budgets Error:", error);
-
     showToast(
       error.response?.data?.message || "بودجه‌ها دریافت نشدند.",
       "error",
@@ -978,10 +613,7 @@ async function getBudgets() {
   }
 }
 
-// ======================================================
 // Budget Icon
-// ======================================================
-
 function getBudgetIcon(categoryName) {
   let icon = "fa-wallet";
 
@@ -1003,10 +635,7 @@ function getBudgetIcon(categoryName) {
   return icon;
 }
 
-// ======================================================
 // Render Dashboard Budgets
-// ======================================================
-
 function renderDashboardBudgets() {
   if (!budgetList) {
     return;
@@ -1029,10 +658,7 @@ function renderDashboardBudgets() {
   });
 }
 
-// ======================================================
 // Create Dashboard Budget
-// ======================================================
-
 function createDashboardBudget(budget) {
   const categoryName =
     budget.category?.name ||
@@ -1040,9 +666,9 @@ function createDashboardBudget(budget) {
     findCategoryById(budget.category?.id || budget.category_id)?.name ||
     "بدون دسته‌بندی";
 
-  const total = Number(budget.budget_amount) || 0;
+  const total = +budget.budget_amount || 0;
 
-  const spent = Number(budget.spent_amount) || 0;
+  const spent = +budget.spent_amount || 0;
 
   let percentage = total > 0 ? (spent / total) * 100 : 0;
 
@@ -1055,22 +681,17 @@ function createDashboardBudget(budget) {
   }
 
   const icon = getBudgetIcon(categoryName);
-
   const budgetElement = document.createElement("div");
-
   budgetElement.className = "budget";
-
   budgetElement.innerHTML = `
     <div class="budget-info">
       <span>
         ${categoryName}
       </span>
-
       <span>
         ${Math.round(percentage)}٪
       </span>
     </div>
-
     <div class="progress">
       <span></span>
     </div>
@@ -1120,17 +741,10 @@ function showNoWalletState() {
   });
 }
 
-// ======================================================
 // Check & Set Wallet
-// ======================================================
-
 async function checkAndSetWallet() {
   try {
     const response = await api.get("/wallets");
-
-    console.log("========== WALLETS ==========");
-    console.log("Wallets response:", response.data);
-
     const wallets =
       response.data?.data?.wallets || response.data?.wallets || [];
 
@@ -1149,12 +763,8 @@ async function checkAndSetWallet() {
     // ذخیره کیف پول جدید
     localStorage.setItem("walletId", walletId);
 
-    console.log("✅ Wallet ID:", walletId);
-
     return true;
   } catch (error) {
-    console.error("Wallets Error:", error);
-
     showToast(
       error.response?.data?.message || "اطلاعات کیف پول دریافت نشد.",
       "error",
@@ -1164,15 +774,9 @@ async function checkAndSetWallet() {
   }
 }
 
-// ======================================================
 // Dashboard Skeleton
-// ======================================================
-
 function showDashboardSkeleton() {
-  // ====================================================
   // Cards
-  // ====================================================
-
   document.querySelectorAll(".card").forEach((card) => {
     card.classList.add("skeleton-card");
   });
@@ -1183,10 +787,23 @@ function showDashboardSkeleton() {
       element.classList.add("dashboard-skeleton");
     });
 
-  // ====================================================
-  // Charts
-  // ====================================================
+  // Prediction Card
+  const predictionCard = document.querySelector(".prediction-card");
 
+  if (predictionCard) {
+    predictionCard
+      .querySelector(".prediction-month")
+      ?.classList.add("dashboard-skeleton");
+
+    predictionCard
+      .querySelector(".predicted-income")
+      ?.classList.add("dashboard-skeleton");
+
+    predictionCard
+      .querySelector(".predicted-expense")
+      ?.classList.add("dashboard-skeleton");
+  }
+  // Charts
   document
     .querySelectorAll(".chart-container, .process-chart-container")
     .forEach((container) => {
@@ -1196,18 +813,12 @@ function showDashboardSkeleton() {
       }
 
       const skeleton = document.createElement("div");
-
       skeleton.className = "dashboard-skeleton chart-skeleton-overlay";
-
       container.style.position = "relative";
-
       container.appendChild(skeleton);
     });
 
-  // ====================================================
   // Chart Text
-  // ====================================================
-
   const chartText = document.querySelector(".chart-text");
 
   if (chartText) {
@@ -1226,10 +837,7 @@ function showDashboardSkeleton() {
     `;
   }
 
-  // ====================================================
   // Budgets
-  // ====================================================
-
   if (budgetList) {
     budgetList.innerHTML = `
       <div class="skeleton-budget">
@@ -1261,85 +869,65 @@ function showDashboardSkeleton() {
     `;
   }
 
-  // ====================================================
   // Transactions
-  // ====================================================
-
   if (transactionBody) {
     transactionBody.innerHTML = `
       <tr class="skeleton-row">
         <td>
           <span class="dashboard-skeleton skeleton-cell short"></span>
         </td>
-
         <td>
           <span class="dashboard-skeleton skeleton-cell"></span>
         </td>
-
         <td>
           <span class="dashboard-skeleton skeleton-cell medium"></span>
         </td>
-
         <td>
           <span class="dashboard-skeleton skeleton-cell"></span>
         </td>
-
         <td>
           <span class="dashboard-skeleton skeleton-cell short"></span>
         </td>
-
         <td>
           <span class="dashboard-skeleton skeleton-cell medium"></span>
         </td>
       </tr>
-
       <tr class="skeleton-row">
         <td>
           <span class="dashboard-skeleton skeleton-cell short"></span>
         </td>
-
         <td>
           <span class="dashboard-skeleton skeleton-cell"></span>
         </td>
-
         <td>
           <span class="dashboard-skeleton skeleton-cell medium"></span>
         </td>
-
         <td>
           <span class="dashboard-skeleton skeleton-cell"></span>
         </td>
-
         <td>
           <span class="dashboard-skeleton skeleton-cell short"></span>
         </td>
-
         <td>
           <span class="dashboard-skeleton skeleton-cell medium"></span>
         </td>
       </tr>
-
       <tr class="skeleton-row">
         <td>
           <span class="dashboard-skeleton skeleton-cell short"></span>
         </td>
-
         <td>
           <span class="dashboard-skeleton skeleton-cell"></span>
         </td>
-
         <td>
           <span class="dashboard-skeleton skeleton-cell medium"></span>
         </td>
-
         <td>
           <span class="dashboard-skeleton skeleton-cell"></span>
         </td>
-
         <td>
           <span class="dashboard-skeleton skeleton-cell short"></span>
         </td>
-
         <td>
           <span class="dashboard-skeleton skeleton-cell medium"></span>
         </td>
@@ -1348,15 +936,9 @@ function showDashboardSkeleton() {
   }
 }
 
-// ======================================================
 // Remove Dashboard Skeleton
-// ======================================================
-
 function hideDashboardSkeleton() {
-  // ====================================================
   // Cards
-  // ====================================================
-
   document.querySelectorAll(".card").forEach((card) => {
     card.classList.remove("skeleton-card");
   });
@@ -1367,18 +949,12 @@ function hideDashboardSkeleton() {
       element.classList.remove("dashboard-skeleton");
     });
 
-  // ====================================================
   // Chart Skeleton
-  // ====================================================
-
   document.querySelectorAll(".chart-skeleton-overlay").forEach((element) => {
     element.remove();
   });
 
-  // ====================================================
   // Chart Text
-  // ====================================================
-
   const chartText = document.querySelector(".chart-text");
 
   if (chartText) {
@@ -1390,10 +966,7 @@ function hideDashboardSkeleton() {
     }
   }
 
-  // ====================================================
   // Other Skeletons
-  // ====================================================
-
   document.querySelectorAll(".dashboard-skeleton").forEach((element) => {
     element.classList.remove("dashboard-skeleton");
   });
@@ -1402,10 +975,8 @@ function hideDashboardSkeleton() {
     panel.classList.remove("skeleton-panel");
   });
 }
-// ======================================================
-// Initial Load
-// ======================================================
 
+// Initial Load
 async function initDashboard() {
   showDashboardSkeleton();
 
@@ -1414,29 +985,18 @@ async function initDashboard() {
     const hasWallet = await checkAndSetWallet();
 
     // اگر کیف پول وجود نداشت
-    if (!hasWallet) {
-      return;
-    }
+    if (!hasWallet) return;
 
-    // دریافت ارز پایه
     await loadBaseCurrency();
 
-    console.log("💰 Final Base Currency:", baseCurrency);
-
-    // دریافت دسته‌بندی‌ها
     await getCategories();
 
-    // دریافت اطلاعات اصلی داشبورد
     await getDashboard();
 
-    // دریافت تراکنش‌ها و بودجه‌ها
     await Promise.all([getTransactions(), getBudgets()]);
 
-    // همه اطلاعات دریافت شده
     hideDashboardSkeleton();
   } catch (error) {
-    console.error("INITIAL DASHBOARD ERROR:", error);
-
     hideDashboardSkeleton();
 
     showToast(
@@ -1448,15 +1008,10 @@ async function initDashboard() {
   }
 }
 
-// ======================================================
 // Init
-// ======================================================
 async function setName() {
-  // e.preventDefault();
-
   try {
     const response = await api.get("/me");
-    console.log(response.data.data.user.name);
     const successMessage = response.data?.data?.message;
     const userName = response.data.data.user.name;
 
@@ -1471,7 +1026,6 @@ async function setName() {
     }
   }
 }
-
 
 initDashboard();
 setName();

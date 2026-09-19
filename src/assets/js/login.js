@@ -1,6 +1,7 @@
 import api from "./api.js";
 import { showToast } from "../../utils/Toast.js";
 
+//Elements
 const emailInput = document.querySelector("#email");
 const emailError = document.querySelector(".emailError");
 const passwordInput = document.querySelector("#password");
@@ -23,7 +24,6 @@ function hideGlobalLoader() {
 }
 
 // Local Loader Functions
-
 function showLocalLoader() {
   localLoader.classList.remove("hidden");
   loginIcon.classList.add("hidden");
@@ -90,7 +90,6 @@ async function getToken(e) {
     const token = response.data?.data?.token;
 
     localStorage.setItem("token", token);
-    // localStorage.setItem("userName", userName);
 
     if (response) {
       showToast(successMessage, "success");
@@ -116,6 +115,7 @@ async function getToken(e) {
 // Event
 form.addEventListener("submit", getToken);
 
+//password eye
 passwordToggle.addEventListener("click", () => {
   if (passwordInput.type === "password") {
     passwordInput.type = "text";
