@@ -1509,22 +1509,14 @@ function openEditModal(row) {
   }
 
   // Repeat Count
-  const repeatCountInput =
-    document.getElementById("repeatCount") ||
-    document.getElementById("repeat_count") ||
-    document.querySelector('[name="repeat_count"]') ||
-    document.querySelector('[name="repeatCount"]');
+  const repeatCountInput = document.getElementById("repeatCount");
 
   if (repeatCountInput) {
     repeatCountInput.value = transaction.repeat_count || "";
   }
 
   // End Date
-  const endDateInput =
-    document.getElementById("endDate") ||
-    document.getElementById("end_date") ||
-    document.querySelector('[name="end_date"]') ||
-    document.querySelector('[name="endDate"]');
+  const endDateInput = document.getElementById("recurringEndDate");
 
   if (endDateInput) {
     endDateInput.value = transaction.end_date || "";
@@ -2017,7 +2009,6 @@ async function initTransactionsPage() {
   await getTransactions();
 }
 
-
 // Export Transactions
 const exportWrapper = document.querySelector(".export-wrapper");
 const exportBtn = document.getElementById("exportBtn");
@@ -2033,7 +2024,6 @@ exportBtn?.addEventListener("click", (e) => {
   e.stopPropagation();
   exportWrapper.classList.toggle("active");
 });
-
 
 // Download Selected Format
 exportOptions.forEach((option) => {

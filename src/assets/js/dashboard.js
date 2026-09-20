@@ -748,19 +748,15 @@ async function checkAndSetWallet() {
     const wallets =
       response.data?.data?.wallets || response.data?.wallets || [];
 
-    // walletId قبلی را پاک می‌کنیم
     localStorage.removeItem("walletId");
 
-    // اگر کاربر کیف پولی ندارد
     if (!Array.isArray(wallets) || wallets.length === 0) {
       showNoWalletState();
       return false;
     }
 
-    // اولین کیف پول کاربر
     const walletId = wallets[0].id;
 
-    // ذخیره کیف پول جدید
     localStorage.setItem("walletId", walletId);
 
     return true;
@@ -807,7 +803,6 @@ function showDashboardSkeleton() {
   document
     .querySelectorAll(".chart-container, .process-chart-container")
     .forEach((container) => {
-      // اگر قبلاً skeleton ساخته شده، دوباره نساز
       if (container.querySelector(".chart-skeleton-overlay")) {
         return;
       }
@@ -981,10 +976,8 @@ async function initDashboard() {
   showDashboardSkeleton();
 
   try {
-    // دریافت کیف پول‌های کاربر
     const hasWallet = await checkAndSetWallet();
 
-    // اگر کیف پول وجود نداشت
     if (!hasWallet) return;
 
     await loadBaseCurrency();

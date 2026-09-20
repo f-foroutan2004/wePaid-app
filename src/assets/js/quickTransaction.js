@@ -20,12 +20,14 @@ const recurringEndDate = document.getElementById("recurringEndDate");
 const closeModalBtn = document.querySelector("#closeModal");
 const cancelBtn = document.querySelector(".cancel-btn");
 const modalOverlay = document.querySelector(".modal-overlay");
+const removeReceiptBtn = document.getElementById("removeReceiptBtn");
 
 // State
 let categories = [];
 let selectedCategoryId = null;
 let selectedParentCategoryId = null;
 let selectedReceiptFile = null;
+let isSubmitting = false;
 
 // Open Modal
 function openModal() {
@@ -35,6 +37,7 @@ function openModal() {
   }
 
   transactionModal.classList.remove("hidden");
+
   loadCategories();
   loadTags();
   loadPaymentMethods();
@@ -43,6 +46,7 @@ function openModal() {
 // Close Modal
 function closeModal() {
   transactionModal?.classList.add("hidden");
+
   selectedCategoryId = null;
   selectedParentCategoryId = null;
   selectedReceiptFile = null;
@@ -129,7 +133,12 @@ async function loadCategories() {
       return;
     }
 
-    const response = await api.get("/categories");
+    const response = await api.get("/categories", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
     categories = response.data?.data?.categories || [];
 
     if (!Array.isArray(categories)) {
@@ -137,6 +146,7 @@ async function loadCategories() {
     }
 
     categoryOptions.innerHTML = "";
+
     categories.forEach((category) => {
       const parentId = getParentId(category);
 
@@ -145,9 +155,11 @@ async function loadCategories() {
       }
 
       const button = document.createElement("button");
+
       button.type = "button";
       button.className = "category-option";
       button.dataset.categoryId = category.id;
+
       button.innerHTML = `
         <span>${category.name}</span>
       `;
@@ -157,6 +169,7 @@ async function loadCategories() {
   } catch (error) {
     showToast(
       error.response?.data?.message || "دریافت دسته‌بندی‌ها با خطا مواجه شد",
+      "error",
     );
   }
 }
@@ -164,9 +177,13 @@ async function loadCategories() {
 // Category Selection
 categoryOptions?.addEventListener("click", (event) => {
   const categoryButton = event.target.closest(".category-option");
+
   if (!categoryButton) return;
+
   const categoryId = String(categoryButton.dataset.categoryId);
+
   const category = categories.find((item) => String(item.id) === categoryId);
+
   if (!category) return;
 
   categoryOptions
@@ -178,24 +195,31 @@ categoryOptions?.addEventListener("click", (event) => {
     .forEach((item) => item.classList.remove("active"));
 
   categoryButton.classList.add("active");
+
   const children = getCategoryChildren(category);
 
   if (children.length > 0) {
     selectedCategoryId = null;
     selectedParentCategoryId = categoryId;
+
     categoryError?.classList.remove("hidden");
+
     const dropdown = document.createElement("select");
+
     dropdown.className = "subcategory-dropdown";
+
     dropdown.innerHTML = `
-        <option value="">
-          انتخاب زیردسته
-        </option>
-      `;
+      <option value="">
+        انتخاب زیردسته
+      </option>
+    `;
 
     children.forEach((child) => {
       const option = document.createElement("option");
+
       option.value = child.id;
       option.textContent = child.name;
+
       dropdown.appendChild(option);
     });
 
@@ -206,6 +230,7 @@ categoryOptions?.addEventListener("click", (event) => {
         selectedCategoryId = null;
 
         categoryError?.classList.remove("hidden");
+
         return;
       }
 
@@ -222,6 +247,7 @@ categoryOptions?.addEventListener("click", (event) => {
 
   selectedCategoryId = categoryId;
   selectedParentCategoryId = null;
+
   categoryError?.classList.add("hidden");
 });
 
@@ -231,7 +257,15 @@ async function loadTags() {
 
   try {
     const token = localStorage.getItem("token");
-    const response = await api.get("/tags");
+
+    if (!token) return;
+
+    const response = await api.get("/tags", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
     const tags = response.data?.data?.tags || [];
 
     tagOptions.innerHTML = "";
@@ -240,11 +274,13 @@ async function loadTags() {
       const label = document.createElement("label");
 
       label.className = "tag-option";
+
       label.innerHTML = `
         <input
           type="checkbox"
           value="${tag.id}"
         />
+
         <span>
           ${tag.name}
         </span>
@@ -253,7 +289,7 @@ async function loadTags() {
       tagOptions.appendChild(label);
     });
   } catch (error) {
-    showToast("دریافت تگ‌ها با خطا مواجه شد", "error");
+    console.error("Tags error:", error);
   }
 }
 
@@ -263,7 +299,15 @@ async function loadPaymentMethods() {
 
   try {
     const token = localStorage.getItem("token");
-    const response = await api.get("/payment-methods");
+
+    if (!token) return;
+
+    const response = await api.get("/payment-methods", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
     const paymentMethods = response.data?.data?.payment_methods || [];
 
     paymentOptions.innerHTML = "";
@@ -272,12 +316,14 @@ async function loadPaymentMethods() {
       const label = document.createElement("label");
 
       label.className = "payment-option";
+
       label.innerHTML = `
         <input
           type="radio"
           name="payment"
           value="${payment.name}"
         />
+
         <span>
           ${payment.name}
         </span>
@@ -286,7 +332,7 @@ async function loadPaymentMethods() {
       paymentOptions.appendChild(label);
     });
   } catch (error) {
-    showToast("دریافت روش‌های پرداخت با خطا مواجه شد");
+    console.error("Payment methods error:", error);
   }
 }
 
@@ -300,9 +346,13 @@ receiptInput?.addEventListener("change", (event) => {
   }
 
   selectedReceiptFile = file;
+
   const receiptPreview = document.getElementById("receiptPreview");
+
   const canvas = document.getElementById("receiptCanvas");
+
   if (!canvas) return;
+
   const context = canvas.getContext("2d");
   const image = new Image();
 
@@ -315,13 +365,11 @@ receiptInput?.addEventListener("change", (event) => {
 
     if (width > maxWidth) {
       height = (height * maxWidth) / width;
-
       width = maxWidth;
     }
 
     if (height > maxHeight) {
       width = (width * maxHeight) / height;
-
       height = maxHeight;
     }
 
@@ -329,6 +377,7 @@ receiptInput?.addEventListener("change", (event) => {
     canvas.height = height;
 
     context.clearRect(0, 0, width, height);
+
     context.drawImage(image, 0, 0, width, height);
 
     receiptPreview?.classList.remove("hidden");
@@ -339,12 +388,7 @@ receiptInput?.addEventListener("change", (event) => {
   image.src = URL.createObjectURL(file);
 });
 
-// ======================================================
 // Remove Receipt
-// ======================================================
-
-const removeReceiptBtn = document.getElementById("removeReceiptBtn");
-
 removeReceiptBtn?.addEventListener("click", () => {
   selectedReceiptFile = null;
 
@@ -353,7 +397,9 @@ removeReceiptBtn?.addEventListener("click", () => {
   }
 
   const receiptPreview = document.getElementById("receiptPreview");
+
   receiptPreview?.classList.add("hidden");
+
   const canvas = document.getElementById("receiptCanvas");
 
   if (canvas) {
@@ -367,8 +413,11 @@ removeReceiptBtn?.addEventListener("click", () => {
 transactionForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
 
+  if (isSubmitting) return;
+
   const title = transactionTitle?.value.trim();
   const amount = transactionAmount?.value;
+
   const type = document.querySelector(
     'input[name="transactionType"]:checked',
   )?.value;
@@ -389,7 +438,7 @@ transactionForm?.addEventListener("submit", async (event) => {
 
   document.querySelector(".transactionTitleError")?.classList.add("hidden");
 
-  if (!amount || Number(amount) <= 0) {
+  if (!amount || +(amount) <= 0) {
     document
       .querySelector(".transactionAmountError")
       ?.classList.remove("hidden");
@@ -401,7 +450,6 @@ transactionForm?.addEventListener("submit", async (event) => {
 
   if (!selectedCategoryId) {
     categoryError?.classList.remove("hidden");
-
     return;
   }
 
@@ -420,16 +468,16 @@ transactionForm?.addEventListener("submit", async (event) => {
 
   // Recurring
   const isPeriodic = recurringTransaction?.checked || false;
+
   const frequency = isPeriodic ? recurringFrequency?.value || "" : "";
+
   const repeatCountValue =
     isPeriodic && repeatCount?.value ? repeatCount.value : "";
+
   const endDate =
     isPeriodic && recurringEndDate?.value ? recurringEndDate.value : "";
 
-  // ==================================================
   // FormData
-  // ==================================================
-
   const formData = new FormData();
 
   formData.append("wallet_id", walletId);
@@ -446,8 +494,11 @@ transactionForm?.addEventListener("submit", async (event) => {
 
   // Recurring
   formData.append("frequency", frequency);
+
   formData.append("repeat_count", repeatCountValue);
+
   formData.append("is_periodic", isPeriodic ? "1" : "0");
+
   formData.append("end_date", endDate);
 
   // Tags
@@ -455,11 +506,25 @@ transactionForm?.addEventListener("submit", async (event) => {
     formData.append("tag_ids[]", tagId);
   });
 
+  isSubmitting = true;
+
   try {
     const token = localStorage.getItem("token");
-    const response = await api.post("/transaction/create", formData);
+
+    if (!token) {
+      showToast("توکن ورود پیدا نشد. دوباره وارد شوید.", "error");
+
+      return;
+    }
+
+    await api.post("/transaction/create", formData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
 
     showToast("تراکنش با موفقیت ثبت شد", "success");
+
     closeModal();
 
     // Reset
@@ -470,13 +535,27 @@ transactionForm?.addEventListener("submit", async (event) => {
     selectedReceiptFile = null;
 
     categoryOptions.innerHTML = "";
-    categoryError?.classList.add("hidden");
-    recurringFields?.classList.add("hidden");
-    const receiptPreview = document.getElementById("receiptPreview");
-    receiptPreview?.classList.add("hidden");
 
-    loadTransactions();
+    categoryError?.classList.add("hidden");
+
+    recurringFields?.classList.add("hidden");
+
+    const receiptPreview = document.getElementById("receiptPreview");
+
+    receiptPreview?.classList.add("hidden");
+    try {
+      await loadTransactions();
+    } catch (error) {
+      console.error("Load transactions error:", error);
+    }
   } catch (error) {
-    showToast(error.response?.data?.message || "ثبت تراکنش با خطا مواجه شد");
+    console.error("Create transaction error:", error);
+
+    showToast(
+      error.response?.data?.message || "ثبت تراکنش با خطا مواجه شد",
+      "error",
+    );
+  } finally {
+    isSubmitting = false;
   }
 });
