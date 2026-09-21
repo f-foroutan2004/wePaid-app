@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>profile</title>
+    <link rel="stylesheet" href="./src/assets/css/style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="welcome">
+        <h1>
+          سلام
+          <span id="headerUsername"></span>
+        </h1>
+
+        <p>خلاصه وضعیت مالی شما</p>
+      </div>
+
+      <div class="header-actions">
+        <!-- Profile -->
+        <div class="profile-wrapper">
+          <button
+            class="profile-btn"
+            id="profileBtn"
+            type="button"
+            aria-label="پروفایل"
+          >
+            <i class="fas fa-user"></i>
+          </button>
+
+          <!-- Profile Dropdown -->
+          <div class="profile-dropdown hidden" id="profileDropdown">
+            <!-- User Info -->
+            <div class="profile-user-info">
+              <div class="profile-avatar">
+                <i class="fas fa-user"></i>
+              </div>
+
+              <div class="profile-details">
+                <strong id="profileName"> - </strong>
+
+                <span id="profileEmail"> - </span>
+
+                <span id="profilePhone"> - </span>
+              </div>
+            </div>
+
+            <div class="profile-divider"></div>
+
+            <!-- Edit Profile -->
+            <a href="./profile.html" class="profile-menu-item">
+              <i class="fas fa-user-edit"></i>
+              <span>ویرایش پروفایل</span>
+            </a>
+
+            <!-- Logout -->
+            <button
+              type="button"
+              class="profile-menu-item logout-item"
+              id="logoutBtn"
+            >
+              <i class="fas fa-sign-out-alt"></i>
+              <span>خروج</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Notification -->
+        <div class="notification-wrapper">
+          <button class="notification-btn" id="notificationBtn" type="button">
+            <i class="fas fa-bell"></i>
+
+            <span class="notification-badge hidden" id="notificationBadge">
+              0
+            </span>
+          </button>
+
+          <div class="notification-dropdown hidden" id="notificationDropdown">
+            <div class="notification-header">
+              <h3>اعلان‌ها</h3>
+            </div>
+
+            <div class="notification-list" id="notificationList">
+              <div class="notification-empty">اعلانی وجود ندارد</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <!-- Sidebar -->
+      <aside class="sidebar" data-aos="fade-left">
+        <h2 class="logo">مدیریت هزینه</h2>
+
+        <nav class="sidebar-nav">
+          <a href="./dashboard.html" class="nav-link">
+            <i class="fas fa-home"></i>
+            <span>داشبورد</span>
+          </a>
+
+          <a href="./transaction.html" class="nav-link">
+            <i class="fas fa-exchange-alt"></i>
+            <span>تراکنش‌ها</span>
+          </a>
+
+          <a href="./budget.html" class="nav-link">
+            <i class="fas fa-chart-pie"></i>
+            <span>بودجه‌ها</span>
+          </a>
+
+          <a href="./wallet.html" class="nav-link">
+            <i class="fas fa-wallet"></i>
+            <span>کیف پول</span>
+          </a>
+
+          <a href="./profile.html" class="nav-link active">
+            <i class="fas fa-user"></i>
+            <span>پروفایل</span>
+          </a>
+
+          <a href="./setting.html" class="nav-link">
+            <i class="fas fa-cog"></i>
+            <span>تنظیمات</span>
+          </a>
+        </nav>
+      </aside>
+      <!-- Profile Content -->
+      <section class="profile-section">
+        <!-- Profile Information -->
+        <div class="settings-card" data-aos="fade-up">
+          <div class="card-title">
+            <div class="title-icon">
+              <i class="fas fa-user"></i>
+            </div>
+            <div>
+              <h2>اطلاعات پروفایل</h2>
+              <p>اطلاعات حساب خود را مدیریت کنید.</p>
+            </div>
+          </div>
+
+          <form id="profileForm">
+            <div class="form-group">
+              <label for="username"> نام </label>
+              <input
+                type="text"
+                id="username"
+                placeholder="نام خود را وارد کنید"
+              />
+              <p class="nameError hidden">لطفا نام خود را وارد کنید</p>
+            </div>
+
+            <div class="form-group">
+              <label for="currency"> ارز پایه </label>
+              <select id="currency">
+                <!-- create by js -->
+              </select>
+            </div>
+
+            <button class="save-btn" type="submit">
+              <i class="fas fa-save"></i>
+              ذخیره تغییرات
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- Mobile Navigation -->
+      <section class="mobile-nav">
+        <nav class="mobile-navigation">
+          <ul class="mobile-navigation-list">
+            <li class="nav-bottom-link">
+              <a href="./dashboard.html"><i class="fas fa-home"></i></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href="./transaction.html"
+                ><i class="fas fa-exchange-alt"></i
+              ></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href="./budget.html"><i class="fas fa-chart-pie"></i></a>
+            </li>
+            <li class="nav-bottom-link" id="quickAddBtn">
+              <a href="#"><i class="fas fa-plus"></i></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href="./wallet.html"> <i class="fas fa-wallet"></i> </a>
+            </li>
+            <li class="nav-bottom-link activeNav">
+              <a href="./profile.html"><i class="fas fa-user"></i></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href="./setting.html"><i class="fas fa-cog"></i></a>
+            </li>
+          </ul>
+        </nav>
+      </section>
+
+      <!-- Transaction Modal -->
+      <div class="transaction-modal hidden">
+        <div class="modal-overlay"></div>
+
+        <div class="modal-content">
+          <!-- Modal Header -->
+          <div class="modal-header">
+            <div>
+              <h2>افزودن تراکنش</h2>
+
+              <p>اطلاعات تراکنش جدید را وارد کنید.</p>
+            </div>
+            <button class="close-modal" id="closeModal" type="button">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <!-- Transaction Form -->
+          <form class="transaction-form" autocomplete="off">
+            <div class="form-group">
+              <label for="transactionTitle"> عنوان تراکنش </label>
+
+              <input
+                type="text"
+                id="transactionTitle"
+                placeholder="مثلاً خرید از فروشگاه"
+              />
+
+              <p class="transactionTitleError hidden">
+                عنوان وارد شده صحیح نمی‌باشد
+              </p>
+            </div>
+
+            <!-- Amount + Type -->
+            <div class="form-row">
+              <!-- Amount -->
+              <div class="form-group">
+                <label for="transactionAmount"> مقدار </label>
+
+                <input
+                  type="number"
+                  id="transactionAmount"
+                  placeholder="0"
+                  min="0"
+                />
+
+                <p class="transactionAmountError hidden">
+                  مقدار وارد شده صحیح نمی‌باشد
+                </p>
+              </div>
+
+              <!-- Transaction Type -->
+              <div class="form-group">
+                <label> نوع تراکنش </label>
+                <div class="transaction-type">
+                  <label class="type-option income">
+                    <input type="radio" name="transactionType" value="income" />
+                    <span>
+                      <i class="fas fa-arrow-down"></i>
+                      درآمد
+                    </span>
+                  </label>
+                  <label class="type-option expense">
+                    <input
+                      type="radio"
+                      name="transactionType"
+                      value="expense"
+                      checked
+                    />
+
+                    <span>
+                      <i class="fas fa-arrow-up"></i>
+                      هزینه
+                    </span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Category -->
+            <div class="form-group">
+              <label> دسته‌بندی </label>
+              <div class="category-options">
+                <!-- Categories created by JS -->
+              </div>
+
+              <p class="categoryError hidden">دسته بندی را انتخاب کنید</p>
+            </div>
+
+            <!-- Tags -->
+            <div class="form-group">
+              <label> برچسب‌ها </label>
+              <div class="tag-options">
+                <label class="tag-option">
+                  <input type="checkbox" value="ضروری" />
+                  <span> ضروری </span>
+                </label>
+                <label class="tag-option">
+                  <input type="checkbox" value="روزانه" />
+                  <span> روزانه </span>
+                </label>
+                <label class="tag-option">
+                  <input type="checkbox" value="کار" />
+                  <span> کار </span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Payment Method -->
+            <div class="form-group">
+              <label> روش پرداخت </label>
+              <div class="payment-options">
+                <label class="payment-option">
+                  <input type="radio" name="payment" value="cash" />
+                  <span>
+                    <i class="fas fa-money-bill-wave"></i>
+                    نقدی
+                  </span>
+                </label>
+                <label class="payment-option">
+                  <input type="radio" name="payment" value="online" />
+                  <span>
+                    <i class="fas fa-globe"></i>
+                    آنلاین
+                  </span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Receipt -->
+            <div class="form-group">
+              <label> تصویر رسید </label>
+              <div class="receipt-upload">
+                <label for="receiptInput" class="receipt-upload-box">
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  <span> آپلود تصویر رسید </span>
+                  <small> PNG, JPG یا JPEG </small>
+                </label>
+                <input
+                  type="file"
+                  id="receiptInput"
+                  accept="image/png, image/jpeg, image/jpg"
+                  hidden
+                />
+
+                <div class="receipt-preview hidden" id="receiptPreview">
+                  <canvas id="receiptCanvas"></canvas>
+
+                  <!-- Upload Progress -->
+                  <div class="upload-progress hidden">
+                    <div class="upload-progress-info">
+                      <span> در حال آپلود تصویر </span>
+
+                      <span id="uploadPercent"> 0% </span>
+                    </div>
+
+                    <div class="upload-progress-bar">
+                      <div class="upload-progress-fill"></div>
+                    </div>
+                  </div>
+
+                  <!-- Receipt Actions -->
+                  <div class="receipt-actions">
+                    <button type="button" id="cropReceiptBtn">
+                      <i class="fas fa-crop"></i>
+                      برش تصویر
+                    </button>
+                    <button type="button" id="removeReceiptBtn">
+                      <i class="fas fa-trash"></i>
+                      حذف
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recurring Transaction -->
+            <div class="form-group recurring-group">
+              <div class="recurring-header">
+                <div>
+                  <label> تراکنش دوره‌ای </label>
+                  <small> این تراکنش به صورت خودکار تکرار می‌شود. </small>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="recurringTransaction" />
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Recurring Fields -->
+              <div class="recurring-fields hidden" id="recurringFields">
+                <!-- Frequency -->
+                <div class="form-group">
+                  <label for="recurringFrequency"> تکرار </label>
+                  <select id="recurringFrequency">
+                    <option value="daily">روزانه</option>
+                    <option value="weekly">هفتگی</option>
+                    <option value="monthly" selected>ماهانه</option>
+                    <option value="yearly">سالانه</option>
+                  </select>
+                </div>
+
+                <!-- Repeat Count + End Date -->
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="repeatCount"> تعداد دفعات </label>
+                    <input
+                      type="number"
+                      id="repeatCount"
+                      min="1"
+                      placeholder="مثلاً 12"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="recurringEndDate"> تاریخ پایان </label>
+                    <input type="date" id="recurringEndDate" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Modal Buttons -->
+            <div class="modal-actions">
+              <button type="button" class="cancel-btn">لغو</button>
+              <button type="submit" class="save-btn">
+                <i class="fas fa-check"></i>
+                <span> ذخیره تراکنش </span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+    <script type="module" src="./src/assets/js/session.js"></script>
+    <script type="module" src="./src/assets/js/profile.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+      AOS.init();
+    </script>
+  </body>
+</html>

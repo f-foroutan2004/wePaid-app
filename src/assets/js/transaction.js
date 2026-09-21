@@ -1,6 +1,7 @@
 import api from "./api.js";
 import { showToast } from "../../utils/Toast.js";
 import "../../utils/notification.js";
+import "../../utils/logOut.js"
 
 // Elements
 const usernameElement = document.querySelector("#headerUsername");

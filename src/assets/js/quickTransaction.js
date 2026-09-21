@@ -94,14 +94,6 @@ function getParentId(category) {
     return category.parent_id;
   }
 
-  if (
-    category.parentId !== undefined &&
-    category.parentId !== null &&
-    category.parentId !== ""
-  ) {
-    return category.parentId;
-  }
-
   return null;
 }
 
@@ -438,7 +430,7 @@ transactionForm?.addEventListener("submit", async (event) => {
 
   document.querySelector(".transactionTitleError")?.classList.add("hidden");
 
-  if (!amount || +(amount) <= 0) {
+  if (!amount || +amount <= 0) {
     document
       .querySelector(".transactionAmountError")
       ?.classList.remove("hidden");

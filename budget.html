@@ -25,24 +25,77 @@
           سلام
           <span id="headerUsername"></span>
         </h1>
+
         <p>خلاصه وضعیت مالی شما</p>
       </div>
 
-      <div class="notification-wrapper">
-        <button class="notification-btn" id="notificationBtn">
-          <i class="fas fa-bell"></i>
-          <span class="notification-badge hidden" id="notificationBadge"
-            >0</span
+      <div class="header-actions">
+        <!-- Profile -->
+        <div class="profile-wrapper">
+          <button
+            class="profile-btn"
+            id="profileBtn"
+            type="button"
+            aria-label="پروفایل"
           >
-        </button>
+            <i class="fas fa-user"></i>
+          </button>
 
-        <div class="notification-dropdown hidden" id="notificationDropdown">
-          <div class="notification-header">
-            <h3>اعلان‌ها</h3>
+          <!-- Profile Dropdown -->
+          <div class="profile-dropdown hidden" id="profileDropdown">
+            <!-- User Info -->
+            <div class="profile-user-info">
+              <div class="profile-avatar">
+                <i class="fas fa-user"></i>
+              </div>
+
+              <div class="profile-details">
+                <strong id="profileName"> - </strong>
+
+                <span id="profileEmail"> - </span>
+
+                <span id="profilePhone"> - </span>
+              </div>
+            </div>
+
+            <div class="profile-divider"></div>
+
+            <!-- Edit Profile -->
+            <a href="./profile.html" class="profile-menu-item">
+              <i class="fas fa-user-edit"></i>
+              <span>ویرایش پروفایل</span>
+            </a>
+
+            <!-- Logout -->
+            <button
+              type="button"
+              class="profile-menu-item logout-item"
+              id="logoutBtn"
+            >
+              <i class="fas fa-sign-out-alt"></i>
+              <span>خروج</span>
+            </button>
           </div>
+        </div>
 
-          <div class="notification-list" id="notificationList">
-            <div class="notification-empty">اعلانی وجود ندارد</div>
+        <!-- Notification -->
+        <div class="notification-wrapper">
+          <button class="notification-btn" id="notificationBtn" type="button">
+            <i class="fas fa-bell"></i>
+
+            <span class="notification-badge hidden" id="notificationBadge">
+              0
+            </span>
+          </button>
+
+          <div class="notification-dropdown hidden" id="notificationDropdown">
+            <div class="notification-header">
+              <h3>اعلان‌ها</h3>
+            </div>
+
+            <div class="notification-list" id="notificationList">
+              <div class="notification-empty">اعلانی وجود ندارد</div>
+            </div>
           </div>
         </div>
       </div>
@@ -51,10 +104,7 @@
     <main class="main">
       <!-- Sidebar -->
       <aside class="sidebar" data-aos="fade-left">
-        <h2 class="logo">
-          <i class="fas fa-wallet"></i>
-          مدیریت هزینه
-        </h2>
+        <h2 class="logo">مدیریت هزینه</h2>
 
         <nav class="sidebar-nav">
           <a href="./dashboard.html" class="nav-link">
@@ -72,8 +122,18 @@
             <span>بودجه‌ها</span>
           </a>
 
-          <a href="./setting.html" class="nav-link">
+          <a href="./wallet.html" class="nav-link">
+            <i class="fas fa-wallet"></i>
+            <span>کیف پول</span>
+          </a>
+
+          <a href="./profile.html" class="nav-link">
             <i class="fas fa-user"></i>
+            <span>پروفایل</span>
+          </a>
+
+          <a href="./setting.html" class="nav-link">
+            <i class="fas fa-cog"></i>
             <span>تنظیمات</span>
           </a>
         </nav>
@@ -114,33 +174,27 @@
         <nav class="mobile-navigation">
           <ul class="mobile-navigation-list">
             <li class="nav-bottom-link">
-              <a href="./dashboard.html">
-                <i class="fas fa-home"></i>
-              </a>
+              <a href="./dashboard.html"><i class="fas fa-home"></i></a>
             </li>
-
             <li class="nav-bottom-link">
-              <a href="./transaction.html">
-                <i class="fas fa-exchange-alt"></i>
-              </a>
+              <a href="./transaction.html"
+                ><i class="fas fa-exchange-alt"></i
+              ></a>
             </li>
-
-            <li class="nav-bottom-link" id="quickAddBtn">
-              <a href="#">
-                <i class="fas fa-plus"></i>
-              </a>
-            </li>
-
             <li class="nav-bottom-link activeNav">
-              <a href="./budget.html">
-                <i class="fas fa-chart-pie"></i>
-              </a>
+              <a href="./budget.html"><i class="fas fa-chart-pie"></i></a>
             </li>
-
+            <li class="nav-bottom-link" id="quickAddBtn">
+              <a href="#"><i class="fas fa-plus"></i></a>
+            </li>
             <li class="nav-bottom-link">
-              <a href="./setting.html">
-                <i class="fas fa-user"></i>
-              </a>
+              <a href="./wallet.html"> <i class="fas fa-wallet"></i> </a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href="./profile.html"><i class="fas fa-user"></i></a>
+            </li>
+            <li class="nav-bottom-link">
+              <a href="./setting.html"><i class="fas fa-cog"></i></a>
             </li>
           </ul>
         </nav>
@@ -434,6 +488,7 @@
       </div>
     </main>
 
+    <script type="module" src="./src/assets/js/session.js"></script>
     <script type="module" src="./src/assets/js/budget.js"></script>
     <script type="module" src="./src/assets/js/quickTransaction.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>

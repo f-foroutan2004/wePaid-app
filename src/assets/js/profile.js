@@ -1,5 +1,6 @@
 import api from "./api.js";
 import { showToast } from "../../utils/Toast.js";
+import "../../utils/logOut.js";
 
 //Element
 const profileForm = document.getElementById("profileForm");
@@ -7,6 +8,13 @@ const usernameInput = document.getElementById("username");
 const currencySelect = document.getElementById("currency");
 const headerUsername = document.getElementById("headerUsername");
 const nameError = document.querySelector(".nameError");
+const usernameElement = document.querySelector("#headerUsername");
+
+// Username
+const username = localStorage.getItem("userName");
+if (usernameElement) {
+  usernameElement.textContent = username || "کاربر";
+}
 
 // Local Loader
 function showProfileLoader() {
@@ -231,3 +239,5 @@ export async function initProfile() {
     usernameInput.addEventListener("input", handleNameInput);
   }
 }
+
+initProfile();

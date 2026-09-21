@@ -1,6 +1,7 @@
 import api from "./api.js";
 import { showToast } from "../../utils/Toast.js";
 import "../../utils/notification.js";
+import "../../utils/logOut.js"
 
 // Elements
 const usernameElement = document.querySelector("#headerUsername");
@@ -39,7 +40,7 @@ async function loadBaseCurrency() {
     const profile = response.data.data.profile;
 
     // Find currency_id
-    const currencyId = profile?.currency?.id;
+    const currencyId = profile?.currency?.Moneyid;
 
     if (currencyId !== null && currencyId !== undefined && currencyId !== "") {
       await loadCurrencyById(currencyId);
@@ -110,12 +111,13 @@ function animateNumber(element, target, duration = 1500) {
     return;
   }
 
-  const numericTarget = +target || 0;
+  const numericTarget = Number(target) || 0;
   const startTime = performance.now();
 
   function update(currentTime) {
     const progress = Math.min((currentTime - startTime) / duration, 1);
-    const currentValue = numericTarget * progress;
+
+    const currentValue = Math.floor(numericTarget * progress);
 
     element.textContent = formatMoney(currentValue);
 
@@ -303,13 +305,13 @@ function renderDashboardCards() {
 
   if (!cards) return;
   // total balance
-  animateNumber(totalBalance, Number(cards.total_balance) || 0);
+  animateNumber(totalBalance, +cards.total_balance || 0);
 
   // income
-  animateNumber(incomeBalance, Math.abs(Number(cards.monthly_income) || 0));
+  animateNumber(incomeBalance, Math.abs(+cards.monthly_income || 0));
 
   // expense
-  animateNumber(expenseBalance, -Math.abs(Number(cards.monthly_expense) || 0));
+  animateNumber(expenseBalance, Math.abs(+cards.monthly_expense || 0));
 }
 
 // Top Expense Text
@@ -349,7 +351,7 @@ function renderExpenseChart() {
   expenseCategories.forEach((item) => {
     labels.push(item.category_name);
 
-    data.push(Math.abs(Number(item.amount) || 0));
+    data.push(Math.abs(+item.amount || 0));
   });
 
   if (!data.length) {
@@ -427,10 +429,10 @@ function renderTrendChart() {
   const labels = trend.map((item) => getPersianMonth(item.month));
 
   // positive income
-  const incomeData = trend.map((item) => Math.abs(Number(item.income) || 0));
+  const incomeData = trend.map((item) => Math.abs(+item.income || 0));
 
   // positive expense
-  const expenseData = trend.map((item) => Math.abs(Number(item.expense) || 0));
+  const expenseData = trend.map((item) => Math.abs(+item.expense || 0));
 
   lineChart = new Chart(ctxLine, {
     type: "line",
@@ -546,8 +548,10 @@ function renderLatestTransactions() {
     const tag = getTransactionTag(transaction);
     const date = getTransactionDate(transaction);
 
+    const amountClass = type === "expense" ? "expense-amount" : "income-amount";
+
     const displayAmount =
-      type === "expense" ? -Math.abs(amount) : Math.abs(amount);
+      type === "expense" ? Math.abs(amount) : Math.abs(amount);
 
     const row = document.createElement("tr");
 
@@ -561,7 +565,7 @@ function renderLatestTransactions() {
         <td>
           ${categoryName}
         </td>
-        <td>
+        <td class="${amountClass}">
           ${formatMoney(displayAmount)}
         </td>
         <td>

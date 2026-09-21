@@ -1,10 +1,7 @@
-import { initProfile } from "./profile.js";
-import "./wallet.js";
 import api from "./api.js";
 import { showToast } from "../../utils/Toast.js";
 import "../../utils/notification.js";
-
-initProfile();
+import "../../utils/logOut.js";
 
 //Element
 const categoryList = document.querySelector("#categoryList");
@@ -18,6 +15,14 @@ const categoryNameInput = document.querySelector("#categoryName");
 const parentCategorySelect = document.querySelector("#parentCategory");
 const iconPicker = document.querySelector("#iconPicker");
 const colorPicker = document.querySelector("#colorPicker");
+const usernameElement = document.querySelector("#headerUsername");
+
+// Username
+const username = localStorage.getItem("userName");
+
+if (usernameElement) {
+  usernameElement.textContent = username || "کاربر";
+}
 
 // Skeleton Loading
 function showCategorySkeleton() {

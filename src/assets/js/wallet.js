@@ -1,5 +1,7 @@
 import api from "./api.js";
 import { showToast } from "../../utils/Toast.js";
+import "../../utils/logOut.js";
+import { all } from "axios";
 
 // Elements
 const walletList = document.getElementById("walletList");
@@ -34,6 +36,14 @@ const membersModalOverlay = document.querySelector(
 );
 const membersList = document.getElementById("membersList");
 const membersLoading = document.getElementById("membersLoading");
+const usernameElement = document.querySelector("#headerUsername");
+
+// Username
+const username = localStorage.getItem("userName");
+
+if (usernameElement) {
+  usernameElement.textContent = username || "کاربر";
+}
 
 // Skeleton Loading
 function showWalletSkeleton() {
@@ -273,7 +283,7 @@ async function loadWalletCurrencies() {
     currencies.forEach((currency) => {
       const option = document.createElement("option");
 
-      option.value = currency.name;
+      option.value = currency.ISO;
 
       option.textContent = currency.name ?? "ارز";
 
@@ -483,7 +493,8 @@ function setupWalletButtons() {
       if (!wallet) return;
       editingWalletId = id;
       walletName.value = wallet.name || "";
-      const currency = wallet.currency ?? "";
+      console.log(wallet.currency);
+      const currency = wallet.currency || "";
       walletCurrency.value = currency;
       walletModalTitle.textContent = "ویرایش کیف پول";
 
@@ -591,6 +602,7 @@ async function deleteWallet(walletId) {
 // Update Wallet
 async function updateWallet(walletId, name) {
   try {
+    await loadWalletCurrencies();
     const response = await api.put(`/wallet/update/${walletId}`, {
       name: name,
     });
