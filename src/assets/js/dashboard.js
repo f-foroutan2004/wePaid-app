@@ -1,7 +1,8 @@
 import api from "./api.js";
 import { showToast } from "../../utils/Toast.js";
 import "../../utils/notification.js";
-import "../../utils/logOut.js"
+import "../../utils/logOut.js";
+import "./walletSelector.js";
 
 // Elements
 const usernameElement = document.querySelector("#headerUsername");
@@ -741,7 +742,7 @@ function showNoWalletState() {
   `;
 
   document.getElementById("createWalletBtn")?.addEventListener("click", () => {
-    window.location.href = "./setting.html";
+    window.location.href = "./wallet.html";
   });
 }
 

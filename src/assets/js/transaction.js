@@ -1,7 +1,8 @@
 import api from "./api.js";
 import { showToast } from "../../utils/Toast.js";
 import "../../utils/notification.js";
-import "../../utils/logOut.js"
+import "../../utils/logOut.js";
+import "./walletSelector.js";
 
 // Elements
 const usernameElement = document.querySelector("#headerUsername");
@@ -35,6 +36,13 @@ const uploadPercent = document.querySelector("#uploadPercent");
 const uploadProgressFill = document.querySelector(".upload-progress-fill");
 const tagOptionsContainer = document.querySelector(".tag-options");
 const paymentOptionsContainer = document.querySelector(".payment-options");
+const tagOptions = document.getElementById("tagOptions");
+const addTagBtn = document.getElementById("addTagBtn");
+const newTagForm = document.getElementById("newTagForm");
+const newTagInput = document.getElementById("newTagInput");
+const saveTagBtn = document.getElementById("saveTagBtn");
+const cancelTagBtn = document.getElementById("cancelTagBtn");
+const newTagError = document.getElementById("newTagError");
 
 // State
 let selectedCategory = "";
@@ -52,6 +60,7 @@ let baseCurrency = "";
 let displayCurrency = null;
 let receiptImage = null;
 let croppedReceipt = null;
+let receiptFile = null;
 
 // Username
 const username = localStorage.getItem("userName");
@@ -671,8 +680,6 @@ async function getTags() {
       });
     }
   } catch (error) {
-    console.error("Tags Error:", error);
-
     showToast(
       error.response?.data?.message || "برچسب‌ها دریافت نشدند.",
       "error",
@@ -779,11 +786,20 @@ async function getPaymentMethods() {
 
         const label = document.createElement("label");
         label.className = "payment-option";
+        const paymentValueMap = {
+          نقدی: "cash",
+          کارت: "card",
+          آنلاین: "online",
+          "انتقال بانکی": "bank_transfer",
+        };
+
+        const paymentValue = paymentValueMap[methodName] || methodName;
+
         label.innerHTML = `
           <input
             type="radio"
             name="payment"
-            value="${methodName}"
+            value="${paymentValue}"
             data-payment-id="${methodId || ""}"
           />
           <span>
@@ -1146,16 +1162,25 @@ function resetPaymentSelection() {
 // Create New Transaction
 async function createNewTransaction(e) {
   e.preventDefault();
+
   const title = document.getElementById("transactionTitle")?.value.trim();
-  const amount = +transactionAmount.value.replace(/,/g, "");
+
+  const rawAmount = transactionAmount.value.replace(/,/g, "").trim();
+
+  const amount = +rawAmount;
 
   const selectedPayment = document.querySelector(
     'input[name="payment"]:checked',
   );
 
   const paymentMethod = selectedPayment?.value || "";
+
   const token = localStorage.getItem("token");
   const walletId = localStorage.getItem("walletId");
+
+  // -----------------------------
+  // Validation
+  // -----------------------------
 
   if (!title) {
     showToast("عنوان تراکنش را وارد کنید.", "error");
@@ -1163,17 +1188,17 @@ async function createNewTransaction(e) {
   }
 
   if (!amount || amount <= 0) {
-    showToast("مبلغ تراکنش باید بیشتر از صفر باشد.", "error");
+    showToast("مبلغ تراکنش را وارد کنید.", "error");
+    return;
+  }
+
+  if (!selectedCategoryId) {
+    showToast("دسته‌بندی تراکنش را انتخاب کنید.", "error");
     return;
   }
 
   if (!paymentMethod) {
-    showToast("لطفاً روش پرداخت را انتخاب کنید.", "error");
-    return;
-  }
-
-  if (!token) {
-    showToast("توکن ورود پیدا نشد.", "error");
+    showToast("روش پرداخت را انتخاب کنید.", "error");
     return;
   }
 
@@ -1182,8 +1207,8 @@ async function createNewTransaction(e) {
     return;
   }
 
-  if (!selectedCategoryId) {
-    showToast("لطفاً دسته‌بندی را انتخاب کنید.", "error");
+  if (!token) {
+    showToast("لطفاً دوباره وارد حساب شوید.", "error");
     return;
   }
 
@@ -1199,23 +1224,50 @@ async function createNewTransaction(e) {
     );
 
     const selectedTagId = selectedTagInput?.value || "";
+
+    // -----------------------------
+    // FormData
+    // -----------------------------
+
     const transactionData = new FormData();
+
     transactionData.append("wallet_id", walletId);
+
     transactionData.append("category_id", selectedCategoryId);
+
     transactionData.append("title", title);
+
     transactionData.append("payment_method", paymentMethod);
+
     transactionData.append("type", type);
+
     transactionData.append("amount", amount);
+
+    // -----------------------------
+    // Tag
+    // -----------------------------
 
     if (selectedTagId) {
       transactionData.append("tag_ids[]", selectedTagId);
     }
 
-    if (croppedReceipt) {
-      transactionData.append("receipt_image", croppedReceipt);
-    } else {
-      transactionData.append("receipt_image", "");
+    // -----------------------------
+    // Receipt Image
+    // -----------------------------
+
+    if (croppedReceipt instanceof File) {
+      transactionData.append(
+        "receipt_image",
+        croppedReceipt,
+        croppedReceipt.name,
+      );
+    } else if (receiptFile instanceof File) {
+      transactionData.append("receipt_image", receiptFile, receiptFile.name);
     }
+
+    // -----------------------------
+    // Recurring Transaction
+    // -----------------------------
 
     const isPeriodic = recurringTransaction?.checked || false;
 
@@ -1226,22 +1278,35 @@ async function createNewTransaction(e) {
         document.getElementById("recurringFrequency")?.value || "";
 
       const repeatCount = document.getElementById("repeatCount")?.value || "";
+
       const endDate = document.getElementById("recurringEndDate")?.value || "";
+
       transactionData.append("frequency", frequency);
+
       transactionData.append("repeat_count", repeatCount);
+
       transactionData.append("end_date", endDate);
     } else {
       transactionData.append("frequency", "");
+
       transactionData.append("repeat_count", "");
+
       transactionData.append("end_date", "");
     }
 
-    let response;
+    // -----------------------------
+    // Create Transaction
+    // -----------------------------
 
+    let response;
     try {
       response = await api.post("/transaction/create", transactionData);
     } catch (error) {
       const responseData = error.response?.data?.data;
+
+      // -----------------------------
+      // Over Budget Confirmation
+      // -----------------------------
 
       if (
         error.response?.status === 409 &&
@@ -1263,14 +1328,20 @@ async function createNewTransaction(e) {
         showSaveLoader();
 
         transactionData.append("confirm_over_budget", "true");
+
         response = await api.post("/transaction/create", transactionData);
       } else {
         throw error;
       }
     }
 
+    // -----------------------------
+    // Success
+    // -----------------------------
+
     if (response?.data?.success !== false) {
       await getTransactions();
+
       showToast(
         response?.data?.message || "تراکنش با موفقیت ثبت شد.",
         "success",
@@ -1282,10 +1353,22 @@ async function createNewTransaction(e) {
       resetTagSelection();
       resetPaymentSelection();
 
+      // Reset receipt
+      receiptImage = null;
+      receiptFile = null;
       croppedReceipt = null;
+
+      if (receiptInput) {
+        receiptInput.value = "";
+      }
     }
   } catch (error) {
-    showToast(error.response?.data?.data?.message || "ثبت تراکنش انجام نشد.");
+    showToast(
+      error.response?.data?.data?.message ||
+        error.response?.data?.message ||
+        "ثبت تراکنش انجام نشد.",
+      "error",
+    );
   } finally {
     hideSaveLoader();
   }
@@ -1443,6 +1526,8 @@ function openEditModal(row) {
         }
       });
   }
+
+  const paymenttt = getTransactionPayment(transaction);
 
   // Transaction Type
   const transactionType = transaction.type || "expense";
@@ -1693,6 +1778,7 @@ if (addTransactionBtn) {
     resetPaymentSelection();
 
     openModal();
+    receiptPreview.classList.add("hidden");
   });
 }
 
@@ -1731,54 +1817,25 @@ if (receiptInput) {
       return;
     }
 
-    uploadProgress?.classList.remove("hidden");
+    // فایل اصلی را نگه می‌داریم تا در صورت نیاز مستقیم ارسال شود
+    receiptFile = file;
 
-    if (uploadProgressFill) {
-      uploadProgressFill.style.width = "0%";
-    }
-
-    if (uploadPercent) {
-      uploadPercent.textContent = "0%";
-    }
+    // اگر قبلاً عکس کراپ شده بود، پاک می‌کنیم
+    croppedReceipt = null;
 
     const reader = new FileReader();
 
-    reader.addEventListener("progress", (event) => {
-      if (event.lengthComputable) {
-        const percent = Math.round((event.loaded / event.total) * 100);
-
-        if (uploadProgressFill) {
-          uploadProgressFill.style.width = `${percent}%`;
-        }
-
-        if (uploadPercent) {
-          uploadPercent.textContent = `${percent}%`;
-        }
-      }
-    });
-
-    reader.addEventListener("load", (e) => {
+    reader.onload = (e) => {
       const img = new Image();
-      img.addEventListener("load", () => {
+
+      img.onload = () => {
         receiptImage = img;
+
         drawReceipt(img);
-        receiptPreview?.classList.remove("hidden");
-
-        if (uploadProgressFill) {
-          uploadProgressFill.style.width = "100%";
-        }
-
-        if (uploadPercent) {
-          uploadPercent.textContent = "100%";
-        }
-
-        setTimeout(() => {
-          uploadProgress?.classList.add("hidden");
-        }, 500);
-      });
+      };
 
       img.src = e.target.result;
-    });
+    };
 
     reader.readAsDataURL(file);
   });
@@ -1824,12 +1881,17 @@ if (cropReceiptBtn) {
 
     const cropWidth = receiptCanvas.width * 0.8;
     const cropHeight = receiptCanvas.height * 0.8;
+
     const startX = (receiptCanvas.width - cropWidth) / 2;
     const startY = (receiptCanvas.height - cropHeight) / 2;
+
     const croppedCanvas = document.createElement("canvas");
+
     croppedCanvas.width = cropWidth;
     croppedCanvas.height = cropHeight;
+
     const croppedCtx = croppedCanvas.getContext("2d");
+
     croppedCtx.drawImage(
       receiptCanvas,
       startX,
@@ -1842,11 +1904,30 @@ if (cropReceiptBtn) {
       cropHeight,
     );
 
+    // نمایش تصویر کراپ‌شده
     receiptCanvas.width = cropWidth;
     receiptCanvas.height = cropHeight;
+
     ctx.clearRect(0, 0, receiptCanvas.width, receiptCanvas.height);
+
     ctx.drawImage(croppedCanvas, 0, 0);
-    croppedReceipt = croppedCanvas.toDataURL("image/jpeg", 0.9);
+
+    // تبدیل Canvas به File واقعی
+    croppedCanvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          showToast("خطا در آماده‌سازی تصویر.", "error");
+
+          return;
+        }
+
+        croppedReceipt = new File([blob], "receipt.jpg", {
+          type: "image/jpeg",
+        });
+      },
+      "image/jpeg",
+      0.9,
+    );
   });
 }
 
@@ -1937,16 +2018,46 @@ async function getTransactions() {
     return;
   }
 
+  const walletId = localStorage.getItem("walletId");
+
+  if (!walletId) {
+    transactions = [];
+    currentTransactionCount = 0;
+    hasMoreTransactions = false;
+
+    showTransactions([]);
+
+    showToast("کیف پول انتخاب نشده است.", "error");
+    return;
+  }
+
   showTransactionSkeleton();
 
   try {
-    const response = await api.get("/transactions");
-    const data = response.data?.data;
-    transactions = data?.transactions || [];
+    const response = await api.get("/transactions", {
+      params: {
+        wallet_id: walletId,
+      },
+    });
 
-    if (!Array.isArray(transactions)) {
-      transactions = [];
+    const data = response.data?.data;
+
+    let fetchedTransactions = data?.transactions || [];
+
+    if (!Array.isArray(fetchedTransactions)) {
+      fetchedTransactions = [];
     }
+
+    // فقط تراکنش‌های کیف پول فعال
+    transactions = fetchedTransactions.filter((transaction) => {
+      const transactionWalletId =
+        transaction.wallet_id ??
+        transaction.walletId ??
+        transaction.wallet?.id ??
+        transaction.wallet?.wallet_id;
+
+      return String(transactionWalletId) === String(walletId);
+    });
 
     displayCurrency = data?.display_currency || null;
 
@@ -1960,9 +2071,17 @@ async function getTransactions() {
     }
 
     currentTransactionCount = transactions.length;
+
     hasMoreTransactions = true;
+
     filterTransactions();
   } catch (error) {
+    console.error("Get transactions error:", error);
+
+    transactions = [];
+    currentTransactionCount = 0;
+    hasMoreTransactions = false;
+
     transactionBody.innerHTML = `
       <tr>
         <td
@@ -2093,14 +2212,133 @@ document.addEventListener("click", (e) => {
   }
 });
 
-transactionModalAmount.addEventListener("input", function () {
-  let value = this.value.replace(/\D/g, "");
-  if (value) {
-    this.value = Number(value).toLocaleString("en-US");
-  } else {
-    this.value = "";
+addTagBtn.addEventListener("click", () => {
+  newTagForm.classList.remove("hidden");
+  addTagBtn.classList.add("hidden");
+
+  newTagInput.value = "";
+  newTagError.classList.add("hidden");
+
+  newTagInput.focus();
+});
+
+cancelTagBtn.addEventListener("click", () => {
+  newTagForm.classList.add("hidden");
+  addTagBtn.classList.remove("hidden");
+
+  newTagInput.value = "";
+  newTagError.classList.add("hidden");
+});
+
+saveTagBtn.addEventListener("click", async () => {
+  const tagName = newTagInput.value.trim();
+
+  if (!tagName) {
+    newTagError.textContent = "نام برچسب را وارد کنید";
+    newTagError.classList.remove("hidden");
+    newTagInput.focus();
+    return;
+  }
+
+  try {
+    saveTagBtn.disabled = true;
+
+    const response = await api.post("/tag/create", {
+      name: tagName,
+    });
+
+    const createdTag =
+      response.data?.data?.tag || response.data?.tag || response.data?.data;
+
+    if (!createdTag) {
+      return;
+    }
+
+    // اضافه کردن تگ جدید به لیست
+    addTagToUI(createdTag);
+
+    // بستن فرم
+    newTagForm.classList.add("hidden");
+    addTagBtn.classList.remove("hidden");
+
+    newTagInput.value = "";
+    newTagError.classList.add("hidden");
+  } catch (error) {
+    console.error("Create tag error:", error);
+
+    newTagError.textContent =
+      error.response?.data?.message || "خطا در ایجاد برچسب";
+
+    newTagError.classList.remove("hidden");
+  } finally {
+    saveTagBtn.disabled = false;
   }
 });
 
+function addTagToUI(tag) {
+  const tagId = tag.id;
+  const tagName = tag.name;
+
+  const label = document.createElement("label");
+  label.className = "tag-option";
+
+  label.innerHTML = `
+    <input
+      type="checkbox"
+      name="tags"
+      value="${tagId}"
+      checked
+    />
+
+    <span>
+      ${tagName}
+    </span>
+  `;
+
+  tagOptions.appendChild(label);
+}
+
+transactionAmount.addEventListener("input", function () {
+  let value = this.value;
+
+  // حذف کاماهای قبلی
+  value = value.replace(/,/g, "");
+
+  // فقط عدد و نقطه
+  value = value.replace(/[^\d.]/g, "");
+
+  // فقط یک نقطه مجاز باشد
+  const firstDotIndex = value.indexOf(".");
+
+  if (firstDotIndex !== -1) {
+    value =
+      value.slice(0, firstDotIndex + 1) +
+      value.slice(firstDotIndex + 1).replace(/\./g, "");
+  }
+
+  // جدا کردن قسمت صحیح و اعشار
+  let [integerPart, decimalPart] = value.split(".");
+
+  // اگر کاربر فقط نقطه زده
+  if (integerPart === "") {
+    integerPart = "0";
+  }
+
+  // حذف صفرهای اضافی ابتدای عدد
+  if (integerPart.length > 1) {
+    integerPart = integerPart.replace(/^0+/, "") || "0";
+  }
+
+  // فرمت هزارگان قسمت صحیح
+  integerPart = Number(integerPart).toLocaleString("en-US");
+
+  // اگر نقطه وجود داشته، حتماً نگهش دار
+  if (value.includes(".")) {
+    this.value =
+      integerPart + "." + (decimalPart !== undefined ? decimalPart : "");
+  } else {
+    this.value = integerPart;
+  }
+});
 // Init
 initTransactionsPage();

@@ -67,6 +67,6 @@ if (logoutBtn) {
     localStorage.removeItem("token");
     localStorage.removeItem("userName");
 
-    window.location.href = "./register.html";
+    window.location.href = "./login.html";
   });
 }

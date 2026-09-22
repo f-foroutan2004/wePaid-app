@@ -1,7 +1,7 @@
 import api from "./api.js";
 import { showToast } from "../../utils/Toast.js";
 import "../../utils/logOut.js";
-import { all } from "axios";
+import "./walletSelector.js";
 
 // Elements
 const walletList = document.getElementById("walletList");
@@ -37,6 +37,11 @@ const membersModalOverlay = document.querySelector(
 const membersList = document.getElementById("membersList");
 const membersLoading = document.getElementById("membersLoading");
 const usernameElement = document.querySelector("#headerUsername");
+const saveWalletButton = document.querySelector("#walletForm .save-btn");
+const sendInviteButton = document.querySelector("#inviteForm .save-btn");
+
+let isSavingWallet = false;
+let isSendingInvite = false;
 
 // Username
 const username = localStorage.getItem("userName");
@@ -52,6 +57,34 @@ function showWalletSkeleton() {
     <div class="wallet-skeleton skeleton"></div>
     <div class="wallet-skeleton skeleton"></div>
   `;
+}
+
+function disableSaveWalletButton() {
+  if (!saveWalletButton) return;
+
+  saveWalletButton.disabled = true;
+  saveWalletButton.textContent = "در حال ذخیره...";
+}
+
+function enableSaveWalletButton() {
+  if (!saveWalletButton) return;
+
+  saveWalletButton.disabled = false;
+  saveWalletButton.textContent = "ذخیره";
+}
+
+function disableSendInviteButton() {
+  if (!sendInviteButton) return;
+
+  sendInviteButton.disabled = true;
+  sendInviteButton.textContent = "در حال ارسال...";
+}
+
+function enableSendInviteButton() {
+  if (!sendInviteButton) return;
+
+  sendInviteButton.disabled = false;
+  sendInviteButton.textContent = "ارسال دعوت";
 }
 
 function showInvitationSkeleton() {
@@ -324,6 +357,10 @@ function closeWalletModalFunc() {
 // Handle Wallet Submit
 async function handleWalletSubmit(event) {
   event.preventDefault();
+
+  // جلوگیری از ارسال چندباره
+  if (isSavingWallet) return;
+
   const name = walletName?.value.trim();
   const currency = walletCurrency?.value;
 
@@ -334,15 +371,22 @@ async function handleWalletSubmit(event) {
 
   nameModalError?.classList.add("hidden");
 
-  // Edit
-  if (editingWalletId !== null) {
-    await updateWallet(editingWalletId, name);
+  isSavingWallet = true;
+  disableSaveWalletButton();
 
-    return;
+  try {
+    // Edit
+    if (editingWalletId !== null) {
+      await updateWallet(editingWalletId, name);
+      return;
+    }
+
+    // Create
+    await createWallet(name, currency);
+  } finally {
+    isSavingWallet = false;
+    enableSaveWalletButton();
   }
-
-  // Create
-  await createWallet(name, currency);
 }
 
 // Create Wallet
@@ -649,11 +693,14 @@ function closeInviteModalFunc() {
 // Invite Submit
 async function handleInviteSubmit(event) {
   event.preventDefault();
+
+  // جلوگیری از ارسال چندباره
+  if (isSendingInvite) return;
+
   const user = inviteEmail?.value.trim();
 
   if (!user) {
     emailModalError?.classList.remove("hidden");
-
     return;
   }
 
@@ -663,6 +710,9 @@ async function handleInviteSubmit(event) {
     showToast("کیف پول انتخاب نشده است", "error");
     return;
   }
+
+  isSendingInvite = true;
+  disableSendInviteButton();
 
   try {
     const response = await api.post("/invitation/create", {
@@ -678,9 +728,18 @@ async function handleInviteSubmit(event) {
       return;
     }
 
-    showToast(response.data?.data?.message || "ارسال دعوت‌نامه انجام نشد");
+    showToast(
+      response.data?.data?.message || "ارسال دعوت‌نامه انجام نشد",
+      "error",
+    );
   } catch (error) {
-    showToast(error.response?.data?.data?.message || "خطا در ارسال دعوت‌نامه");
+    showToast(
+      error.response?.data?.data?.message || "خطا در ارسال دعوت‌نامه",
+      "error",
+    );
+  } finally {
+    isSendingInvite = false;
+    enableSendInviteButton();
   }
 }
 

@@ -2,6 +2,7 @@ import api from "./api.js";
 import { showToast } from "../../utils/Toast.js";
 import "../../utils/notification.js";
 import "../../utils/logOut.js";
+import "./walletSelector.js";
 
 //Element
 const categoryList = document.querySelector("#categoryList");

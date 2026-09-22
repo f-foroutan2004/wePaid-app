@@ -26,6 +26,39 @@
 
       <div class="header-actions">
         <!-- Profile -->
+        <!-- Wallet Selector -->
+        <div class="wallet-selector-wrapper">
+          <button
+            class="wallet-selector-btn"
+            id="walletSelectorBtn"
+            type="button"
+          >
+            <div class="wallet-selector-icon">
+              <i class="fas fa-wallet"></i>
+            </div>
+
+            <div class="wallet-selector-info">
+              <span>کیف پول فعال</span>
+              <strong id="selectedWalletName">انتخاب کیف پول</strong>
+            </div>
+
+            <i class="fas fa-chevron-down wallet-selector-arrow"></i>
+          </button>
+
+          <!-- Wallet Dropdown -->
+          <div
+            class="wallet-selector-dropdown hidden"
+            id="walletSelectorDropdown"
+          >
+            <div class="wallet-dropdown-header">
+              <span>انتخاب کیف پول</span>
+            </div>
+
+            <div class="wallet-list" id="walletListHeader">
+              <div class="wallet-list-loading">در حال دریافت کیف پول‌ها...</div>
+            </div>
+          </div>
+        </div>
         <div class="profile-wrapper">
           <button
             class="profile-btn"
@@ -310,6 +343,7 @@
                 <input
                   type="text"
                   id="transactionAmount"
+                  inputmode="decimal"
                   placeholder="0"
                   min="0"
                   step="0.01"
@@ -359,10 +393,36 @@
 
             <!-- Tags -->
             <div class="form-group">
-              <label> برچسب‌ها </label>
-              <div class="tag-options">
-                <!-- created by js -->
+              <label>برچسب‌ها</label>
+
+              <div class="tag-options" id="tagOptions">
+                <!-- تگ‌ها توسط JS ساخته می‌شوند -->
               </div>
+
+              <button type="button" class="add-tag-btn" id="addTagBtn">
+                <i class="fas fa-plus"></i>
+                افزودن برچسب
+              </button>
+
+              <div class="new-tag-form hidden" id="newTagForm">
+                <input
+                  type="text"
+                  id="newTagInput"
+                  placeholder="نام برچسب"
+                  maxlength="30"
+                />
+
+                <button type="button" id="saveTagBtn">
+                  <i class="fas fa-check"></i>
+                  افزودن
+                </button>
+
+                <button type="button" id="cancelTagBtn">انصراف</button>
+              </div>
+
+              <p class="newTagError hidden" id="newTagError">
+                نام برچسب را وارد کنید
+              </p>
             </div>
 
             <!-- Payment Method -->

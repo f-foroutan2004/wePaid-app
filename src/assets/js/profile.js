@@ -1,6 +1,7 @@
 import api from "./api.js";
 import { showToast } from "../../utils/Toast.js";
 import "../../utils/logOut.js";
+import "./walletSelector.js";
 
 //Element
 const profileForm = document.getElementById("profileForm");
@@ -9,6 +10,7 @@ const currencySelect = document.getElementById("currency");
 const headerUsername = document.getElementById("headerUsername");
 const nameError = document.querySelector(".nameError");
 const usernameElement = document.querySelector("#headerUsername");
+const saveProfileButton = document.querySelector(".save-btn");
 
 // Username
 const username = localStorage.getItem("userName");
@@ -190,7 +192,6 @@ async function handleProfileSubmit(event) {
     }
 
     usernameInput?.focus();
-
     return;
   }
 
@@ -202,14 +203,15 @@ async function handleProfileSubmit(event) {
   // Currency validation
   if (!currencyId) {
     showToast("لطفاً واحد پول را انتخاب کنید.", "error");
-
     return;
   }
+
+  disableSaveButton();
 
   try {
     await saveProfile(name, currencyId);
   } finally {
-    hideProfileLoader();
+    enableSaveButton();
   }
 }
 
@@ -238,6 +240,25 @@ export async function initProfile() {
   if (usernameInput) {
     usernameInput.addEventListener("input", handleNameInput);
   }
+}
+
+function disableSaveButton() {
+  if (!saveProfileButton) return;
+
+  saveProfileButton.disabled = true;
+  saveProfileButton.innerHTML = `
+    <span>در حال ذخیره...</span>
+  `;
+}
+
+function enableSaveButton() {
+  if (!saveProfileButton) return;
+
+  saveProfileButton.disabled = false;
+  saveProfileButton.innerHTML = `
+    <i class="fas fa-save"></i>
+    ذخیره تغییرات
+  `;
 }
 
 initProfile();

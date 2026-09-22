@@ -2,6 +2,7 @@ import api from "./api.js";
 import { showToast } from "../../utils/Toast.js";
 import "../../utils/notification.js";
 import "../../utils/logOut.js";
+import "./walletSelector.js";
 
 // Elements
 const addBudgetBtn = document.getElementById("addBudgetBtn");
@@ -17,6 +18,10 @@ const usernameElement = document.querySelector("#headerUsername");
 const modalOverlay = document.querySelector(".modal-overlay");
 const modalContent = document.querySelector(".modal-content");
 const amountError = document.querySelector(".amountError");
+
+const saveBudgetButton = document.querySelector("#budgetForm .save-btn");
+
+let isSavingBudget = false;
 
 // Global Loader
 const globalLoader = document.getElementById("globalLoader");
@@ -514,6 +519,8 @@ if (budgetForm) {
   budgetForm.addEventListener("submit", async function (event) {
     event.preventDefault();
 
+    if (isSavingBudget) return;
+
     const categoryId = budgetCategory.value;
     const amount = +budgetAmount.value.replace(/,/g, "");
 
@@ -531,14 +538,23 @@ if (budgetForm) {
       return;
     }
 
-    // Edit
-    if (editingCard) {
-      await updateBudget(editingCard, categoryId, amount);
-      return;
-    }
+    // شروع ذخیره
+    isSavingBudget = true;
+    disableSaveBudgetButton();
 
-    // Create
-    await createBudget(categoryId, amount);
+    try {
+      // Edit
+      if (editingCard) {
+        await updateBudget(editingCard, categoryId, amount);
+        return;
+      }
+
+      // Create
+      await createBudget(categoryId, amount);
+    } finally {
+      isSavingBudget = false;
+      enableSaveBudgetButton();
+    }
   });
 }
 
@@ -666,13 +682,53 @@ async function init() {
   }
 }
 
-budgetAmount.addEventListener("input", function () {
-  let value = this.value.replace(/\D/g, "");
+function disableSaveBudgetButton() {
+  if (!saveBudgetButton) return;
 
-  if (value) {
-    this.value = Number(value).toLocaleString("en-US");
+  saveBudgetButton.disabled = true;
+  saveBudgetButton.textContent = "در حال ذخیره...";
+}
+
+function enableSaveBudgetButton() {
+  if (!saveBudgetButton) return;
+
+  saveBudgetButton.disabled = false;
+  saveBudgetButton.textContent = "ذخیره بودجه";
+}
+
+budgetAmount.addEventListener("input", function () {
+  let value = this.value;
+
+  // حذف هر چیزی به جز عدد و نقطه
+  value = value.replace(/[^\d.]/g, "");
+
+  // فقط اجازه یک نقطه اعشار
+  const parts = value.split(".");
+
+  if (parts.length > 2) {
+    value = parts[0] + "." + parts.slice(1).join("");
+  }
+
+  // جدا کردن بخش صحیح و اعشار
+  let integerPart = parts[0];
+  let decimalPart = parts[1];
+
+  // حذف صفرهای اضافی ابتدای عدد
+  if (integerPart.length > 1) {
+    integerPart = integerPart.replace(/^0+/, "") || "0";
+  }
+
+  // فرمت هزارگان
+  if (integerPart) {
+    integerPart = Number(integerPart).toLocaleString("en-US");
+  }
+
+  // اگر کاربر نقطه گذاشته، نقطه را نگه دار
+  if (value.includes(".")) {
+    this.value =
+      integerPart + "." + (decimalPart !== undefined ? decimalPart : "");
   } else {
-    this.value = "";
+    this.value = integerPart;
   }
 });
 

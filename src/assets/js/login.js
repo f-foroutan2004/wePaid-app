@@ -90,6 +90,7 @@ async function getToken(e) {
     const token = response.data?.data?.token;
 
     localStorage.setItem("token", token);
+    localStorage.setItem("userName", response.data.data.user.name);
 
     if (response) {
       showToast(successMessage, "success");
@@ -129,3 +130,4 @@ passwordToggle.addEventListener("click", () => {
     passwordToggle.classList.add("fa-eye");
   }
 });
+
